@@ -1,0 +1,222 @@
+<nav style="background: var(--surface); border-bottom: 1px solid var(--border); padding: 16px 0;" class="mb-4">
+  <div class="container d-flex justify-content-between align-items-center">
+    <span style="font-weight: 600; font-size: 18px; color: var(--text-primary);">📅 SyncUp</span>
+    <div class="d-flex align-items-center gap-3">
+      <span style="font-size: 14px; color: var(--text-secondary);">👤 {{ getCurrentUserName() }}</span>
+      <button class="btn btn-outline-secondary btn-sm" (click)="logout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container mb-5">
+
+  <div *ngIf="notifications.length > 0" class="alert alert-info shadow-sm">
+    <h5 class="mb-2">🔔 Recent Activity</h5>
+    <ul class="mb-0">
+      <li *ngFor="let note of notifications">{{ note }}</li>
+    </ul>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Users (read-only) -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">👥 Registered Users</h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted small">Users sign up on their own at <code>/sign-up</code>.</p>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item px-0" *ngFor="let user of users">
+              <strong>{{ user.name }}</strong> <span class="text-muted">— {{ user.email }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Meeting -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">🗓️ Meetings</h5>
+        </div>
+        <div class="card-body">
+          <form #meetingForm="ngForm" (ngSubmit)="addMeeting()" class="mb-3">
+
+            <div class="row g-2">
+              <div class="col-12">
+                <input type="text" class="form-control" placeholder="Meeting title" name="title"
+                  [(ngModel)]="newMeeting.title" #title="ngModel" required minlength="3">
+                <div *ngIf="title.invalid && title.touched" class="text-danger small">Title is required.</div>
+              </div>
+              <div class="col-6">
+                <input type="date" class="form-control" name="meetingDate" [(ngModel)]="newMeeting.meetingDate" required>
+              </div>
+              <div class="col-6">
+                <input type="time" class="form-control" name="meetingTime" [(ngModel)]="newMeeting.meetingTime" required>
+              </div>
+              <div class="col-6">
+                <select class="form-select" name="priority" [(ngModel)]="newMeeting.priority">
+                  <option value="High">High Priority</option>
+                  <option value="Medium">Medium Priority</option>
+                  <option value="Low">Low Priority</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <select class="form-select" name="creatorId" [(ngModel)]="newMeeting.creatorId" required>
+                  <option [ngValue]="null" disabled>Creator</option>
+                  <option *ngFor="let user of users" [ngValue]="user.id">{{ user.name }}</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary w-100" [disabled]="meetingForm.invalid">+ Add Meeting</button>
+              </div>
+            </div>
+          </form>
+
+          <hr>
+
+          <div class="card mb-2 border-0 bg-light" *ngFor="let meeting of meetings">
+            <div class="card-body py-2 px-3">
+              <div class="d-flex justify-content-between align-items-start">
+                <div>
+                  <strong>{{ meeting.title }}</strong><br>
+                  <span class="text-muted small">{{ meeting.meetingDate | date }}</span>
+                </div>
+                <div>
+                  <span class="badge bg-secondary">{{ meeting.priority }}</span>
+                  <span class="badge"
+                    [ngClass]="{
+                      'bg-success': meeting.status === 'Scheduled',
+                      'bg-danger': meeting.status === 'Cancelled',
+                      'bg-warning text-dark': meeting.status === 'Rescheduled'
+                    }">{{ meeting.status }}</span>
+                </div>
+              </div>
+              <div class="mt-2 d-flex gap-2 align-items-center flex-wrap">
+                <button class="btn btn-sm btn-outline-danger" (click)="cancelMeeting(meeting)"
+                  [disabled]="meeting.status === 'Cancelled'">Cancel</button>
+                <input type="date" class="form-control form-control-sm" style="width:135px" #newDate>
+                <input type="time" class="form-control form-control-sm" style="width:110px" #newTime>
+                <button class="btn btn-sm btn-outline-warning" (click)="rescheduleMeeting(meeting, newDate.value, newTime.value)">Reschedule</button>
+                <button class="btn btn-sm btn-outline-primary" (click)="copyLink(meeting.id)">📋 Copy Invite Link</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Availabilities (read-only) -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">🕒 Submitted Availabilities</h5>
+        </div>
+        <div class="card-body">
+          <p class="text-muted small">Participants submit this via their meeting invite link.</p>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item px-0" *ngFor="let avail of availabilities">
+              <strong>{{ getUserName(avail.userId) }}</strong> —
+              <span *ngIf="avail.specificDate" class="badge bg-info text-dark">{{ avail.specificDate | date }}</span>
+              <span *ngIf="!avail.specificDate" class="badge bg-secondary">{{ avail.dayOfWeek }} (recurring)</span>
+              <span class="text-muted">{{ avail.startTime }} – {{ avail.endTime }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Participant -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">👤 Meeting Participants</h5>
+        </div>
+        <div class="card-body">
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Meeting</label>
+            <select class="form-select" [(ngModel)]="participantMeetingId">
+              <option [ngValue]="null" disabled>Select a meeting</option>
+              <option *ngFor="let meeting of meetings" [ngValue]="meeting.id" [disabled]="!isMeetingUpcoming(meeting)">
+                {{ meeting.title }} {{ !isMeetingUpcoming(meeting) ? '(Past)' : '' }}
+              </option>
+            </select>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Select Users</label>
+            <div style="max-height: 180px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; padding: 8px;">
+              <div class="form-check" *ngFor="let user of users">
+                <input class="form-check-input" type="checkbox"
+                  [checked]="isUserSelected(user.id)"
+                  (change)="toggleUserSelection(user.id)"
+                  [id]="'user-' + user.id">
+                <label class="form-check-label" [for]="'user-' + user.id">{{ user.name }}</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="bulkMandatory" [(ngModel)]="bulkIsMandatory">
+            <label class="form-check-label" for="bulkMandatory">Mandatory Attendee</label>
+          </div>
+
+          <button class="btn btn-primary w-100 mb-3" (click)="addSelectedParticipants()"
+            [disabled]="!participantMeetingId || selectedUserIds.size === 0">
+            + Add Selected Participants ({{ selectedUserIds.size }})
+          </button>
+
+          <hr>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item px-0 d-flex justify-content-between align-items-center" *ngFor="let p of participants">
+              <span>{{ getUserName(p.userId) }} <span class="text-muted small">— Meeting #{{ p.meetingId }}</span></span>
+              <span class="badge" [ngClass]="p.isMandatory ? 'bg-danger' : 'bg-secondary'">
+                {{ p.isMandatory ? 'Mandatory' : 'Optional' }}
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Find Best Slot -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100 border-success">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">🎯 Find Best Meeting Slot</h5>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="findBestSlot()">
+            <div class="mb-3">
+              <select class="form-select" name="suggestMeetingId" [(ngModel)]="suggestRequest.meetingId" required>
+                <option [ngValue]="null" disabled>Select a meeting</option>
+                <option *ngFor="let meeting of meetings" [ngValue]="meeting.id">{{ meeting.title }}</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-success w-100">Find Best Slot</button>
+          </form>
+
+          <div *ngIf="suggestResult" class="mt-3">
+            <div *ngIf="suggestResult.success" class="alert alert-success">
+              ✅ <strong>Slot Found:</strong> {{ suggestResult.suggestedStartTime }} - {{ suggestResult.suggestedEndTime }}
+              on {{ suggestResult.date }}<br>
+              <span class="small">Mandatory Attendees: {{ suggestResult.mandatoryAttendees.join(', ') }}</span>
+              <div *ngIf="suggestResult.optionalAttendeesWhoCanJoin.length > 0" class="small">
+                Optional attendees who can also join: {{ suggestResult.optionalAttendeesWhoCanJoin.join(', ') }}
+              </div>
+            </div>
+            <div *ngIf="!suggestResult.success" class="alert alert-danger">
+              ❌ {{ suggestResult.message }}
+              <div *ngIf="suggestResult.fallback" class="small">{{ suggestResult.fallback }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

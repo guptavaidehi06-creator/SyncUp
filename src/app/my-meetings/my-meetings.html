@@ -1,0 +1,51 @@
+<div style="min-height: 100vh; background: var(--bg);">
+
+  <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 32px; border-bottom: 1px solid var(--border); background: var(--surface);">
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="font-weight: 600; font-size: 18px; color: var(--text-primary);">📅 SyncUp</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <span style="font-size: 14px; color: var(--text-secondary);">{{ currentUser?.name }}</span>
+      <button class="btn btn-sm btn-outline-secondary" (click)="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div style="max-width: 700px; margin: 0 auto; padding: 32px 24px;">
+
+    <h2 style="margin-bottom: 4px;">My Meetings</h2>
+    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Meetings you've been invited to.</p>
+
+    <div *ngIf="myMeetings.length === 0" style="text-align: center; padding: 40px 0; color: var(--text-muted);">
+      You haven't been added to any meetings yet.
+    </div>
+
+    <div *ngFor="let meeting of myMeetings"
+      style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <p style="font-weight: 600; margin: 0 0 4px; color: var(--text-primary);">{{ meeting.title }}</p>
+        <p style="font-size: 13px; color: var(--text-muted); margin: 0;">
+          {{ meeting.meetingDate | date:'mediumDate' }} · {{ meeting.meetingTime }}
+        </p>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span *ngIf="meeting.status === 'Cancelled'"
+          style="font-size: 12px; padding: 4px 10px; border-radius: 5px; background: var(--danger-bg); color: var(--danger-text);">
+          Cancelled
+        </span>
+        <span *ngIf="meeting.status !== 'Cancelled' && !isUpcoming(meeting)"
+          style="font-size: 12px; padding: 4px 10px; border-radius: 5px; background: var(--warning-bg); color: var(--warning-text);">
+          Past
+        </span>
+        <span *ngIf="meeting.status !== 'Cancelled' && isUpcoming(meeting)"
+          style="font-size: 12px; padding: 4px 10px; border-radius: 5px; background: var(--success-bg); color: var(--success-text);">
+          {{ meeting.status }}
+        </span>
+        <button *ngIf="meeting.status !== 'Cancelled' && isUpcoming(meeting)" class="btn btn-sm btn-primary"
+          (click)="goToSubmitAvailability(meeting.id)">
+          Submit Availability
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,82 @@
+<div class="d-flex align-items-center justify-content-center" style="min-height: 100vh; background: var(--bg);">
+
+  <div class="card shadow-sm border-0" style="max-width: 420px; width: 90%; border-radius: 12px;">
+    <div class="card-body p-4">
+
+      <div class="text-center mb-4">
+        <h2 class="fw-bold mb-1" style="color: var(--text-primary);">📅 SyncUp</h2>
+        <p class="text-muted mb-0" *ngIf="step === 'form'">Create your account</p>
+        <p class="text-muted mb-0" *ngIf="step === 'verify'">Verify your email</p>
+      </div>
+
+      <div *ngIf="errorMessage" class="alert alert-danger py-2 small">{{ errorMessage }}</div>
+
+      <!-- Step 1: Sign Up Form -->
+      <div *ngIf="step === 'form'">
+        <form #signUpForm="ngForm" (ngSubmit)="register()">
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Name</label>
+            <input type="text" class="form-control form-control-lg" name="name"
+              [(ngModel)]="newUser.name" #name="ngModel" required minlength="3" placeholder="Your full name">
+            <div *ngIf="name.invalid && name.touched" class="text-danger small mt-1">
+              <div *ngIf="name.errors?.['required']">Name is required.</div>
+              <div *ngIf="name.errors?.['minlength']">Min 3 characters.</div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Email</label>
+            <input type="email" class="form-control form-control-lg" name="email"
+              [(ngModel)]="newUser.email" #email="ngModel" required email
+              pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$"
+              placeholder="you@gmail.com">
+            <div *ngIf="email.invalid && email.touched" class="text-danger small mt-1">
+              <div *ngIf="email.errors?.['required']">Email is required.</div>
+              <div *ngIf="email.errors?.['email'] || email.errors?.['pattern']">Must be a valid Gmail address.</div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Password</label>
+            <input type="password" class="form-control form-control-lg" name="password"
+              [(ngModel)]="newUser.password" #password="ngModel" required minlength="8"
+              pattern="^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&amp;*()_+\-=\[\]{};':&quot;\\|,.&lt;&gt;\/?]).+$"
+              placeholder="Must contain a special character">
+            <div *ngIf="password.invalid && password.touched" class="text-danger small mt-1">
+              <div *ngIf="password.errors?.['required']">Password is required.</div>
+              <div *ngIf="password.errors?.['minlength']">Minimum 8 characters required.</div>
+              <div *ngIf="password.errors?.['pattern']">Must include 1 uppercase letter, 1 number, and 1 special character.</div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold" [disabled]="signUpForm.invalid">
+            Sign Up
+          </button>
+        </form>
+      </div>
+
+      <!-- Step 2: Verification Code -->
+      <div *ngIf="step === 'verify'">
+        <p class="text-muted text-center mb-3">
+          We sent a 6-digit code to <strong>{{ newUser.email }}</strong>
+        </p>
+
+        <form #verifyForm="ngForm" (ngSubmit)="verify()">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Verification Code</label>
+            <input type="text" class="form-control form-control-lg text-center" name="code"
+              [(ngModel)]="verificationCode" required minlength="6" maxlength="6"
+              placeholder="123456" style="letter-spacing: 4px; font-size: 20px;">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold" [disabled]="verifyForm.invalid">
+            Verify Account
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+</div>
