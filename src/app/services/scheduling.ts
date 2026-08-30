@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class SchedulingService {
-  private apiUrl = 'https://localhost:7056/api/scheduling';
+  private apiUrl = 'https://syncup-backend-production28.up.railway.app';
 
   constructor(private http: HttpClient) { }
 

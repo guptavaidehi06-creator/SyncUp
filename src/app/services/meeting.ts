@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class MeetingService {
-  private apiUrl = 'https://localhost:7056/api/meetings';
+  private apiUrl = 'https://syncup-backend-production28.up.railway.app';
 
   constructor(private http: HttpClient) { }
 

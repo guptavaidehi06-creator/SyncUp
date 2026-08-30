@@ -6,7 +6,7 @@ import { Observable, tap } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'https://localhost:7056/api/auth';
+  private apiUrl = 'https://syncup-backend-production28.up.railway.app';
 
   constructor(private http: HttpClient) { }
 
