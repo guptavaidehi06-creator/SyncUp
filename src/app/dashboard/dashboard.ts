@@ -17,6 +17,8 @@ import { AuthService } from '../services/auth';
   styleUrl: './dashboard.css'
 })
 export class Dashboard implements OnInit {
+  activeView: 'home' | 'meetings' | 'create' | 'participants' | 'availability' | 'slot' = 'home';
+  createStep = 1;
   users: any[] = [];
   meetings: any[] = [];
   availabilities: any[] = [];
@@ -58,6 +60,27 @@ export class Dashboard implements OnInit {
     this.loadMeetings();
     this.loadAvailabilities();
     this.loadParticipants();
+  }
+
+  setView(view: 'home' | 'meetings' | 'create' | 'participants' | 'availability' | 'slot'): void {
+    this.activeView = view;
+    if (view === 'create') this.createStep = 1;
+  }
+
+  nextCreateStep(): void {
+    if (this.createStep < 3) this.createStep++;
+  }
+
+  previousCreateStep(): void {
+    if (this.createStep > 1) this.createStep--;
+  }
+
+  getUpcomingMeetings(): any[] {
+    return this.meetings.filter(meeting => this.isMeetingUpcoming(meeting));
+  }
+
+  getCompletedMeetings(): any[] {
+    return this.meetings.filter(meeting => !this.isMeetingUpcoming(meeting));
   }
 
   loadUsers(): void {
@@ -126,6 +149,7 @@ export class Dashboard implements OnInit {
           creatorId: null
         };
         this.loadMeetings();
+        this.activeView = 'meetings';
       },
       error: (err) => console.error('Error adding meeting:', err)
     });
