@@ -63,10 +63,12 @@ export class ForgotPassword {
       finalize(() => this.isResetting = false)
     ).subscribe({
       next: () => {
+        this.isResetting = false;
         this.successMessage = 'Password reset successfully. Redirecting to login...';
         setTimeout(() => this.router.navigate(['/login']), 1500);
       },
       error: (err) => {
+        this.isResetting = false;
         this.errorMessage = err.name === 'TimeoutError'
           ? 'Request timed out. Please try again.'
           : err.error || 'Invalid or expired code.';
