@@ -19,13 +19,11 @@ export class Login {
   };
 
   errorMessage: string = '';
-  verificationMessage: string = '';
 
   constructor(private authService: AuthService, private router: Router) { }
 
   login(): void {
     this.errorMessage = '';
-    this.verificationMessage = '';
     this.authService.login(this.credentials).subscribe({
       next: () => {
         this.router.navigate(['/']);
@@ -36,15 +34,4 @@ export class Login {
     });
   }
 
-  resendVerification(): void {
-    this.errorMessage = '';
-    this.authService.resendVerification({ email: this.credentials.email }).subscribe({
-      next: (response) => {
-        this.verificationMessage = `Your verification code is ${response.verificationCode}`;
-      },
-      error: (err) => {
-        this.errorMessage = err.error || 'Unable to generate a verification code.';
-      }
-    });
-  }
 }
