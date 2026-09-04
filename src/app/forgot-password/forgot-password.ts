@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { finalize, timeout } from 'rxjs';
 import { AuthService } from '../services/auth';
 
 @Component({
@@ -57,14 +58,18 @@ export class ForgotPassword {
       email: this.email,
       code: this.code,
       newPassword: this.newPassword
-    }).subscribe({
+    }).pipe(
+      timeout(15000),
+      finalize(() => this.isResetting = false)
+    ).subscribe({
       next: () => {
         this.successMessage = 'Password reset successfully. Redirecting to login...';
         setTimeout(() => this.router.navigate(['/login']), 1500);
       },
       error: (err) => {
-        this.isResetting = false;
-        this.errorMessage = err.error || 'Invalid or expired code.';
+        this.errorMessage = err.name === 'TimeoutError'
+          ? 'Request timed out. Please try again.'
+          : err.error || 'Invalid or expired code.';
       }
     });
   }
