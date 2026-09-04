@@ -14,7 +14,6 @@ import { AuthService } from '../services/auth';
 export class SignUp {
   step: 'form' | 'verify' = 'form';
   errorMessage: string = '';
-  verificationMessage: string = '';
 
   newUser = {
     name: '',
@@ -29,11 +28,8 @@ export class SignUp {
   register(): void {
     this.errorMessage = '';
     this.authService.register(this.newUser).subscribe({
-      next: (response) => {
+      next: () => {
         this.step = 'verify';
-        this.verificationMessage = response.verificationCode
-          ? `Your verification code is ${response.verificationCode}`
-          : 'Check your email for the verification code.';
       },
       error: (err) => {
         this.errorMessage = err.error || 'Something went wrong. Please try again.';

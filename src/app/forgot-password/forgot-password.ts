@@ -16,7 +16,6 @@ export class ForgotPassword {
   step: 'request' | 'reset' = 'request';
   errorMessage: string = '';
   successMessage: string = '';
-  resetCode: string = '';
   isResetting: boolean = false;
 
   email: string = '';
@@ -29,12 +28,9 @@ export class ForgotPassword {
   requestCode(): void {
     this.errorMessage = '';
     this.authService.forgotPassword({ email: this.email }).subscribe({
-      next: (response) => {
+      next: () => {
         this.step = 'reset';
-        this.resetCode = response.resetCode || '';
-        this.successMessage = this.resetCode
-          ? `Your reset code is ${this.resetCode}`
-          : 'If this email exists, a code has been sent.';
+        this.successMessage = 'Reset code sent to your email. Check your inbox and spam folder.';
       },
       error: (err) => {
         this.errorMessage = err.status === 404

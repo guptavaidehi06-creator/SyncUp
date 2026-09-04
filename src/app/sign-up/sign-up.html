@@ -10,7 +10,6 @@
       </div>
 
       <div *ngIf="errorMessage" class="alert alert-danger py-2 small">{{ errorMessage }}</div>
-      <div *ngIf="verificationMessage && step === 'verify'" class="alert alert-success py-2 small">{{ verificationMessage }}</div>
 
       <!-- Step 1: Sign Up Form -->
       <div *ngIf="step === 'form'">
