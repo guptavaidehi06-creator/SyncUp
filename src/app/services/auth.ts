@@ -6,7 +6,7 @@ import { Observable, tap } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'https://syncup-backend-production28.up.railway.app';
+  private apiUrl = 'https://syncup-backend-production28.up.railway.app/api/auth';
 
   constructor(private http: HttpClient) { }
 
@@ -53,4 +53,11 @@ export class AuthService {
     const user = this.getUser();
     return user ? user.isAdmin === true : false;
   }
+  forgotPassword(data: any): Observable<any> {
+  return this.http.post(this.apiUrl + '/forgot-password', data);
+}
+
+resetPassword(data: any): Observable<any> {
+  return this.http.post(this.apiUrl + '/reset-password', data);
+}
 }

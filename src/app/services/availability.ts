@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class AvailabilityService {
-  private apiUrl = 'https://syncup-backend-production28.up.railway.app';
+  private apiUrl = 'https://syncup-backend-production28.up.railway.app/api/availability';
 
   constructor(private http: HttpClient) { }
 
