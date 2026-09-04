@@ -20,6 +20,7 @@ export class ForgotPassword {
   email: string = '';
   code: string = '';
   newPassword: string = '';
+  confirmPassword: string = '';
 
   constructor(private authService: AuthService, private router: Router) { }
 
@@ -43,6 +44,12 @@ export class ForgotPassword {
 
   resetPassword(): void {
     this.errorMessage = '';
+
+    if (this.newPassword !== this.confirmPassword) {
+      this.errorMessage = 'Passwords do not match.';
+      return;
+    }
+
     this.authService.resetPassword({
       email: this.email,
       code: this.code,
