@@ -16,6 +16,7 @@ export class ForgotPassword {
   errorMessage: string = '';
   successMessage: string = '';
   resetCode: string = '';
+  isResetting: boolean = false;
 
   email: string = '';
   code: string = '';
@@ -50,15 +51,19 @@ export class ForgotPassword {
       return;
     }
 
+    this.isResetting = true;
+
     this.authService.resetPassword({
       email: this.email,
       code: this.code,
       newPassword: this.newPassword
     }).subscribe({
       next: () => {
-        this.router.navigate(['/login']);
+        this.successMessage = 'Password reset successfully. Redirecting to login...';
+        setTimeout(() => this.router.navigate(['/login']), 1500);
       },
       error: (err) => {
+        this.isResetting = false;
         this.errorMessage = err.error || 'Invalid or expired code.';
       }
     });
