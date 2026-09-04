@@ -22,6 +22,8 @@ export class SignUp {
   };
 
   verificationCode: string = '';
+  resendMessage = '';
+  isResending = false;
 
   constructor(private authService: AuthService, private router: Router) { }
 
@@ -45,6 +47,22 @@ export class SignUp {
       },
       error: (err) => {
         this.errorMessage = err.error || 'Invalid code. Please try again.';
+      }
+    });
+  }
+
+  resendVerification(): void {
+    this.errorMessage = '';
+    this.resendMessage = '';
+    this.isResending = true;
+    this.authService.resendVerification({ email: this.newUser.email }).subscribe({
+      next: (message) => {
+        this.resendMessage = typeof message === 'string' ? message : 'A new code has been sent.';
+        this.isResending = false;
+      },
+      error: (err) => {
+        this.errorMessage = err.error || 'Unable to resend the code. Please try again.';
+        this.isResending = false;
       }
     });
   }

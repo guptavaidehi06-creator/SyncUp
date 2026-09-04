@@ -19,6 +19,7 @@ import { AuthService } from '../services/auth';
 export class Dashboard implements OnInit {
   activeView: 'home' | 'meetings' | 'create' | 'participants' | 'availability' | 'slot' = 'home';
   createStep = 1;
+  notificationsOpen = false;
   users: any[] = [];
   meetings: any[] = [];
   availabilities: any[] = [];
@@ -65,6 +66,27 @@ export class Dashboard implements OnInit {
   setView(view: 'home' | 'meetings' | 'create' | 'participants' | 'availability' | 'slot'): void {
     this.activeView = view;
     if (view === 'create') this.createStep = 1;
+  }
+
+  toggleNotifications(): void {
+    this.notificationsOpen = !this.notificationsOpen;
+  }
+
+  getPageTitle(): string {
+    switch (this.activeView) {
+      case 'home': {
+        const name = this.getCurrentUserName();
+        return name ? `Welcome back, ${name}!` : 'Welcome back!';
+      }
+      case 'meetings': return 'My Meetings';
+      case 'create': return 'Create a Meeting';
+      case 'participants': return 'Participants';
+      default: return 'Availability';
+    }
+  }
+
+  getPageSubtitle(): string {
+    return "Here's what's happening across your meetings today.";
   }
 
   nextCreateStep(): void {

@@ -13,7 +13,8 @@
   </aside>
   <main>
     <header class="mobile-head"><div class="brand"><b>S</b> SyncUp</div><button (click)="logout()">Log out</button></header>
-    <header class="page-head"><h1>{{ activeView === 'home' ? 'Home' : activeView === 'meetings' ? 'My Meetings' : activeView === 'create' ? 'Create a Meeting' : activeView === 'participants' ? 'Participants' : 'Availability' }}</h1><button class="primary" *ngIf="activeView !== 'create'" (click)="setView('create')">+ New meeting</button></header>
+    <header class="page-head"><h1>{{ activeView === 'home' ? 'Home' : activeView === 'meetings' ? 'My Meetings' : activeView === 'create' ? 'Create a Meeting' : activeView === 'participants' ? 'Participants' : 'Availability' }}</h1><div class="head-actions"><button class="notification-button" (click)="toggleNotifications()">Notifications ({{ notifications.length }})</button><button class="primary" *ngIf="activeView !== 'create'" (click)="setView('create')">+ New meeting</button></div></header>
+    <div *ngIf="notificationsOpen" style="max-width: 360px; margin: -18px 0 24px auto; padding: 15px; background: #fff; border: 1px solid #dfd3c7; border-radius: 8px; box-shadow: 0 10px 25px rgba(107,79,59,.12);"><strong>Notifications</strong><p *ngIf="!notifications.length" style="font-size: 12px; color: #897d70; margin: 10px 0 0;">No notifications yet.</p><p *ngFor="let notification of notifications" style="font-size: 12px; color: #6b5f52; margin: 10px 0 0; padding-top: 10px; border-top: 1px solid #f0ebe5;">{{ notification }}</p></div>
     <div class="notice" *ngIf="notifications.length"><b>!</b><span><strong>Recent activity</strong><br>{{ notifications[0] }}</span></div>
 
     <section *ngIf="activeView === 'home'">
