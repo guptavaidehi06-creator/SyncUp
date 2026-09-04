@@ -9,6 +9,7 @@
       </div>
 
       <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+      <div *ngIf="verificationMessage" class="alert alert-success">{{ verificationMessage }}</div>
 
       <form #loginForm="ngForm" (ngSubmit)="login()">
 
@@ -28,6 +29,10 @@
           Log In
         </button>
       </form>
+
+      <button type="button" class="btn btn-link w-100 mt-2" (click)="resendVerification()">
+        Resend verification code
+      </button>
 
       <p class="text-center text-muted mb-2">
   <a routerLink="/forgot-password">Forgot password?</a>
