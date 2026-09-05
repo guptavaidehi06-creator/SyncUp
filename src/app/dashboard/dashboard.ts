@@ -1,14 +1,51 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { UserService } from '../services/user';
-import { MeetingService } from '../services/meeting';
-import { AvailabilityService } from '../services/availability';
-import { ParticipantService } from '../services/participant';
-import { SchedulingService } from '../services/scheduling';
-import { NotificationService } from '../services/notification';
-import { AuthService } from '../services/auth';
+
+type View =
+  | 'home'
+  | 'meetings'
+  | 'create'
+  | 'participants'
+  | 'availability'
+  | 'slot';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+interface Meeting {
+  id: number;
+  title: string;
+  meetingDate: string;
+  meetingTime: string;
+  priority: string;
+  status: string;
+}
+
+interface Participant {
+  id?: number;
+  meetingId: number;
+  userId: number;
+  isMandatory: boolean;
+}
+
+interface Availability {
+  id?: number;
+  meetingId: number;
+  userId: number;
+  startTime: string;
+  endTime: string;
+}
+
+interface Notification {
+  id: number;
+  message: string;
+  isRead: boolean;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -19,37 +56,35 @@ import { AuthService } from '../services/auth';
 })
 export class Dashboard implements OnInit {
 
-  activeView: 'home' | 'meetings' | 'create' | 'participants' | 'availability' | 'slot' = 'home';
-
   sidebarOpen = true;
+
+  activeView: View = 'home';
+
   notificationsOpen = false;
+
   showLogoutConfirmation = false;
 
-  schedulingType: 'fixed' | 'availability' = 'fixed';
-  createdMeetingId: number | null = null;
+  users: User[] = [];
 
-  users: any[] = [];
-  meetings: any[] = [];
-  availabilities: any[] = [];
-  participants: any[] = [];
-  notifications: any[] = [];
+  meetings: Meeting[] = [];
 
-  reschedulingMeeting: any = null;
+  participants: Participant[] = [];
 
-  newMeeting = {
-    title: '',
-    meetingDate: '',
-    meetingTime: '',
-    priority: 'Medium',
-    status: 'Scheduled',
-    creatorId: null as number | null
-  };
+  availability: Availability[] = [];
+
+  notifications: Notification[] = [];
 
   participantMeetingId: number | null = null;
-  selectedUserIds: Set<number> = new Set();
-  bulkIsMandatory = true;
 
   availabilityMeetingId: number | null = null;
+
+  selectedUserIds = new Set<number>();
+
+  bulkIsMandatory = false;
+
+  schedulingType = 'fixed';
+
+  reschedulingMeeting: Meeting | null = null;
 
   suggestRequest = {
     meetingId: null as number | null
@@ -57,80 +92,102 @@ export class Dashboard implements OnInit {
 
   suggestResult: any = null;
 
+  newMeeting = {
+    title: '',
+    meetingDate: '',
+    meetingTime: '',
+    priority: 'Medium'
+  };
+
   constructor(
-    private userService: UserService,
-    private meetingService: MeetingService,
-    private availabilityService: AvailabilityService,
-    private participantService: ParticipantService,
-    private schedulingService: SchedulingService,
-    private notificationService: NotificationService,
-    private router: Router,
-    private authService: AuthService,
-    private cdr: ChangeDetectorRef
+    private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.loadUsers();
-    this.loadMeetings();
-    this.loadAvailabilities();
-    this.loadParticipants();
-    this.loadNotifications();
+    this.loadData();
   }
 
-  getTodayDate(): string {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
+  // =========================
+  // LOAD SAMPLE DATA
+  // =========================
 
-    return `${year}-${month}-${day}`;
+  loadData(): void {
+
+    this.users = [
+      {
+        id: 1,
+        name: 'Vaidehi',
+        email: 'vaidehi@example.com'
+      },
+      {
+        id: 2,
+        name: 'Rahul Sharma',
+        email: 'rahul@example.com'
+      },
+      {
+        id: 3,
+        name: 'Priya Patel',
+        email: 'priya@example.com'
+      },
+      {
+        id: 4,
+        name: 'Aman Singh',
+        email: 'aman@example.com'
+      }
+    ];
+
+    this.meetings = [];
+
+    this.participants = [];
+
+    this.availability = [];
+
+    this.notifications = [
+      {
+        id: 1,
+        message: 'Welcome to SyncUp!',
+        isRead: false
+      }
+    ];
   }
+
+  // =========================
+  // SIDEBAR
+  // =========================
 
   toggleSidebar(): void {
     this.sidebarOpen = !this.sidebarOpen;
   }
 
-  setView(
-    view: 'home' | 'meetings' | 'create' | 'participants' | 'availability' | 'slot'
-  ): void {
+  setView(view: View): void {
 
     this.activeView = view;
+
     this.notificationsOpen = false;
 
-    if (view === 'create') {
+    if (view !== 'create') {
       this.reschedulingMeeting = null;
-      this.selectedUserIds.clear();
-
-      this.newMeeting = {
-        title: '',
-        meetingDate: '',
-        meetingTime: '',
-        priority: 'Medium',
-        status: 'Scheduled',
-        creatorId: this.getCurrentUserId()
-      };
     }
 
     if (view === 'participants') {
-      this.participantMeetingId = null;
       this.selectedUserIds.clear();
     }
 
-    if (view === 'availability') {
-      this.availabilityMeetingId = null;
-    }
-
     if (view === 'slot') {
-      this.suggestRequest.meetingId = null;
       this.suggestResult = null;
     }
   }
 
+  // =========================
+  // PAGE TITLE
+  // =========================
+
   getPageTitle(): string {
+
     switch (this.activeView) {
+
       case 'home':
-        const name = this.getCurrentUserName();
-        return name ? `Welcome, ${name}` : 'Welcome';
+        return 'Dashboard';
 
       case 'meetings':
         return 'My Meetings';
@@ -150,484 +207,369 @@ export class Dashboard implements OnInit {
         return 'Find Best Slot';
 
       default:
-        return 'SyncUp';
+        return 'Dashboard';
     }
   }
 
   getPageSubtitle(): string {
+
     switch (this.activeView) {
+
       case 'home':
-        return 'An overview of your upcoming meetings and workspace activity.';
+        return 'Manage your meetings and stay organized.';
 
       case 'meetings':
-        return 'View and manage meetings in your workspace.';
+        return 'View and manage all your meetings.';
 
       case 'create':
-        return 'Create a meeting and add participants.';
+        return 'Schedule a new meeting with your workspace.';
 
       case 'participants':
-        return 'Manage people participating in your active meetings.';
+        return 'Manage meeting participants.';
 
       case 'availability':
-        return 'Check which participants have submitted their availability.';
+        return 'Check participant availability.';
 
       case 'slot':
-        return 'Find a suitable time based on participant availability.';
+        return 'Find the best time for everyone.';
 
       default:
         return '';
     }
   }
 
-  toggleNotifications(): void {
-    this.notificationsOpen = !this.notificationsOpen;
-  }
+  // =========================
+  // CURRENT USER
+  // =========================
 
-  get unreadNotificationCount(): number {
-    return this.notifications.filter(
-      notification => !notification.isRead
-    ).length;
-  }
+  getCurrentUserName(): string {
 
-  loadNotifications(): void {
-    const userId = this.getCurrentUserId();
-
-    if (!userId) {
-      return;
+    if (this.users.length > 0) {
+      return this.users[0].name;
     }
 
-    this.notificationService
-      .getNotificationsByUser(userId)
-      .subscribe({
-        next: (data: any) => {
-          this.notifications = data;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Error fetching notifications:', err);
-        }
-      });
+    return 'Workspace';
   }
 
-  addNotification(message: string): void {
-    const userId = this.getCurrentUserId();
+  // =========================
+  // DATE
+  // =========================
 
-    if (!userId) {
-      return;
-    }
+  getTodayDate(): string {
 
-    const notification = {
-      userId: userId,
-      message: message,
-      isRead: false
-    };
+    const today = new Date();
 
-    this.notificationService
-      .addNotification(notification)
-      .subscribe({
-        next: (data: any) => {
-          this.notifications.unshift(data);
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Error adding notification:', err);
-        }
-      });
+    const year = today.getFullYear();
+
+    const month = String(
+      today.getMonth() + 1
+    ).padStart(2, '0');
+
+    const day = String(
+      today.getDate()
+    ).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 
-  markAllNotificationsRead(): void {
-    const userId = this.getCurrentUserId();
+  // =========================
+  // MEETINGS
+  // =========================
 
-    if (!userId) {
-      return;
-    }
+  getUpcomingMeetings(): Meeting[] {
 
-    this.notificationService
-      .markAllAsRead(userId)
-      .subscribe({
-        next: () => {
-          this.notifications.forEach(
-            notification => notification.isRead = true
-          );
+    return this.meetings.filter(meeting => {
 
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Error marking notifications as read:', err);
-        }
-      });
-  }
-
-  loadUsers(): void {
-    this.userService.getAllUsers().subscribe({
-      next: (data: any) => {
-        this.users = data;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error fetching users:', err);
-      }
+      return (
+        meeting.status !== 'Cancelled' &&
+        !this.isMeetingPast(meeting)
+      );
     });
   }
 
-  loadMeetings(): void {
-    this.meetingService.getAllMeetings().subscribe({
-      next: (data: any) => {
-        this.meetings = data;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error fetching meetings:', err);
-      }
+  getCompletedMeetings(): Meeting[] {
+
+    return this.meetings.filter(meeting => {
+
+      return (
+        meeting.status !== 'Cancelled' &&
+        this.isMeetingPast(meeting)
+      );
     });
   }
 
-  loadAvailabilities(): void {
-    this.availabilityService.getAllAvailabilities().subscribe({
-      next: (data: any) => {
-        this.availabilities = data;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error fetching availabilities:', err);
-      }
+  getMeetingsForDisplay(): Meeting[] {
+
+    return [...this.meetings].sort((a, b) => {
+
+      const dateA =
+        new Date(
+          `${a.meetingDate}T${a.meetingTime || '00:00'}`
+        ).getTime();
+
+      const dateB =
+        new Date(
+          `${b.meetingDate}T${b.meetingTime || '00:00'}`
+        ).getTime();
+
+      return dateA - dateB;
     });
   }
 
-  loadParticipants(): void {
-    this.participantService.getAllParticipants().subscribe({
-      next: (data: any) => {
-        this.participants = data;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error fetching participants:', err);
-      }
+  getActiveMeetings(): Meeting[] {
+
+    return this.meetings.filter(meeting => {
+
+      return (
+        meeting.status !== 'Cancelled' &&
+        !this.isMeetingPast(meeting)
+      );
     });
   }
 
-  onAvailabilityMeetingChange(): void {
-    this.cdr.detectChanges();
-  }
-
-  getParticipantsForAvailability(): any[] {
-    if (!this.availabilityMeetingId) {
-      return [];
-    }
-
-    return this.participants.filter(
-      participant =>
-        participant.meetingId === this.availabilityMeetingId
-    );
-  }
-
-  getAvailabilityForSelectedMeeting(): any[] {
-    if (!this.availabilityMeetingId) {
-      return [];
-    }
-
-    return this.availabilities.filter(
-      availability =>
-        availability.meetingId === this.availabilityMeetingId
-    );
-  }
-
-  hasSubmittedAvailability(userId: number): boolean {
-    return this.getAvailabilityForSelectedMeeting().some(
-      availability => availability.userId === userId
-    );
-  }
-
-  isMeetingPast(meeting: any): boolean {
-
-    if (meeting.status === 'Cancelled') {
-      return false;
-    }
+  isMeetingPast(meeting: Meeting): boolean {
 
     if (!meeting.meetingDate) {
       return false;
     }
 
-    const meetingDateTime = new Date(meeting.meetingDate);
+    const time =
+      meeting.meetingTime || '00:00';
 
-    if (meeting.meetingTime) {
-      const time = meeting.meetingTime.split(':');
-
-      meetingDateTime.setHours(
-        Number(time[0]),
-        Number(time[1]),
-        0,
-        0
+    const meetingDateTime =
+      new Date(
+        `${meeting.meetingDate}T${time}`
       );
-    } else {
-      meetingDateTime.setHours(23, 59, 59, 999);
-    }
 
     return meetingDateTime < new Date();
   }
 
-  isMeetingUpcoming(meeting: any): boolean {
-
-    if (meeting.status === 'Cancelled') {
-      return false;
-    }
-
-    if (!meeting.meetingDate) {
-      return true;
-    }
-
-    const meetingDateTime = new Date(meeting.meetingDate);
-
-    if (meeting.meetingTime) {
-      const time = meeting.meetingTime.split(':');
-
-      meetingDateTime.setHours(
-        Number(time[0]),
-        Number(time[1]),
-        0,
-        0
-      );
-    } else {
-      meetingDateTime.setHours(23, 59, 59, 999);
-    }
-
-    return meetingDateTime >= new Date();
-  }
-
-  getUpcomingMeetings(): any[] {
-    return this.meetings.filter(
-      meeting =>
-        meeting.status !== 'Cancelled' &&
-        this.isMeetingUpcoming(meeting)
-    );
-  }
-
-  getCompletedMeetings(): any[] {
-    return this.meetings.filter(
-      meeting =>
-        meeting.status !== 'Cancelled' &&
-        !this.isMeetingUpcoming(meeting)
-    );
-  }
-
-  getActiveMeetings(): any[] {
-    return this.meetings.filter(
-      meeting =>
-        meeting.status !== 'Cancelled' &&
-        this.isMeetingUpcoming(meeting)
-    );
-  }
-
-  onSchedulingTypeChange(): void {
-    if (this.schedulingType === 'availability') {
-      this.newMeeting.meetingTime = '';
-    }
-  }
+  // =========================
+  // CREATE / SAVE MEETING
+  // =========================
 
   saveMeeting(): void {
-    if (this.reschedulingMeeting) {
-      this.updateRescheduledMeeting();
+
+    if (!this.newMeeting.title.trim()) {
       return;
     }
 
-    this.createMeeting();
-  }
-
-  getMeetingsForDisplay(): any[] {
-    return [...this.meetings].sort((a, b) => {
-
-      const aCancelled = a.status === 'Cancelled';
-      const bCancelled = b.status === 'Cancelled';
-
-      const aPast =
-        !this.isMeetingUpcoming(a) &&
-        a.status !== 'Cancelled';
-
-      const bPast =
-        !this.isMeetingUpcoming(b) &&
-        b.status !== 'Cancelled';
-
-      if (aCancelled && !bCancelled) return 1;
-      if (!aCancelled && bCancelled) return -1;
-
-      if (aPast && !bPast) return 1;
-      if (!aPast && bPast) return -1;
-
-      return 0;
-    });
-  }
-
-  createMeeting(): void {
-
-    const currentUser = this.authService.getUser();
-
-    if (currentUser) {
-      this.newMeeting.creatorId = currentUser.id;
+    if (!this.newMeeting.meetingDate) {
+      return;
     }
 
-    const title = this.newMeeting.title;
+    if (
+      this.schedulingType === 'fixed' &&
+      !this.newMeeting.meetingTime
+    ) {
+      return;
+    }
 
-    this.meetingService
-      .addMeeting(this.newMeeting)
-      .subscribe({
-        next: () => {
-          this.addNotification(
-            `Meeting "${title}" was created successfully.`
-          );
+    // RESCHEDULE EXISTING MEETING
 
-          this.finishCreateFlow();
-        },
-        error: (err) => {
-          console.error(
-            'Error creating meeting:',
-            err
-          );
-        }
-      });
+    if (this.reschedulingMeeting) {
+
+      const meeting =
+        this.meetings.find(
+          m => m.id === this.reschedulingMeeting?.id
+        );
+
+      if (meeting) {
+
+        meeting.title =
+          this.newMeeting.title;
+
+        meeting.meetingDate =
+          this.newMeeting.meetingDate;
+
+        meeting.meetingTime =
+          this.schedulingType === 'fixed'
+            ? this.newMeeting.meetingTime
+            : '';
+
+        meeting.priority =
+          this.newMeeting.priority;
+
+        meeting.status =
+          'Rescheduled';
+
+        this.addNotification(
+          `Meeting "${meeting.title}" was rescheduled.`
+        );
+      }
+
+      this.resetMeetingForm();
+
+      this.reschedulingMeeting = null;
+
+      this.activeView = 'meetings';
+
+      return;
+    }
+
+    // CREATE NEW MEETING
+
+    const newId =
+      this.meetings.length
+        ? Math.max(
+            ...this.meetings.map(m => m.id)
+          ) + 1
+        : 1;
+
+    const meeting: Meeting = {
+
+      id: newId,
+
+      title:
+        this.newMeeting.title.trim(),
+
+      meetingDate:
+        this.newMeeting.meetingDate,
+
+      meetingTime:
+        this.schedulingType === 'fixed'
+          ? this.newMeeting.meetingTime
+          : '',
+
+      priority:
+        this.newMeeting.priority,
+
+      status: 'Upcoming'
+    };
+
+    this.meetings.push(meeting);
+
+    this.addNotification(
+      `New meeting "${meeting.title}" was created.`
+    );
+
+    this.resetMeetingForm();
+
+    this.activeView = 'meetings';
   }
 
-  finishCreateFlow(): void {
+  resetMeetingForm(): void {
 
     this.newMeeting = {
       title: '',
       meetingDate: '',
       meetingTime: '',
-      priority: 'Medium',
-      status: 'Scheduled',
-      creatorId: this.getCurrentUserId()
+      priority: 'Medium'
     };
 
-    this.createdMeetingId = null;
-    this.reschedulingMeeting = null;
-    this.participantMeetingId = null;
-
-    this.selectedUserIds.clear();
-
-    this.loadMeetings();
-
-    this.activeView = 'meetings';
+    this.schedulingType = 'fixed';
   }
 
-  rescheduleMeeting(meeting: any): void {
+  onSchedulingTypeChange(): void {
+
+    if (this.schedulingType === 'availability') {
+
+      this.newMeeting.meetingTime = '';
+    }
+  }
+
+  // =========================
+  // RESCHEDULE
+  // =========================
+
+  rescheduleMeeting(meeting: Meeting): void {
 
     if (
-      !this.isMeetingUpcoming(meeting) ||
-      meeting.status === 'Cancelled'
+      meeting.status === 'Cancelled' ||
+      this.isMeetingPast(meeting)
     ) {
       return;
     }
 
     this.reschedulingMeeting = meeting;
 
+    this.newMeeting = {
+
+      title: meeting.title,
+
+      meetingDate:
+        meeting.meetingDate,
+
+      meetingTime:
+        meeting.meetingTime,
+
+      priority:
+        meeting.priority
+    };
+
     this.schedulingType =
       meeting.meetingTime
         ? 'fixed'
         : 'availability';
 
-    this.newMeeting = {
-      title: meeting.title || '',
-      meetingDate: meeting.meetingDate || '',
-      meetingTime: meeting.meetingTime || '',
-      priority: meeting.priority || 'Medium',
-      status: 'Scheduled',
-      creatorId:
-        meeting.creatorId ??
-        meeting.createdById ??
-        this.getCurrentUserId()
-    };
-
     this.activeView = 'create';
   }
 
-  updateRescheduledMeeting(): void {
+  // =========================
+  // CANCEL MEETING
+  // =========================
 
-    const meeting = this.reschedulingMeeting;
-
-    if (!meeting) {
-      return;
-    }
-
-    const updatedMeeting = {
-      ...meeting,
-      ...this.newMeeting,
-      creatorId: this.getCurrentUserId(),
-      status: 'Rescheduled'
-    };
-
-    this.meetingService
-      .updateMeeting(meeting.id, updatedMeeting)
-      .subscribe({
-        next: () => {
-
-          this.addNotification(
-            `Meeting "${meeting.title}" was rescheduled.`
-          );
-
-          this.reschedulingMeeting = null;
-
-          this.finishCreateFlow();
-        },
-        error: (err) => {
-          console.error(
-            'Error rescheduling meeting:',
-            err
-          );
-        }
-      });
-  }
-
-  cancelMeeting(meeting: any): void {
+  cancelMeeting(meeting: Meeting): void {
 
     if (
-      !this.isMeetingUpcoming(meeting) ||
-      meeting.status === 'Cancelled'
+      meeting.status === 'Cancelled' ||
+      this.isMeetingPast(meeting)
     ) {
       return;
     }
 
-    const updatedMeeting = {
-      ...meeting,
-      status: 'Cancelled'
-    };
+    const confirmed =
+      confirm(
+        `Cancel "${meeting.title}"?`
+      );
 
-    this.meetingService
-      .updateMeeting(meeting.id, updatedMeeting)
-      .subscribe({
-        next: () => {
+    if (!confirmed) {
+      return;
+    }
 
-          this.addNotification(
-            `Meeting "${meeting.title}" was cancelled.`
-          );
+    meeting.status = 'Cancelled';
 
-          if (
-            this.participantMeetingId === meeting.id
-          ) {
-            this.participantMeetingId = null;
-            this.selectedUserIds.clear();
-          }
+    this.addNotification(
+      `Meeting "${meeting.title}" was cancelled.`
+    );
+  }
 
-          if (
-            this.availabilityMeetingId === meeting.id
-          ) {
-            this.availabilityMeetingId = null;
-          }
+  // =========================
+  // COPY INVITE LINK
+  // =========================
 
-          if (
-            this.suggestRequest.meetingId === meeting.id
-          ) {
-            this.suggestRequest.meetingId = null;
-            this.suggestResult = null;
-          }
+  copyLink(meetingId: number): void {
 
-          this.loadMeetings();
-        },
-        error: (err) => {
-          console.error(
-            'Error cancelling meeting:',
-            err
-          );
-        }
+    const link =
+      `${window.location.origin}/meeting/${meetingId}`;
+
+    navigator.clipboard
+      .writeText(link)
+      .then(() => {
+
+        this.addNotification(
+          'Invite link copied to clipboard.'
+        );
+
+        alert('Invite link copied!');
+      })
+      .catch(() => {
+
+        alert(
+          'Unable to copy the invite link.'
+        );
       });
+  }
+
+  // =========================
+  // PARTICIPANTS
+  // =========================
+
+  onParticipantMeetingChange(): void {
+
+    this.selectedUserIds.clear();
+
+    this.bulkIsMandatory = false;
   }
 
   toggleUserSelection(userId: number): void {
@@ -641,21 +583,23 @@ export class Dashboard implements OnInit {
     if (
       this.selectedUserIds.has(userId)
     ) {
+
       this.selectedUserIds.delete(userId);
+
     } else {
+
       this.selectedUserIds.add(userId);
     }
   }
 
   isUserSelected(userId: number): boolean {
+
     return this.selectedUserIds.has(userId);
   }
 
-  onParticipantMeetingChange(): void {
-    this.selectedUserIds.clear();
-  }
-
-  isUserAlreadyParticipant(userId: number): boolean {
+  isUserAlreadyParticipant(
+    userId: number
+  ): boolean {
 
     if (!this.participantMeetingId) {
       return false;
@@ -663,139 +607,116 @@ export class Dashboard implements OnInit {
 
     return this.participants.some(
       participant =>
-        participant.meetingId === this.participantMeetingId &&
+        participant.meetingId ===
+          this.participantMeetingId &&
         participant.userId === userId
     );
   }
 
   addSelectedParticipants(): void {
 
-    if (
-      !this.participantMeetingId ||
-      this.selectedUserIds.size === 0
-    ) {
+    if (!this.participantMeetingId) {
       return;
     }
 
-    const selectedMeeting = this.meetings.find(
-      meeting =>
-        meeting.id === this.participantMeetingId
-    );
+    this.selectedUserIds.forEach(userId => {
 
-    if (
-      !selectedMeeting ||
-      selectedMeeting.status === 'Cancelled' ||
-      !this.isMeetingUpcoming(selectedMeeting)
-    ) {
+      if (
+        !this.isUserAlreadyParticipant(userId)
+      ) {
+
+        this.participants.push({
+
+          meetingId:
+            this.participantMeetingId!,
+
+          userId,
+
+          isMandatory:
+            this.bulkIsMandatory
+        });
+      }
+    });
+
+    const count =
+      this.selectedUserIds.size;
+
+    this.selectedUserIds.clear();
+
+    this.bulkIsMandatory = false;
+
+    if (count > 0) {
+
       this.addNotification(
-        'Participants cannot be added to a cancelled or completed meeting.'
+        `${count} participant(s) added to the meeting.`
       );
-
-      this.participantMeetingId = null;
-
-      this.selectedUserIds.clear();
-
-      return;
     }
-
-    const requests =
-      Array.from(this.selectedUserIds).map(
-        userId => {
-
-          const payload = {
-            meetingId: this.participantMeetingId,
-            userId: userId,
-            isMandatory: this.bulkIsMandatory
-          };
-
-          return this.participantService
-            .addParticipant(payload)
-            .toPromise();
-        }
-      );
-
-    Promise.all(requests)
-      .then(() => {
-
-        this.addNotification(
-          `${this.selectedUserIds.size} participant(s) were added.`
-        );
-
-        this.selectedUserIds.clear();
-
-        this.loadParticipants();
-
-        this.cdr.detectChanges();
-      })
-      .catch(err => {
-        console.error(
-          'Error adding participants:',
-          err
-        );
-      });
   }
 
-  findBestSlot(): void {
+  // =========================
+  // AVAILABILITY
+  // =========================
 
-    if (!this.suggestRequest.meetingId) {
-      return;
+  onAvailabilityMeetingChange(): void {
+    // Future API loading can be added here
+  }
+
+  getParticipantsForAvailability(): Participant[] {
+
+    if (!this.availabilityMeetingId) {
+      return [];
     }
 
-    const meeting = this.meetings.find(
-      item =>
-        item.id === this.suggestRequest.meetingId
+    return this.participants.filter(
+      participant =>
+        participant.meetingId ===
+        this.availabilityMeetingId
     );
+  }
 
-    if (
-      !meeting ||
-      meeting.status === 'Cancelled' ||
-      !this.isMeetingUpcoming(meeting)
-    ) {
-      this.suggestResult = {
-        success: false,
-        message: 'This meeting is no longer active.'
-      };
+  getAvailabilityForSelectedMeeting(): Availability[] {
 
-      return;
+    if (!this.availabilityMeetingId) {
+      return [];
     }
 
-    this.suggestResult = null;
-
-    this.schedulingService
-      .suggestSlot(this.suggestRequest)
-      .subscribe({
-        next: (data: any) => {
-
-          this.suggestResult = data;
-
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-
-          console.error(
-            'Error suggesting slot:',
-            err
-          );
-
-          this.suggestResult = {
-            success: false,
-            message: 'Unable to find a suitable time. Please try again after participants submit their availability.'
-          };
-
-          this.cdr.detectChanges();
-        }
-      });
+    return this.availability.filter(
+      item =>
+        item.meetingId ===
+        this.availabilityMeetingId
+    );
   }
+
+  hasSubmittedAvailability(
+    userId: number
+  ): boolean {
+
+    if (!this.availabilityMeetingId) {
+      return false;
+    }
+
+    return this.availability.some(
+      item =>
+        item.meetingId ===
+          this.availabilityMeetingId &&
+        item.userId === userId
+    );
+  }
+
+  // =========================
+  // USERS
+  // =========================
 
   getUserName(userId: number): string {
 
-    const user = this.users.find(
-      u => u.id === userId
-    );
+    const user =
+      this.users.find(
+        u => u.id === userId
+      );
 
     return user
       ? user.name
-      : 'Unknown user';
+      : 'Unknown User';
   }
 
   getInitials(name: string): string {
@@ -804,81 +725,156 @@ export class Dashboard implements OnInit {
       return 'U';
     }
 
-    const parts = name.trim().split(' ');
-
-    if (parts.length === 1) {
-      return parts[0]
-        .charAt(0)
-        .toUpperCase();
-    }
-
-    return (
-      parts[0].charAt(0) +
-      parts[parts.length - 1].charAt(0)
-    ).toUpperCase();
+    return name
+      .split(' ')
+      .map(part => part.charAt(0))
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
   }
 
-  getInviteLink(meetingId: number): string {
-    return `${window.location.origin}/submit-availability/${meetingId}`;
-  }
+  // =========================
+  // FIND BEST SLOT
+  // =========================
 
-  copyLink(meetingId: number): void {
+  findBestSlot(): void {
 
-    const meeting = this.meetings.find(
-      item => item.id === meetingId
-    );
+    const meetingId =
+      this.suggestRequest.meetingId;
 
-    if (
-      !meeting ||
-      meeting.status === 'Cancelled' ||
-      !this.isMeetingUpcoming(meeting)
-    ) {
+    if (!meetingId) {
       return;
     }
 
-    const link =
-      this.getInviteLink(meetingId);
+    const meetingAvailability =
+      this.availability.filter(
+        item => item.meetingId === meetingId
+      );
 
-    navigator.clipboard.writeText(link);
+    if (!meetingAvailability.length) {
 
-    this.addNotification(
-      'Meeting invite link was copied to your clipboard.'
+      this.suggestResult = {
+
+        success: false,
+
+        message:
+          'No participant availability has been submitted yet.'
+      };
+
+      return;
+    }
+
+    let latestStart =
+      meetingAvailability[0].startTime;
+
+    let earliestEnd =
+      meetingAvailability[0].endTime;
+
+    meetingAvailability.forEach(item => {
+
+      if (item.startTime > latestStart) {
+        latestStart = item.startTime;
+      }
+
+      if (item.endTime < earliestEnd) {
+        earliestEnd = item.endTime;
+      }
+    });
+
+    if (latestStart >= earliestEnd) {
+
+      this.suggestResult = {
+
+        success: false,
+
+        message:
+          'No common available time was found.'
+      };
+
+      return;
+    }
+
+    this.suggestResult = {
+
+      success: true,
+
+      startTime: latestStart,
+
+      endTime: earliestEnd
+    };
+  }
+
+  // =========================
+  // NOTIFICATIONS
+  // =========================
+
+  toggleNotifications(): void {
+
+    this.notificationsOpen =
+      !this.notificationsOpen;
+  }
+
+  get unreadNotificationCount(): number {
+
+    return this.notifications.filter(
+      notification =>
+        !notification.isRead
+    ).length;
+  }
+
+  markAllNotificationsRead(): void {
+
+    this.notifications.forEach(
+      notification => {
+
+        notification.isRead = true;
+      }
     );
   }
 
+  addNotification(message: string): void {
+
+    const newId =
+      this.notifications.length
+        ? Math.max(
+            ...this.notifications.map(
+              n => n.id
+            )
+          ) + 1
+        : 1;
+
+    this.notifications.unshift({
+
+      id: newId,
+
+      message,
+
+      isRead: false
+    });
+  }
+
+  // =========================
+  // LOGOUT
+  // =========================
+
   openLogoutConfirmation(): void {
+
     this.showLogoutConfirmation = true;
   }
 
   closeLogoutConfirmation(): void {
+
     this.showLogoutConfirmation = false;
   }
 
   confirmLogout(): void {
-    this.authService.logout();
 
-    this.router.navigate([
-      '/login'
-    ]);
-  }
+    this.showLogoutConfirmation = false;
 
-  getCurrentUserName(): string {
+    localStorage.removeItem('token');
 
-    const user =
-      this.authService.getUser();
+    localStorage.removeItem('currentUser');
 
-    return user
-      ? user.name
-      : '';
-  }
-
-  getCurrentUserId(): number | null {
-
-    const user =
-      this.authService.getUser();
-
-    return user
-      ? user.id
-      : null;
+    this.router.navigate(['/login']);
   }
 }
