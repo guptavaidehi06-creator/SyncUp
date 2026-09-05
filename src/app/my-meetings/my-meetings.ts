@@ -1,6 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+
 import { AuthService } from '../services/auth';
 import { MeetingService } from '../services/meeting';
 import { ParticipantService } from '../services/participant';
@@ -15,11 +16,15 @@ import { NotificationService } from '../services/notification';
   styleUrl: './my-meetings.css'
 })
 export class MyMeetings implements OnInit {
+
   currentUser: any = null;
+
   myMeetings: any[] = [];
+
   submittedMeetingIds: Set<number> = new Set();
 
   notifications: any[] = [];
+
   showNotifications = false;
 
   constructor(
@@ -33,6 +38,7 @@ export class MyMeetings implements OnInit {
   ) {}
 
   ngOnInit(): void {
+
     this.currentUser = this.authService.getUser();
 
     if (!this.currentUser) {
@@ -41,261 +47,487 @@ export class MyMeetings implements OnInit {
     }
 
     this.loadNotifications();
+
     this.loadMyMeetings();
   }
 
+  // =========================
+  // LOAD MY MEETINGS
+  // =========================
+
   loadMyMeetings(): void {
-    this.participantService.getAllParticipants().subscribe({
-      next: (participants: any) => {
-        const myParticipantEntries = participants.filter(
-          (p: any) => p.userId === this.currentUser.id
-        );
 
-        const myMeetingIds = myParticipantEntries.map(
-          (p: any) => p.meetingId
-        );
+    this.participantService
+      .getAllParticipants()
+      .subscribe({
 
-        this.meetingService.getAllMeetings().subscribe({
-          next: (meetings: any) => {
-            this.myMeetings = meetings.filter(
-              (m: any) => myMeetingIds.includes(m.id)
+        next: (participants: any[]) => {
+
+          const myParticipantEntries =
+            (participants || []).filter(
+              (p: any) =>
+                p.userId === this.currentUser.id
             );
 
-            this.loadMyAvailability();
-            this.cdr.detectChanges();
-          },
-          error: (err) => {
-            console.error('Error fetching meetings:', err);
-          }
-        });
-      },
-      error: (err) => {
-        console.error('Error fetching participants:', err);
-      }
-    });
+          const myMeetingIds =
+            myParticipantEntries
+              .map(
+                (p: any) => p.meetingId
+              )
+              .filter(
+                (id: any) =>
+                  id !== null &&
+                  id !== undefined
+              );
+
+          // IMPORTANT:
+          // Tere MeetingService me method ka naam
+          // getMeetings() hai, getAllMeetings() nahi
+
+          this.meetingService
+            .getMeetings()
+            .subscribe({
+
+              next: (meetings: any[]) => {
+
+                this.myMeetings =
+                  (meetings || []).filter(
+                    (m: any) =>
+                      myMeetingIds.includes(m.id)
+                  );
+
+                this.loadMyAvailability();
+
+                this.cdr.detectChanges();
+              },
+
+              error: (err: any) => {
+
+                console.error(
+                  'Error fetching meetings:',
+                  err
+                );
+
+              }
+
+            });
+
+        },
+
+        error: (err: any) => {
+
+          console.error(
+            'Error fetching participants:',
+            err
+          );
+
+        }
+
+      });
+
   }
 
+  // =========================
+  // LOAD MY AVAILABILITY
+  // =========================
+
   loadMyAvailability(): void {
+
+    if (!this.currentUser) {
+      return;
+    }
+
     this.availabilityService
-      .getAvailabilitiesByUser(this.currentUser.id)
+      .getAvailabilitiesByUser(
+        this.currentUser.id
+      )
       .subscribe({
-        next: (availabilities: any) => {
+
+        next: (availabilities: any[]) => {
+
           this.submittedMeetingIds.clear();
 
-          availabilities.forEach((availability: any) => {
-            if (
-              availability.meetingId !== null &&
-              availability.meetingId !== undefined
-            ) {
-              this.submittedMeetingIds.add(
-                availability.meetingId
-              );
+          (availabilities || []).forEach(
+            (availability: any) => {
+
+              if (
+                availability.meetingId !== null &&
+                availability.meetingId !== undefined
+              ) {
+
+                this.submittedMeetingIds.add(
+                  Number(availability.meetingId)
+                );
+
+              }
+
             }
-          });
+          );
 
           this.updateNotifications();
+
           this.cdr.detectChanges();
         },
-        error: (err) => {
+
+        error: (err: any) => {
+
           console.error(
             'Error fetching availability:',
             err
           );
+
         }
+
       });
+
   }
+
+  // =========================
+  // LOAD NOTIFICATIONS
+  // =========================
 
   loadNotifications(): void {
-    this.notificationService
-      .getNotificationsByUser(this.currentUser.id)
-      .subscribe({
-        next: (data: any) => {
-          this.notifications = data;
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Error fetching notifications:', err);
-        }
-      });
-  }
 
-  updateNotifications(): void {
-    this.myMeetings.forEach((meeting: any) => {
-      if (this.needsAvailability(meeting)) {
-        const alreadyExists = this.notifications.some(
-          (notification: any) =>
-            notification.meetingId === meeting.id &&
-            notification.type === 'Availability'
-        );
-
-        if (!alreadyExists) {
-          const notification = {
-            userId: this.currentUser.id,
-            meetingId: meeting.id,
-            title: 'Availability Required',
-            message: `Please submit your availability for ${meeting.title}`,
-            type: 'Availability',
-            isRead: false
-          };
-
-          this.notificationService
-            .addNotification(notification)
-            .subscribe({
-              next: (createdNotification: any) => {
-                this.notifications.unshift(createdNotification);
-                this.cdr.detectChanges();
-              },
-              error: (err) => {
-                console.error(
-                  'Error creating notification:',
-                  err
-                );
-              }
-            });
-        }
-      }
-    });
-  }
-
-  toggleNotifications(): void {
-    this.showNotifications = !this.showNotifications;
-  }
-
-  markNotificationsAsRead(): void {
     if (!this.currentUser) {
       return;
     }
 
     this.notificationService
-      .markAllAsRead(this.currentUser.id)
+      .getNotificationsByUser(
+        this.currentUser.id
+      )
       .subscribe({
+
+        next: (data: any[]) => {
+
+          this.notifications = data || [];
+
+          this.cdr.detectChanges();
+        },
+
+        error: (err: any) => {
+
+          console.error(
+            'Error fetching notifications:',
+            err
+          );
+
+        }
+
+      });
+
+  }
+
+  // =========================
+  // CREATE AVAILABILITY NOTIFICATIONS
+  // =========================
+
+  updateNotifications(): void {
+
+    if (!this.currentUser) {
+      return;
+    }
+
+    this.myMeetings.forEach(
+      (meeting: any) => {
+
+        if (
+          this.needsAvailability(meeting)
+        ) {
+
+          const alreadyExists =
+            this.notifications.some(
+              (notification: any) =>
+                notification.meetingId === meeting.id &&
+                notification.type === 'Availability'
+            );
+
+          if (!alreadyExists) {
+
+            const notification = {
+
+              userId:
+                this.currentUser.id,
+
+              meetingId:
+                meeting.id,
+
+              title:
+                'Availability Required',
+
+              message:
+                `Please submit your availability for ${meeting.title}`,
+
+              type:
+                'Availability',
+
+              isRead:
+                false
+
+            };
+
+            this.notificationService
+              .addNotification(
+                notification
+              )
+              .subscribe({
+
+                next: (
+                  createdNotification: any
+                ) => {
+
+                  this.notifications.unshift(
+                    createdNotification
+                  );
+
+                  this.cdr.detectChanges();
+                },
+
+                error: (err: any) => {
+
+                  console.error(
+                    'Error creating notification:',
+                    err
+                  );
+
+                }
+
+              });
+
+          }
+
+        }
+
+      }
+    );
+
+  }
+
+  // =========================
+  // NOTIFICATIONS
+  // =========================
+
+  toggleNotifications(): void {
+
+    this.showNotifications =
+      !this.showNotifications;
+
+  }
+
+  markNotificationsAsRead(): void {
+
+    if (!this.currentUser) {
+      return;
+    }
+
+    this.notificationService
+      .markAllAsRead(
+        this.currentUser.id
+      )
+      .subscribe({
+
         next: () => {
+
           this.notifications.forEach(
             (notification: any) => {
-              notification.isRead = true;
+
+              notification.isRead =
+                true;
+
             }
           );
 
           this.cdr.detectChanges();
         },
-        error: (err) => {
+
+        error: (err: any) => {
+
           console.error(
             'Error marking notifications as read:',
             err
           );
+
         }
+
       });
+
   }
 
   get unreadNotificationCount(): number {
+
     return this.notifications.filter(
-      (notification: any) => !notification.isRead
+      (notification: any) =>
+        !notification.isRead
     ).length;
+
   }
 
-  openNotification(notification: any): void {
-    if (!notification.isRead) {
+  openNotification(
+    notification: any
+  ): void {
+
+    if (
+      !notification.isRead &&
+      notification.id !== undefined &&
+      notification.id !== null
+    ) {
+
       this.notificationService
-        .markAsRead(notification.id)
+        .markAsRead(
+          notification.id
+        )
         .subscribe({
+
           next: () => {
+
             notification.isRead = true;
+
             this.cdr.detectChanges();
           },
-          error: (err) => {
+
+          error: (err: any) => {
+
             console.error(
               'Error marking notification as read:',
               err
             );
+
           }
+
         });
+
     }
 
     if (
       notification.type === 'Availability' &&
-      notification.meetingId
+      notification.meetingId !== null &&
+      notification.meetingId !== undefined
     ) {
+
       this.goToSubmitAvailability(
-        notification.meetingId
+        Number(notification.meetingId)
       );
+
     }
+
   }
 
+  // =========================
+  // MEETING FILTERS
+  // =========================
+
   get upcomingMeetings(): any[] {
+
     return this.myMeetings.filter(
       (meeting: any) =>
         meeting.status !== 'Cancelled' &&
         this.isUpcoming(meeting)
     );
+
   }
 
   get pastMeetings(): any[] {
+
     return this.myMeetings.filter(
       (meeting: any) =>
         meeting.status !== 'Cancelled' &&
         !this.isUpcoming(meeting)
     );
+
   }
 
   get cancelledMeetings(): any[] {
+
     return this.myMeetings.filter(
       (meeting: any) =>
         meeting.status === 'Cancelled'
     );
+
   }
 
   get pendingMeetings(): any[] {
+
     return this.upcomingMeetings.filter(
       (meeting: any) =>
         this.needsAvailability(meeting)
     );
+
   }
 
   get pendingAvailabilityCount(): number {
+
     return this.pendingMeetings.length;
+
   }
 
   get submittedAvailabilityCount(): number {
+
     return this.upcomingMeetings.filter(
       (meeting: any) =>
         this.hasSubmittedAvailability(
-          meeting.id
+          Number(meeting.id)
         )
     ).length;
+
   }
+
+  // =========================
+  // AVAILABILITY CHECK
+  // =========================
 
   hasSubmittedAvailability(
     meetingId: number
   ): boolean {
+
     return this.submittedMeetingIds.has(
       meetingId
     );
+
   }
 
   needsAvailability(
     meeting: any
   ): boolean {
+
+    if (
+      meeting.id === null ||
+      meeting.id === undefined
+    ) {
+      return false;
+    }
+
     return (
       meeting.status !== 'Cancelled' &&
       this.isUpcoming(meeting) &&
       !this.hasSubmittedAvailability(
-        meeting.id
+        Number(meeting.id)
       )
     );
+
   }
 
-  isUpcoming(meeting: any): boolean {
+  // =========================
+  // CHECK IF MEETING IS UPCOMING
+  // =========================
+
+  isUpcoming(
+    meeting: any
+  ): boolean {
+
     if (!meeting.meetingDate) {
       return true;
     }
 
-    const meetingDateTime = new Date(
-      meeting.meetingDate
-    );
+    const meetingDateTime =
+      new Date(
+        meeting.meetingDate
+      );
 
     if (meeting.meetingTime) {
+
       const timeParts =
-        meeting.meetingTime.split(':');
+        meeting.meetingTime
+          .split(':');
 
       const hours =
         Number(timeParts[0]);
@@ -309,25 +541,43 @@ export class MyMeetings implements OnInit {
         0,
         0
       );
+
     }
 
-    return meetingDateTime >= new Date();
+    return (
+      meetingDateTime >=
+      new Date()
+    );
+
   }
+
+  // =========================
+  // GO TO SUBMIT AVAILABILITY
+  // =========================
 
   goToSubmitAvailability(
     meetingId: number
   ): void {
+
     this.router.navigate([
       '/submit-availability',
       meetingId
     ]);
+
   }
 
+  // =========================
+  // LOGOUT
+  // =========================
+
   logout(): void {
+
     this.authService.logout();
 
     this.router.navigate([
       '/login'
     ]);
+
   }
+
 }
