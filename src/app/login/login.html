@@ -1,40 +1,123 @@
 <main class="auth-page">
+
   <div class="auth-card">
-    <div class="card-body p-4">
 
-      <div class="auth-brand">
-        <span class="brand-mark">S</span>
-        <h1>SyncUp</h1>
-        <p>Welcome back. Plan your next meeting.</p>
-      </div>
+```
+<!-- BRAND -->
 
-      <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+<div class="auth-brand">
 
-      <form #loginForm="ngForm" (ngSubmit)="login()">
-
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Email</label>
-          <input type="email" class="form-control form-control-lg" name="email"
-            [(ngModel)]="credentials.email" required placeholder="you@example.com">
-        </div>
-
-        <div class="mb-4">
-          <label class="form-label fw-semibold">Password</label>
-          <input type="password" class="form-control form-control-lg" name="password"
-            [(ngModel)]="credentials.password" required placeholder="Your password">
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold" [disabled]="loginForm.invalid">
-          Log In
-        </button>
-      </form>
-
-
-      <p class="text-center text-muted mb-2"><a routerLink="/forgot-password">Forgot password?</a></p>
-      <p class="text-center text-muted mt-3 mb-0">
-        Don't have an account? <a routerLink="/sign-up">Sign up</a>
-      </p>
-
-    </div>
+  <div class="brand-mark">
+    S
   </div>
+
+  <h1>
+    SyncUp
+  </h1>
+
+  <p>
+    Welcome back. Plan your next meeting.
+  </p>
+
+</div>
+
+
+<!-- ERROR MESSAGE -->
+
+<div
+  *ngIf="errorMessage"
+  class="error-message">
+
+  {{ errorMessage }}
+
+</div>
+
+
+<!-- LOGIN FORM -->
+
+<form
+  #loginForm="ngForm"
+  (ngSubmit)="login()">
+
+
+  <!-- EMAIL -->
+
+  <div class="form-group">
+
+    <label for="email">
+      Email address
+    </label>
+
+    <input
+      id="email"
+      type="email"
+      name="email"
+      [(ngModel)]="credentials.email"
+      required
+      placeholder="you@example.com">
+
+  </div>
+
+
+  <!-- PASSWORD -->
+
+  <div class="form-group">
+
+    <label for="password">
+      Password
+    </label>
+
+    <input
+      id="password"
+      type="password"
+      name="password"
+      [(ngModel)]="credentials.password"
+      required
+      placeholder="Enter your password">
+
+  </div>
+
+
+  <!-- LOGIN BUTTON -->
+
+  <button
+    type="submit"
+    class="primary-button"
+    [disabled]="loginForm.invalid">
+
+    Log in
+
+  </button>
+
+</form>
+
+
+<!-- FORGOT PASSWORD -->
+
+<div class="forgot-password">
+
+  <a routerLink="/forgot-password">
+    Forgot password?
+  </a>
+
+</div>
+
+
+<!-- SIGN UP -->
+
+<div class="signup-link">
+
+  <span>
+    Don't have an account?
+  </span>
+
+  <a routerLink="/sign-up">
+    Sign up
+  </a>
+
+</div>
+
+
+  </div>
+
 </main>

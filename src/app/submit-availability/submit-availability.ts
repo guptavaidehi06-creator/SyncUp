@@ -14,14 +14,22 @@ import { AvailabilityService } from '../services/availability';
   styleUrl: './submit-availability.css'
 })
 export class SubmitAvailability implements OnInit {
+
   meetingId: number = 0;
+
   meeting: any = null;
+
   currentUser: any = null;
+
   submitted: boolean = false;
+
   submitting: boolean = false;
 
   timeWindows: { startTime: string; endTime: string }[] = [
-    { startTime: '', endTime: '' }
+    {
+      startTime: '',
+      endTime: ''
+    }
   ];
 
   constructor(
@@ -33,54 +41,128 @@ export class SubmitAvailability implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.meetingId = Number(this.route.snapshot.paramMap.get('meetingId'));
+
+    // URL se meeting ID lena
+    this.meetingId = Number(
+      this.route.snapshot.paramMap.get('meetingId')
+    );
+
+    // Current logged-in user
     this.currentUser = this.authService.getUser();
 
+    // Meeting details load karna
     this.meetingService.getAllMeetings().subscribe({
+
       next: (meetings) => {
-        this.meeting = meetings.find((m: any) => m.id === this.meetingId);
+
+        this.meeting = meetings.find(
+          (m: any) => m.id === this.meetingId
+        );
+
         this.cdr.detectChanges();
+
       },
-      error: (err) => console.error('Error fetching meeting:', err)
+
+      error: (err) => {
+
+        console.error(
+          'Error fetching meeting:',
+          err
+        );
+
+      }
+
     });
+
   }
+
+
+  /* ================= ADD TIME WINDOW ================= */
 
   addAnotherWindow(): void {
-    this.timeWindows.push({ startTime: '', endTime: '' });
-    this.cdr.detectChanges();
-  }
 
-  removeWindow(index: number): void {
-    this.timeWindows.splice(index, 1);
-    this.cdr.detectChanges();
-  }
-
-  submitAvailability(): void {
-    if (!this.currentUser || !this.meeting) return;
-
-    this.submitting = true;
-
-    const requests = this.timeWindows.map(w => {
-      const payload = {
-        userId: this.currentUser.id,
-        specificDate: this.meeting.meetingDate,
-        dayOfWeek: null,
-        startTime: w.startTime,
-        endTime: w.endTime
-      };
-      return this.availabilityService.addAvailability(payload).toPromise();
+    this.timeWindows.push({
+      startTime: '',
+      endTime: ''
     });
 
-    Promise.all(requests)
-      .then(() => {
-        this.submitted = true;
-        this.submitting = false;
-        this.cdr.detectChanges();
-      })
-      .catch((err) => {
-        console.error('Error submitting availability:', err);
-        this.submitting = false;
-        this.cdr.detectChanges();
-      });
+    this.cdr.detectChanges();
+
   }
+
+
+  /* ================= REMOVE TIME WINDOW ================= */
+
+  removeWindow(index: number): void {
+
+    if (this.timeWindows.length > 1) {
+
+      this.timeWindows.splice(index, 1);
+
+    }
+
+    this.cdr.detectChanges();
+
+  }
+
+
+  /* ================= SUBMIT AVAILABILITY ================= */
+
+  submitAvailability(): void {
+
+  if (!this.currentUser || !this.meeting) return;
+
+  this.submitting = true;
+
+  const requests = this.timeWindows.map(window => {
+
+    const payload = {
+
+      meetingId: this.meetingId,
+
+      userId: this.currentUser.id,
+
+      specificDate: this.meeting.meetingDate,
+
+      dayOfWeek: null,
+
+      startTime: window.startTime,
+
+      endTime: window.endTime
+
+    };
+
+    return this.availabilityService
+      .addAvailability(payload)
+      .toPromise();
+
+  });
+
+
+  Promise.all(requests)
+
+    .then(() => {
+
+      this.submitted = true;
+
+      this.submitting = false;
+
+      this.cdr.detectChanges();
+
+    })
+
+    .catch((err) => {
+
+      console.error(
+        'Error submitting availability:',
+        err
+      );
+
+      this.submitting = false;
+
+      this.cdr.detectChanges();
+
+    });
+
+}
 }
