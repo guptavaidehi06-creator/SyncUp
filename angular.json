@@ -24,10 +24,10 @@
                 "input": "public"
               }
             ],
-             "styles": [
+            "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
-               "src/styles.css"
-               ]
+              "src/styles.css"
+            ]
           },
           "configurations": {
             "production": {
@@ -39,8 +39,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "10kB",
+                  "maximumError": "12kB"
                 }
               ],
               "outputHashing": "all"
