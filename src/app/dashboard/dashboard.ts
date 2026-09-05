@@ -10,268 +10,668 @@ import { SchedulingService } from '../services/scheduling';
 import { AuthService } from '../services/auth';
 
 @Component({
-  selector: 'app-dashboard',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css'
+selector: 'app-dashboard',
+standalone: true,
+imports: [CommonModule, FormsModule],
+templateUrl: './dashboard.html',
+styleUrl: './dashboard.css'
 })
 export class Dashboard implements OnInit {
-  activeView: 'home' | 'meetings' | 'create' | 'participants' | 'availability' | 'slot' = 'home';
-  createStep = 1;
-  notificationsOpen = false;
-  users: any[] = [];
-  meetings: any[] = [];
-  availabilities: any[] = [];
-  participants: any[] = [];
-  notifications: string[] = [];
 
-  newMeeting = {
-    title: '',
-    meetingDate: '',
-    meetingTime: '',
-    priority: 'Medium',
-    status: 'Scheduled',
-    creatorId: null
-  };
+activeView:
+| 'home'
+| 'meetings'
+| 'create'
+| 'participants'
+| 'availability'
+| 'slot' = 'home';
 
-  participantMeetingId: number | null = null;
-  selectedUserIds: Set<number> = new Set();
-  bulkIsMandatory: boolean = true;
+sidebarOpen = true;
+createStep = 1;
 
-  suggestRequest = {
-    meetingId: null
-  };
+notificationsOpen = false;
+showLogoutConfirmation = false;
 
-  suggestResult: any = null;
+schedulingType: 'fixed' | 'availability' = 'fixed';
 
-  constructor(
-    private userService: UserService,
-    private meetingService: MeetingService,
-    private availabilityService: AvailabilityService,
-    private participantService: ParticipantService,
-    private schedulingService: SchedulingService,
-    private router: Router,
-    private authService: AuthService,
-    private cdr: ChangeDetectorRef
-  ) { }
+users: any[] = [];
+meetings: any[] = [];
+availabilities: any[] = [];
+participants: any[] = [];
 
-  ngOnInit(): void {
-    this.loadUsers();
-    this.loadMeetings();
-    this.loadAvailabilities();
-    this.loadParticipants();
-  }
+notifications: string[] = [];
 
-  setView(view: 'home' | 'meetings' | 'create' | 'participants' | 'availability' | 'slot'): void {
-    this.activeView = view;
-    if (view === 'create') this.createStep = 1;
-  }
+createdMeetingId: number | null = null;
 
-  toggleNotifications(): void {
-    this.notificationsOpen = !this.notificationsOpen;
-  }
+newMeeting = {
+title: '',
+meetingDate: '',
+meetingTime: '',
+priority: 'Medium',
+status: 'Scheduled',
+creatorId: null as number | null
+};
 
-  getPageTitle(): string {
-    switch (this.activeView) {
-      case 'home': {
-        const name = this.getCurrentUserName();
-        return name ? `Welcome back, ${name}!` : 'Welcome back!';
-      }
-      case 'meetings': return 'My Meetings';
-      case 'create': return 'Create a Meeting';
-      case 'participants': return 'Participants';
-      default: return 'Availability';
-    }
-  }
+participantMeetingId: number | null = null;
 
-  getPageSubtitle(): string {
-    return "Here's what's happening across your meetings today.";
-  }
+selectedUserIds: Set<number> = new Set();
 
-  nextCreateStep(): void {
-    if (this.createStep < 3) this.createStep++;
-  }
+bulkIsMandatory = true;
 
-  previousCreateStep(): void {
-    if (this.createStep > 1) this.createStep--;
-  }
+suggestRequest = {
+meetingId: null as number | null
+};
 
-  getUpcomingMeetings(): any[] {
-    return this.meetings.filter(meeting => this.isMeetingUpcoming(meeting));
-  }
+suggestResult: any = null;
 
-  getCompletedMeetings(): any[] {
-    return this.meetings.filter(meeting => !this.isMeetingUpcoming(meeting));
-  }
+constructor(
+private userService: UserService,
+private meetingService: MeetingService,
+private availabilityService: AvailabilityService,
+private participantService: ParticipantService,
+private schedulingService: SchedulingService,
+private router: Router,
+private authService: AuthService,
+private cdr: ChangeDetectorRef
+) {}
 
-  loadUsers(): void {
-    this.userService.getAllUsers().subscribe({
-      next: (data) => {
-        this.users = data;
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error('Error fetching users:', err)
-    });
-  }
+ngOnInit(): void {
 
-  loadMeetings(): void {
-    this.meetingService.getAllMeetings().subscribe({
-      next: (data) => {
-        this.meetings = data;
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error('Error fetching meetings:', err)
-    });
-  }
+this.loadUsers();
+this.loadMeetings();
+this.loadAvailabilities();
+this.loadParticipants();
 
-  loadAvailabilities(): void {
-    this.availabilityService.getAllAvailabilities().subscribe({
-      next: (data) => {
-        this.availabilities = data;
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error('Error fetching availabilities:', err)
-    });
-  }
-
-  loadParticipants(): void {
-    this.participantService.getAllParticipants().subscribe({
-      next: (data) => {
-        this.participants = data;
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error('Error fetching participants:', err)
-    });
-  }
-  isMeetingUpcoming(meeting: any): boolean {
-  if (!meeting.meetingDate) return true;
-
-  const meetingDateTime = new Date(meeting.meetingDate);
-
-  if (meeting.meetingTime) {
-    const [hours, minutes] = meeting.meetingTime.split(':').map(Number);
-    meetingDateTime.setHours(hours, minutes, 0, 0);
-  }
-
-  return meetingDateTime >= new Date();
 }
 
-  addMeeting(): void {
-    const title = this.newMeeting.title;
-    this.meetingService.addMeeting(this.newMeeting).subscribe({
-      next: () => {
-        this.notifications.unshift(`🟢 New meeting "${title}" was created.`);
-        this.newMeeting = {
-          title: '',
-          meetingDate: '',
-          meetingTime: '',
-          priority: 'Medium',
-          status: 'Scheduled',
-          creatorId: null
-        };
-        this.loadMeetings();
-        this.activeView = 'meetings';
-      },
-      error: (err) => console.error('Error adding meeting:', err)
-    });
-  }
+/* ================= SIDEBAR ================= */
 
-  cancelMeeting(meeting: any): void {
-    const updatedMeeting = { ...meeting, status: 'Cancelled' };
-    this.meetingService.updateMeeting(meeting.id, updatedMeeting).subscribe({
-      next: () => {
-        this.notifications.unshift(`🔴 Meeting "${meeting.title}" was cancelled.`);
-        this.loadMeetings();
-      },
-      error: (err) => console.error('Error cancelling meeting:', err)
-    });
-  }
+toggleSidebar(): void {
+this.sidebarOpen = !this.sidebarOpen;
+}
 
-  rescheduleMeeting(meeting: any, newDate: string, newTime: string): void {
-    const updatedMeeting = {
-      ...meeting,
-      meetingDate: newDate,
-      meetingTime: newTime,
-      status: 'Rescheduled'
+setView(
+view:
+| 'home'
+| 'meetings'
+| 'create'
+| 'participants'
+| 'availability'
+| 'slot'
+): void {
+
+this.activeView = view;
+
+if (view === 'create') {
+  this.createStep = 1;
+}
+
+this.selectedUserIds.clear();
+
+}
+
+/* ================= PAGE ================= */
+
+getPageTitle(): string {
+
+switch (this.activeView) {
+
+  case 'home':
+    const name = this.getCurrentUserName();
+    return name ? `Welcome, ${name}` : 'Welcome';
+
+  case 'meetings':
+    return 'My Meetings';
+
+  case 'create':
+    return 'Create Meeting';
+
+  case 'participants':
+    return 'Participants';
+
+  case 'availability':
+    return 'Availability';
+
+  case 'slot':
+    return 'Find Best Slot';
+
+  default:
+    return 'SyncUp';
+
+}
+
+}
+
+getPageSubtitle(): string {
+
+switch (this.activeView) {
+
+  case 'home':
+    return 'An overview of your upcoming meetings and workspace activity.';
+
+  case 'meetings':
+    return 'View and manage meetings in your workspace.';
+
+  case 'create':
+    return 'Create a meeting and organize participants.';
+
+  case 'participants':
+    return 'Manage people participating in your meetings.';
+
+  case 'availability':
+    return 'Review availability submitted by participants.';
+
+  case 'slot':
+    return 'Find a suitable time based on participant availability.';
+
+  default:
+    return '';
+
+}
+
+}
+
+/* ================= NOTIFICATIONS ================= */
+
+toggleNotifications(): void {
+this.notificationsOpen = !this.notificationsOpen;
+}
+
+/* ================= LOAD DATA ================= */
+
+loadUsers(): void {
+
+this.userService.getAllUsers().subscribe({
+
+  next: (data) => {
+
+    this.users = data;
+    this.cdr.detectChanges();
+
+  },
+
+  error: (err) =>
+    console.error('Error fetching users:', err)
+
+});
+
+}
+
+loadMeetings(): void {
+
+  this.meetingService.getAllMeetings().subscribe({
+
+  next: (data) => {
+
+    this.meetings = data;
+    this.cdr.detectChanges();
+
+  },
+
+  error: (err) =>
+    console.error('Error fetching meetings:', err)
+
+});
+
+}
+
+loadAvailabilities(): void {
+
+this.availabilityService.getAllAvailabilities().subscribe({
+
+  next: (data) => {
+
+    this.availabilities = data;
+    this.cdr.detectChanges();
+
+  },
+
+  error: (err) =>
+    console.error('Error fetching availabilities:', err)
+
+});
+
+}
+
+loadParticipants(): void {
+
+this.participantService.getAllParticipants().subscribe({
+
+  next: (data) => {
+
+    this.participants = data;
+    this.cdr.detectChanges();
+
+  },
+
+  error: (err) =>
+    console.error('Error fetching participants:', err)
+
+});
+
+}
+
+/* ================= MEETING STATUS ================= */
+
+isMeetingUpcoming(meeting: any): boolean {
+
+  if (!meeting.meetingDate) return true;
+
+if (meeting.status === 'Cancelled') return false;
+
+const meetingDateTime = new Date(meeting.meetingDate);
+
+if (meeting.meetingTime) {
+
+  const [hours, minutes] =
+    meeting.meetingTime.split(':').map(Number);
+
+  meetingDateTime.setHours(hours, minutes, 0, 0);
+
+}
+
+return meetingDateTime >= new Date();
+
+}
+
+getUpcomingMeetings(): any[] {
+
+return this.meetings.filter(meeting =>
+  this.isMeetingUpcoming(meeting)
+);
+
+}
+
+getCompletedMeetings(): any[] {
+
+return this.meetings.filter(meeting =>
+  !this.isMeetingUpcoming(meeting) &&
+  meeting.status !== 'Cancelled'
+);
+
+}
+
+/* ================= CREATE FLOW ================= */
+
+onSchedulingTypeChange(): void {
+
+if (this.schedulingType === 'availability') {
+
+  this.newMeeting.meetingTime = '';
+
+}
+
+}
+
+createMeetingAndContinue(): void {
+
+const title = this.newMeeting.title;
+
+this.meetingService.addMeeting(this.newMeeting).subscribe({
+
+  next: (meeting: any) => {
+
+    this.createdMeetingId = meeting.id;
+
+    this.participantMeetingId = meeting.id;
+
+    this.notifications.unshift(
+      `Meeting "${title}" was created successfully.`
+    );
+
+    this.createStep = 2;
+
+    this.cdr.detectChanges();
+
+  },
+
+  error: (err) =>
+    console.error('Error creating meeting:', err)
+
+});
+
+}
+
+saveParticipantsAndContinue(): void {
+
+if (!this.participantMeetingId) return;
+
+const requests =
+  Array.from(this.selectedUserIds).map(userId => {
+
+    const payload = {
+
+      meetingId: this.participantMeetingId,
+      userId: userId,
+      isMandatory: this.bulkIsMandatory
+
     };
-    this.meetingService.updateMeeting(meeting.id, updatedMeeting).subscribe({
-      next: () => {
-        this.notifications.unshift(`🟡 Meeting "${meeting.title}" was rescheduled.`);
-        this.loadMeetings();
-      },
-      error: (err) => console.error('Error rescheduling meeting:', err)
-    });
-  }
 
-  toggleUserSelection(userId: number): void {
-    if (this.selectedUserIds.has(userId)) {
-      this.selectedUserIds.delete(userId);
+    return this.participantService
+      .addParticipant(payload)
+      .toPromise();
+
+  });
+
+
+Promise.all(requests)
+
+  .then(() => {
+
+    this.notifications.unshift(
+      `${this.selectedUserIds.size} participant(s) were added to the meeting.`
+    );
+
+    this.selectedUserIds.clear();
+
+    this.loadParticipants();
+
+
+    if (this.schedulingType === 'fixed') {
+
+      this.finishCreateFlow();
+
     } else {
-      this.selectedUserIds.add(userId);
+
+      this.createStep = 3;
+
     }
-  }
 
-  isUserSelected(userId: number): boolean {
-    return this.selectedUserIds.has(userId);
-  }
+  })
 
-  addSelectedParticipants(): void {
-    if (!this.participantMeetingId || this.selectedUserIds.size === 0) return;
+  .catch(err =>
+    console.error('Error adding participants:', err)
+  );
 
-    const requests = Array.from(this.selectedUserIds).map(userId => {
-      const payload = {
-        meetingId: this.participantMeetingId,
-        userId: userId,
-        isMandatory: this.bulkIsMandatory
+}
+
+finishAvailabilityMeeting(): void {
+
+this.notifications.unshift(
+  'Meeting is ready. Participants can now submit their availability.'
+);
+
+this.finishCreateFlow();
+
+
+}
+
+finishCreateFlow(): void {
+
+
+this.newMeeting = {
+
+  title: '',
+  meetingDate: '',
+  meetingTime: '',
+  priority: 'Medium',
+  status: 'Scheduled',
+  creatorId: null
+
+};
+
+this.createdMeetingId = null;
+
+this.participantMeetingId = null;
+
+this.createStep = 1;
+
+this.loadMeetings();
+
+this.activeView = 'meetings';
+
+}
+
+previousCreateStep(): void {
+
+if (this.createStep > 1) {
+
+  this.createStep--;
+
+}
+
+
+}
+
+/* ================= MEETING ACTIONS ================= */
+
+cancelMeeting(meeting: any): void {
+
+
+const updatedMeeting = {
+
+  ...meeting,
+  status: 'Cancelled'
+
+};
+
+
+this.meetingService
+  .updateMeeting(meeting.id, updatedMeeting)
+  .subscribe({
+
+    next: () => {
+
+      this.notifications.unshift(
+        `Meeting "${meeting.title}" was cancelled.`
+      );
+
+      this.loadMeetings();
+
+    },
+
+    error: (err) =>
+      console.error(
+        'Error cancelling meeting:',
+        err
+      )
+
+  });
+
+
+}
+
+/* ================= PARTICIPANTS ================= */
+
+toggleUserSelection(userId: number): void {
+
+
+if (this.selectedUserIds.has(userId)) {
+
+  this.selectedUserIds.delete(userId);
+
+} else {
+
+  this.selectedUserIds.add(userId);
+
+}
+
+
+}
+
+isUserSelected(userId: number): boolean {
+
+
+return this.selectedUserIds.has(userId);
+
+
+}
+
+addSelectedParticipants(): void {
+
+if (
+  !this.participantMeetingId ||
+  this.selectedUserIds.size === 0
+) return;
+
+
+const requests =
+  Array.from(this.selectedUserIds).map(userId => {
+
+    const payload = {
+
+      meetingId: this.participantMeetingId,
+      userId: userId,
+      isMandatory: this.bulkIsMandatory
+
+    };
+
+    return this.participantService
+      .addParticipant(payload)
+      .toPromise();
+
+  });
+
+
+Promise.all(requests)
+
+  .then(() => {
+
+    this.notifications.unshift(
+      `${this.selectedUserIds.size} participant(s) were added.`
+    );
+
+    this.selectedUserIds.clear();
+
+    this.loadParticipants();
+
+  })
+
+  .catch(err =>
+    console.error(
+      'Error adding participants:',
+      err
+    )
+  );
+
+}
+
+/* ================= BEST SLOT ================= */
+
+findBestSlot(): void {
+
+this.suggestResult = null;
+
+this.schedulingService
+  .suggestSlot(this.suggestRequest)
+  .subscribe({
+
+    next: (data) => {
+
+      this.suggestResult = data;
+
+      this.cdr.detectChanges();
+
+    },
+
+    error: (err) => {
+
+      console.error(
+        'Error suggesting slot:',
+        err
+      );
+
+      this.suggestResult = {
+
+        success: false,
+        message:
+          'Unable to find a suitable time. Please try again after participants submit their availability.'
+
       };
-      return this.participantService.addParticipant(payload).toPromise();
-    });
 
-    Promise.all(requests).then(() => {
-      this.selectedUserIds.clear();
-      this.loadParticipants();
-    }).catch((err) => console.error('Error adding participants:', err));
-  }
+      this.cdr.detectChanges();
 
-  findBestSlot(): void {
-    this.suggestResult = null;
-    this.schedulingService.suggestSlot(this.suggestRequest).subscribe({
-      next: (data) => {
-        this.suggestResult = data;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error suggesting slot:', err);
-        this.suggestResult = { success: false, message: 'Error occurred while finding slot.' };
-        this.cdr.detectChanges();
-      }
-    });
-  }
+    }
 
-  getUserName(userId: number): string {
-    const user = this.users.find(u => u.id === userId);
-    return user ? user.name : 'Unknown';
-  }
+  });
 
-  getInviteLink(meetingId: number): string {
-    return `${window.location.origin}/submit-availability/${meetingId}`;
-  }
+}
 
-  copyLink(meetingId: number): void {
-    const link = this.getInviteLink(meetingId);
-    navigator.clipboard.writeText(link);
-    alert('Link copied: ' + link);
-  }
+/* ================= HELPERS ================= */
 
-  logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login']);
-  }
+getUserName(userId: number): string {
 
-  getCurrentUserName(): string {
-    const user = this.authService.getUser();
-    return user ? user.name : '';
+const user =
+  this.users.find(u => u.id === userId);
 
-  }
+return user
+  ? user.name
+  : 'Unknown user';
+
+}
+
+getInitials(name: string): string {
+
+if (!name) return 'U';
+
+const parts =
+  name.trim().split(' ');
+
+if (parts.length === 1) {
+
+  return parts[0].charAt(0).toUpperCase();
+
+}
+
+return (
+  parts[0].charAt(0) +
+  parts[parts.length - 1].charAt(0)
+).toUpperCase();
+
+}
+
+getInviteLink(meetingId: number): string {
+
+return `${window.location.origin}/submit-availability/${meetingId}`;
+
+}
+
+copyLink(meetingId: number): void {
+
+const link =
+  this.getInviteLink(meetingId);
+
+navigator.clipboard.writeText(link);
+
+this.notifications.unshift(
+  'Meeting invite link was copied to your clipboard.'
+);
+
+}
+
+/* ================= LOGOUT ================= */
+
+openLogoutConfirmation(): void {
+
+this.showLogoutConfirmation = true;
+
+}
+
+closeLogoutConfirmation(): void {
+
+this.showLogoutConfirmation = false;
+
+}
+
+confirmLogout(): void {
+
+this.authService.logout();
+
+this.router.navigate(['/login']);
+
+}
+
+/* ================= CURRENT USER ================= */
+
+getCurrentUserName(): string {
+
+
+const user = this.authService.getUser();
+
+return user
+  ? user.name
+  : '';
+
+}
+
 }
