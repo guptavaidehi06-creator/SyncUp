@@ -145,9 +145,9 @@
 
             <span
               class="notification-badge"
-              *ngIf="notifications.length">
+              *ngIf="unreadNotificationCount">
 
-              {{ notifications.length }}
+              {{ unreadNotificationCount }}
 
             </span>
 
@@ -170,17 +170,29 @@
 
               </div>
 
+              <button
+                class="mark-read"
+                *ngIf="unreadNotificationCount"
+                (click)="markAllNotificationsRead()">
+
+                Mark all as read
+
+              </button>
+
             </div>
 
 
             <div
               class="notification-item"
+              [class.read]="notification.read"
               *ngFor="let notification of notifications">
 
-              <span class="notification-dot"></span>
+              <span
+                class="notification-dot"
+                *ngIf="!notification.read"></span>
 
               <p>
-                {{ notification }}
+                {{ notification.message }}
               </p>
 
             </div>
@@ -489,37 +501,16 @@
 
       <div class="view-intro">
 
-        <span class="eyebrow">
-
-          STEP {{ createStep }}
-          OF
-          {{ schedulingType === 'fixed' ? 2 : 3 }}
-
-        </span>
-
-
         <h2>
 
-          {{
-            createStep === 1
-              ? 'Meeting details'
-              : createStep === 2
-              ? 'Add participants'
-              : 'Share availability link'
-          }}
+          {{ reschedulingMeeting ? 'Reschedule meeting' : 'Meeting details' }}
 
         </h2>
 
 
         <p>
 
-          {{
-            createStep === 1
-              ? 'Enter the meeting details and choose how you want to schedule it.'
-              : createStep === 2
-              ? 'Select the people who should participate in this meeting.'
-              : 'Share the invite link with participants so they can submit their availability.'
-          }}
+          Use the same form to create or reschedule a meeting. Add participants from the Participants page when you're ready.
 
         </p>
 
@@ -529,10 +520,10 @@
       <!-- ================= STEP 1 ================= -->
 
       <form
-        *ngIf="createStep === 1"
+        *ngIf="true"
         #meetingForm="ngForm"
         class="form"
-        (ngSubmit)="createMeetingAndContinue()">
+        (ngSubmit)="saveMeeting()">
 
 
         <label>
@@ -673,7 +664,7 @@
           class="primary"
           [disabled]="meetingForm.invalid">
 
-          Create & Continue →
+          {{ reschedulingMeeting ? 'Save reschedule' : 'Create meeting' }}
 
         </button>
 
@@ -683,7 +674,7 @@
       <!-- ================= STEP 2 ================= -->
 
       <div
-        *ngIf="createStep === 2"
+        *ngIf="false"
         class="form">
 
 
@@ -781,7 +772,7 @@
       <!-- ================= STEP 3 ================= -->
 
       <div
-        *ngIf="createStep === 3"
+        *ngIf="false"
         class="form">
 
         <p
@@ -862,7 +853,8 @@
           Select meeting
 
           <select
-            [(ngModel)]="participantMeetingId">
+            [(ngModel)]="participantMeetingId"
+            (ngModelChange)="onParticipantMeetingChange()">
 
             <option
               [ngValue]="null"
@@ -890,11 +882,13 @@
 
           <label
             *ngFor="let user of users"
-            class="person-card">
+            class="person-card"
+            [class.already-added]="isUserAlreadyParticipant(user.id)">
 
             <input
               type="checkbox"
               [checked]="isUserSelected(user.id)"
+              [disabled]="isUserAlreadyParticipant(user.id)"
               (change)="toggleUserSelection(user.id)">
 
 
@@ -913,6 +907,14 @@
 
               <small>
                 {{ user.email }}
+              </small>
+
+              <small
+                class="added-label"
+                *ngIf="isUserAlreadyParticipant(user.id)">
+
+                Already added to this meeting
+
               </small>
 
             </span>
