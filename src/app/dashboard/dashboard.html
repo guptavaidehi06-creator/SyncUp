@@ -396,7 +396,9 @@
         *ngIf="meetings.length; else emptyMeetings">
 
         <article
-          *ngFor="let meeting of meetings">
+          *ngFor="let meeting of getMeetingsForDisplay()"
+          [class.cancelled]="meeting.status === 'Cancelled'"
+          [class.rescheduled]="meeting.status === 'Rescheduled'">
 
           <div class="date">
 
@@ -453,7 +455,8 @@
 
               <button
                 class="quiet"
-                (click)="copyLink(meeting.id)">
+                (click)="copyLink(meeting.id)"
+                [disabled]="meeting.status === 'Cancelled'">
 
                 Copy invite link
 
@@ -464,7 +467,9 @@
           </div>
 
 
-          <em>
+          <em
+            [class.status-rescheduled]="meeting.status === 'Rescheduled'"
+            [class.status-cancelled]="meeting.status === 'Cancelled'">
             {{ meeting.status }}
           </em>
 
