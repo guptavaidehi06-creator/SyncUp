@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { MeetingService } from '../services/meeting';
 
 type View =
   | 'home'
@@ -100,11 +101,15 @@ export class Dashboard implements OnInit {
   };
 
   constructor(
-    private router: Router
+    private router: Router,
+    private meetingService: MeetingService
   ) {}
 
   ngOnInit(): void {
+
     this.loadData();
+
+    this.loadMeetings();
   }
 
   // =========================
@@ -152,11 +157,42 @@ export class Dashboard implements OnInit {
   }
 
   // =========================
+  // LOAD MEETINGS FROM API
+  // =========================
+
+  loadMeetings(): void {
+
+    this.meetingService
+      .getAllMeetings()
+      .subscribe({
+
+        next: (data: any) => {
+
+          this.meetings = data;
+
+        },
+
+        error: (err) => {
+
+          console.error(
+            'Error loading meetings:',
+            err
+          );
+
+        }
+
+      });
+
+  }
+
+  // =========================
   // SIDEBAR
   // =========================
 
   toggleSidebar(): void {
-    this.sidebarOpen = !this.sidebarOpen;
+
+    this.sidebarOpen =
+      !this.sidebarOpen;
   }
 
   setView(view: View): void {
@@ -166,14 +202,17 @@ export class Dashboard implements OnInit {
     this.notificationsOpen = false;
 
     if (view !== 'create') {
+
       this.reschedulingMeeting = null;
     }
 
     if (view === 'participants') {
+
       this.selectedUserIds.clear();
     }
 
     if (view === 'slot') {
+
       this.suggestResult = null;
     }
   }
@@ -245,6 +284,7 @@ export class Dashboard implements OnInit {
   getCurrentUserName(): string {
 
     if (this.users.length > 0) {
+
       return this.users[0].name;
     }
 
@@ -259,15 +299,18 @@ export class Dashboard implements OnInit {
 
     const today = new Date();
 
-    const year = today.getFullYear();
+    const year =
+      today.getFullYear();
 
-    const month = String(
-      today.getMonth() + 1
-    ).padStart(2, '0');
+    const month =
+      String(
+        today.getMonth() + 1
+      ).padStart(2, '0');
 
-    const day = String(
-      today.getDate()
-    ).padStart(2, '0');
+    const day =
+      String(
+        today.getDate()
+      ).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
   }
@@ -278,58 +321,57 @@ export class Dashboard implements OnInit {
 
   getUpcomingMeetings(): Meeting[] {
 
-    return this.meetings.filter(meeting => {
-
-      return (
+    return this.meetings.filter(
+      meeting =>
         meeting.status !== 'Cancelled' &&
         !this.isMeetingPast(meeting)
-      );
-    });
+    );
   }
 
   getCompletedMeetings(): Meeting[] {
 
-    return this.meetings.filter(meeting => {
-
-      return (
+    return this.meetings.filter(
+      meeting =>
         meeting.status !== 'Cancelled' &&
         this.isMeetingPast(meeting)
-      );
-    });
+    );
   }
 
   getMeetingsForDisplay(): Meeting[] {
 
-    return [...this.meetings].sort((a, b) => {
+    return [...this.meetings].sort(
+      (a, b) => {
 
-      const dateA =
-        new Date(
-          `${a.meetingDate}T${a.meetingTime || '00:00'}`
-        ).getTime();
+        const dateA =
+          new Date(
+            `${a.meetingDate}T${a.meetingTime || '00:00'}`
+          ).getTime();
 
-      const dateB =
-        new Date(
-          `${b.meetingDate}T${b.meetingTime || '00:00'}`
-        ).getTime();
+        const dateB =
+          new Date(
+            `${b.meetingDate}T${b.meetingTime || '00:00'}`
+          ).getTime();
 
-      return dateA - dateB;
-    });
+        return dateA - dateB;
+      }
+    );
   }
 
   getActiveMeetings(): Meeting[] {
 
-    return this.meetings.filter(meeting => {
-
-      return (
+    return this.meetings.filter(
+      meeting =>
         meeting.status !== 'Cancelled' &&
         !this.isMeetingPast(meeting)
-      );
-    });
+    );
   }
 
-  isMeetingPast(meeting: Meeting): boolean {
+  isMeetingPast(
+    meeting: Meeting
+  ): boolean {
 
     if (!meeting.meetingDate) {
+
       return false;
     }
 
@@ -351,10 +393,12 @@ export class Dashboard implements OnInit {
   saveMeeting(): void {
 
     if (!this.newMeeting.title.trim()) {
+
       return;
     }
 
     if (!this.newMeeting.meetingDate) {
+
       return;
     }
 
@@ -362,63 +406,94 @@ export class Dashboard implements OnInit {
       this.schedulingType === 'fixed' &&
       !this.newMeeting.meetingTime
     ) {
+
       return;
     }
 
-    // RESCHEDULE EXISTING MEETING
+    // =========================
+    // RESCHEDULE MEETING
+    // =========================
 
     if (this.reschedulingMeeting) {
 
-      const meeting =
-        this.meetings.find(
-          m => m.id === this.reschedulingMeeting?.id
-        );
+      const updatedMeeting = {
 
-      if (meeting) {
+        id: this.reschedulingMeeting.id,
 
-        meeting.title =
-          this.newMeeting.title;
+        title:
+          this.newMeeting.title.trim(),
 
-        meeting.meetingDate =
-          this.newMeeting.meetingDate;
+        meetingDate:
+          this.newMeeting.meetingDate,
 
-        meeting.meetingTime =
+        meetingTime:
           this.schedulingType === 'fixed'
             ? this.newMeeting.meetingTime
-            : '';
+            : '',
 
-        meeting.priority =
-          this.newMeeting.priority;
+        priority:
+          this.newMeeting.priority,
 
-        meeting.status =
-          'Rescheduled';
+        status:
+          'Rescheduled'
+      };
 
-        this.addNotification(
-          `Meeting "${meeting.title}" was rescheduled.`
-        );
-      }
+      this.meetingService
+        .updateMeeting(
+          this.reschedulingMeeting.id,
+          updatedMeeting
+        )
+        .subscribe({
 
-      this.resetMeetingForm();
+          next: (updated: any) => {
 
-      this.reschedulingMeeting = null;
+            const index =
+              this.meetings.findIndex(
+                m =>
+                  m.id ===
+                  this.reschedulingMeeting!.id
+              );
 
-      this.activeView = 'meetings';
+            if (index !== -1) {
+
+              this.meetings[index] =
+                updated;
+            }
+
+            this.addNotification(
+              `Meeting "${updated.title}" was rescheduled.`
+            );
+
+            this.resetMeetingForm();
+
+            this.reschedulingMeeting = null;
+
+            this.activeView =
+              'meetings';
+          },
+
+          error: (err) => {
+
+            console.error(
+              'Error rescheduling meeting:',
+              err
+            );
+
+            alert(
+              'Unable to reschedule meeting.'
+            );
+          }
+
+        });
 
       return;
     }
 
+    // =========================
     // CREATE NEW MEETING
+    // =========================
 
-    const newId =
-      this.meetings.length
-        ? Math.max(
-            ...this.meetings.map(m => m.id)
-          ) + 1
-        : 1;
-
-    const meeting: Meeting = {
-
-      id: newId,
+    const meeting = {
 
       title:
         this.newMeeting.title.trim(),
@@ -434,18 +509,43 @@ export class Dashboard implements OnInit {
       priority:
         this.newMeeting.priority,
 
-      status: 'Upcoming'
+      status:
+        'Upcoming'
     };
 
-    this.meetings.push(meeting);
+    this.meetingService
+      .addMeeting(meeting)
+      .subscribe({
 
-    this.addNotification(
-      `New meeting "${meeting.title}" was created.`
-    );
+        next: (createdMeeting: any) => {
 
-    this.resetMeetingForm();
+          this.meetings.push(
+            createdMeeting
+          );
 
-    this.activeView = 'meetings';
+          this.addNotification(
+            `New meeting "${createdMeeting.title}" was created.`
+          );
+
+          this.resetMeetingForm();
+
+          this.activeView =
+            'meetings';
+        },
+
+        error: (err) => {
+
+          console.error(
+            'Error creating meeting:',
+            err
+          );
+
+          alert(
+            'Unable to create meeting.'
+          );
+        }
+
+      });
   }
 
   resetMeetingForm(): void {
@@ -457,14 +557,19 @@ export class Dashboard implements OnInit {
       priority: 'Medium'
     };
 
-    this.schedulingType = 'fixed';
+    this.schedulingType =
+      'fixed';
   }
 
   onSchedulingTypeChange(): void {
 
-    if (this.schedulingType === 'availability') {
+    if (
+      this.schedulingType ===
+      'availability'
+    ) {
 
-      this.newMeeting.meetingTime = '';
+      this.newMeeting.meetingTime =
+        '';
     }
   }
 
@@ -472,20 +577,25 @@ export class Dashboard implements OnInit {
   // RESCHEDULE
   // =========================
 
-  rescheduleMeeting(meeting: Meeting): void {
+  rescheduleMeeting(
+    meeting: Meeting
+  ): void {
 
     if (
       meeting.status === 'Cancelled' ||
       this.isMeetingPast(meeting)
     ) {
+
       return;
     }
 
-    this.reschedulingMeeting = meeting;
+    this.reschedulingMeeting =
+      meeting;
 
     this.newMeeting = {
 
-      title: meeting.title,
+      title:
+        meeting.title,
 
       meetingDate:
         meeting.meetingDate,
@@ -502,19 +612,23 @@ export class Dashboard implements OnInit {
         ? 'fixed'
         : 'availability';
 
-    this.activeView = 'create';
+    this.activeView =
+      'create';
   }
 
   // =========================
   // CANCEL MEETING
   // =========================
 
-  cancelMeeting(meeting: Meeting): void {
+  cancelMeeting(
+    meeting: Meeting
+  ): void {
 
     if (
       meeting.status === 'Cancelled' ||
       this.isMeetingPast(meeting)
     ) {
+
       return;
     }
 
@@ -524,21 +638,64 @@ export class Dashboard implements OnInit {
       );
 
     if (!confirmed) {
+
       return;
     }
 
-    meeting.status = 'Cancelled';
+    const updatedMeeting = {
 
-    this.addNotification(
-      `Meeting "${meeting.title}" was cancelled.`
-    );
+      ...meeting,
+
+      status: 'Cancelled'
+    };
+
+    this.meetingService
+      .updateMeeting(
+        meeting.id,
+        updatedMeeting
+      )
+      .subscribe({
+
+        next: (updated: any) => {
+
+          const index =
+            this.meetings.findIndex(
+              m => m.id === meeting.id
+            );
+
+          if (index !== -1) {
+
+            this.meetings[index] =
+              updated;
+          }
+
+          this.addNotification(
+            `Meeting "${meeting.title}" was cancelled.`
+          );
+        },
+
+        error: (err) => {
+
+          console.error(
+            'Error cancelling meeting:',
+            err
+          );
+
+          alert(
+            'Unable to cancel meeting.'
+          );
+        }
+
+      });
   }
 
   // =========================
   // COPY INVITE LINK
   // =========================
 
-  copyLink(meetingId: number): void {
+  copyLink(
+    meetingId: number
+  ): void {
 
     const link =
       `${window.location.origin}/meeting/${meetingId}`;
@@ -551,7 +708,9 @@ export class Dashboard implements OnInit {
           'Invite link copied to clipboard.'
         );
 
-        alert('Invite link copied!');
+        alert(
+          'Invite link copied!'
+        );
       })
       .catch(() => {
 
@@ -569,32 +728,48 @@ export class Dashboard implements OnInit {
 
     this.selectedUserIds.clear();
 
-    this.bulkIsMandatory = false;
+    this.bulkIsMandatory =
+      false;
   }
 
-  toggleUserSelection(userId: number): void {
+  toggleUserSelection(
+    userId: number
+  ): void {
 
     if (
-      this.isUserAlreadyParticipant(userId)
+      this.isUserAlreadyParticipant(
+        userId
+      )
     ) {
+
       return;
     }
 
     if (
-      this.selectedUserIds.has(userId)
+      this.selectedUserIds.has(
+        userId
+      )
     ) {
 
-      this.selectedUserIds.delete(userId);
+      this.selectedUserIds.delete(
+        userId
+      );
 
     } else {
 
-      this.selectedUserIds.add(userId);
+      this.selectedUserIds.add(
+        userId
+      );
     }
   }
 
-  isUserSelected(userId: number): boolean {
+  isUserSelected(
+    userId: number
+  ): boolean {
 
-    return this.selectedUserIds.has(userId);
+    return this.selectedUserIds.has(
+      userId
+    );
   }
 
   isUserAlreadyParticipant(
@@ -602,6 +777,7 @@ export class Dashboard implements OnInit {
   ): boolean {
 
     if (!this.participantMeetingId) {
+
       return false;
     }
 
@@ -616,34 +792,41 @@ export class Dashboard implements OnInit {
   addSelectedParticipants(): void {
 
     if (!this.participantMeetingId) {
+
       return;
     }
 
-    this.selectedUserIds.forEach(userId => {
+    this.selectedUserIds.forEach(
+      userId => {
 
-      if (
-        !this.isUserAlreadyParticipant(userId)
-      ) {
+        if (
+          !this.isUserAlreadyParticipant(
+            userId
+          )
+        ) {
 
-        this.participants.push({
+          this.participants.push({
 
-          meetingId:
-            this.participantMeetingId!,
+            meetingId:
+              this.participantMeetingId!,
 
-          userId,
+            userId,
 
-          isMandatory:
-            this.bulkIsMandatory
-        });
+            isMandatory:
+              this.bulkIsMandatory
+
+          });
+        }
       }
-    });
+    );
 
     const count =
       this.selectedUserIds.size;
 
     this.selectedUserIds.clear();
 
-    this.bulkIsMandatory = false;
+    this.bulkIsMandatory =
+      false;
 
     if (count > 0) {
 
@@ -657,13 +840,12 @@ export class Dashboard implements OnInit {
   // AVAILABILITY
   // =========================
 
-  onAvailabilityMeetingChange(): void {
-    // Future API loading can be added here
-  }
+  onAvailabilityMeetingChange(): void {}
 
   getParticipantsForAvailability(): Participant[] {
 
     if (!this.availabilityMeetingId) {
+
       return [];
     }
 
@@ -677,6 +859,7 @@ export class Dashboard implements OnInit {
   getAvailabilityForSelectedMeeting(): Availability[] {
 
     if (!this.availabilityMeetingId) {
+
       return [];
     }
 
@@ -692,6 +875,7 @@ export class Dashboard implements OnInit {
   ): boolean {
 
     if (!this.availabilityMeetingId) {
+
       return false;
     }
 
@@ -707,7 +891,9 @@ export class Dashboard implements OnInit {
   // USERS
   // =========================
 
-  getUserName(userId: number): string {
+  getUserName(
+    userId: number
+  ): string {
 
     const user =
       this.users.find(
@@ -719,15 +905,21 @@ export class Dashboard implements OnInit {
       : 'Unknown User';
   }
 
-  getInitials(name: string): string {
+  getInitials(
+    name: string
+  ): string {
 
     if (!name) {
+
       return 'U';
     }
 
     return name
       .split(' ')
-      .map(part => part.charAt(0))
+      .map(
+        part =>
+          part.charAt(0)
+      )
       .join('')
       .substring(0, 2)
       .toUpperCase();
@@ -743,12 +935,15 @@ export class Dashboard implements OnInit {
       this.suggestRequest.meetingId;
 
     if (!meetingId) {
+
       return;
     }
 
     const meetingAvailability =
       this.availability.filter(
-        item => item.meetingId === meetingId
+        item =>
+          item.meetingId ===
+          meetingId
       );
 
     if (!meetingAvailability.length) {
@@ -770,18 +965,33 @@ export class Dashboard implements OnInit {
     let earliestEnd =
       meetingAvailability[0].endTime;
 
-    meetingAvailability.forEach(item => {
+    meetingAvailability.forEach(
+      item => {
 
-      if (item.startTime > latestStart) {
-        latestStart = item.startTime;
+        if (
+          item.startTime >
+          latestStart
+        ) {
+
+          latestStart =
+            item.startTime;
+        }
+
+        if (
+          item.endTime <
+          earliestEnd
+        ) {
+
+          earliestEnd =
+            item.endTime;
+        }
       }
+    );
 
-      if (item.endTime < earliestEnd) {
-        earliestEnd = item.endTime;
-      }
-    });
-
-    if (latestStart >= earliestEnd) {
+    if (
+      latestStart >=
+      earliestEnd
+    ) {
 
       this.suggestResult = {
 
@@ -798,9 +1008,11 @@ export class Dashboard implements OnInit {
 
       success: true,
 
-      startTime: latestStart,
+      startTime:
+        latestStart,
 
-      endTime: earliestEnd
+      endTime:
+        earliestEnd
     };
   }
 
@@ -827,12 +1039,15 @@ export class Dashboard implements OnInit {
     this.notifications.forEach(
       notification => {
 
-        notification.isRead = true;
+        notification.isRead =
+          true;
       }
     );
   }
 
-  addNotification(message: string): void {
+  addNotification(
+    message: string
+  ): void {
 
     const newId =
       this.notifications.length
@@ -845,11 +1060,13 @@ export class Dashboard implements OnInit {
 
     this.notifications.unshift({
 
-      id: newId,
+      id:
+        newId,
 
       message,
 
-      isRead: false
+      isRead:
+        false
     });
   }
 
@@ -859,22 +1076,31 @@ export class Dashboard implements OnInit {
 
   openLogoutConfirmation(): void {
 
-    this.showLogoutConfirmation = true;
+    this.showLogoutConfirmation =
+      true;
   }
 
   closeLogoutConfirmation(): void {
 
-    this.showLogoutConfirmation = false;
+    this.showLogoutConfirmation =
+      false;
   }
 
   confirmLogout(): void {
 
-    this.showLogoutConfirmation = false;
+    this.showLogoutConfirmation =
+      false;
 
-    localStorage.removeItem('token');
+    localStorage.removeItem(
+      'token'
+    );
 
-    localStorage.removeItem('currentUser');
+    localStorage.removeItem(
+      'currentUser'
+    );
 
-    this.router.navigate(['/login']);
+    this.router.navigate([
+      '/login'
+    ]);
   }
 }
