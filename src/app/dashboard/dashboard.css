@@ -322,6 +322,10 @@ button {
 .notification-header {
   padding: 17px 18px;
   border-bottom: 1px solid #eceef3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .notification-header h3 {
@@ -335,6 +339,22 @@ button {
   font-size: 12px;
 }
 
+.mark-read {
+  border: none;
+  background: transparent;
+  color: #4f46e5;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.mark-read:hover {
+  color: #3730a3;
+  text-decoration: underline;
+}
+
 .notification-item {
   display: flex;
   gap: 10px;
@@ -344,6 +364,14 @@ button {
 
 .notification-item:last-child {
   border-bottom: none;
+}
+
+.notification-item.read {
+  background: #fafbfc;
+}
+
+.notification-item.read p {
+  color: #8a91a0;
 }
 
 .notification-item p {
@@ -591,6 +619,18 @@ button {
   border-color: #d9ddf5;
 }
 
+.person-card.already-added {
+  cursor: not-allowed;
+  opacity: 0.56;
+  background: #f5f6f8;
+  border-color: #e4e7ed;
+}
+
+.person-card.already-added:hover {
+  background: #f5f6f8;
+  border-color: #e4e7ed;
+}
+
 .person-card input {
   width: 16px !important;
   height: 16px !important;
@@ -620,6 +660,11 @@ button {
   font-size: 11px;
   font-weight: normal;
   overflow-wrap: anywhere;
+}
+
+.added-label {
+  color: #6b7280 !important;
+  font-weight: 700 !important;
 }
 
 .check {
