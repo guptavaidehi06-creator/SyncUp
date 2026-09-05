@@ -477,6 +477,33 @@ button {
   gap: 16px;
 }
 
+.meeting-list article.rescheduled {
+  border-color: #c4b5fd;
+  background: #faf9ff;
+}
+
+.meeting-list article.cancelled {
+  order: 1;
+  opacity: 0.58;
+  background: #f5f6f8;
+  border-color: #e3e5ea;
+}
+
+.meeting-list article.cancelled .date {
+  background: #e5e7eb;
+}
+
+.meeting-list article.cancelled .date b,
+.meeting-list article.cancelled .date small,
+.meeting-list article.cancelled h3,
+.meeting-list article.cancelled p {
+  color: #7b8190;
+}
+
+.meeting-list article.cancelled button {
+  cursor: not-allowed;
+}
+
 .date {
   width: 54px;
   height: 54px;
@@ -535,6 +562,16 @@ button {
   padding: 6px 10px;
   border-radius: 20px;
   white-space: nowrap;
+}
+
+.meeting-list em.status-rescheduled {
+  color: #6d28d9;
+  background: #ede9fe;
+}
+
+.meeting-list em.status-cancelled {
+  color: #6b7280;
+  background: #e5e7eb;
 }
 
 /* ================= CREATE / FORM ================= */
