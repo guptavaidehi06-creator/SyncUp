@@ -58,7 +58,9 @@ export class Dashboard implements OnInit {
 
   participants: any[] = [];
 
-  notifications: string[] = [];
+  notifications: Array<{ message: string; read: boolean }> = [];
+
+  reschedulingMeeting: any = null;
 
 
   /* ================= NEW MEETING ================= */
@@ -149,6 +151,8 @@ export class Dashboard implements OnInit {
     if (view === 'create') {
 
       this.createStep = 1;
+
+      this.reschedulingMeeting = null;
 
       this.selectedUserIds.clear();
 
@@ -241,6 +245,27 @@ export class Dashboard implements OnInit {
   toggleNotifications(): void {
 
     this.notificationsOpen = !this.notificationsOpen;
+
+  }
+
+
+  get unreadNotificationCount(): number {
+
+    return this.notifications.filter(notification => !notification.read).length;
+
+  }
+
+
+  addNotification(message: string): void {
+
+    this.notifications.unshift({ message, read: false });
+
+  }
+
+
+  markAllNotificationsRead(): void {
+
+    this.notifications.forEach(notification => notification.read = true);
 
   }
 
@@ -515,7 +540,22 @@ export class Dashboard implements OnInit {
   }
 
 
-  createMeetingAndContinue(): void {
+  saveMeeting(): void {
+
+    if (this.reschedulingMeeting) {
+
+      this.updateRescheduledMeeting();
+
+      return;
+
+    }
+
+    this.createMeeting();
+
+  }
+
+
+  createMeeting(): void {
 
     const title =
       this.newMeeting.title;
@@ -526,19 +566,11 @@ export class Dashboard implements OnInit {
 
         next: (meeting: any) => {
 
-          this.createdMeetingId =
-            meeting.id;
-
-          this.participantMeetingId =
-            meeting.id;
-
-          this.notifications.unshift(
+          this.addNotification(
             `Meeting "${title}" was created successfully.`
           );
 
-          this.createStep = 2;
-
-          this.cdr.detectChanges();
+          this.finishCreateFlow();
 
         },
 
@@ -592,7 +624,7 @@ export class Dashboard implements OnInit {
 
       .then(() => {
 
-        this.notifications.unshift(
+        this.addNotification(
           `${this.selectedUserIds.size} participant(s) were added to the meeting.`
         );
 
@@ -633,7 +665,7 @@ export class Dashboard implements OnInit {
 
   finishAvailabilityMeeting(): void {
 
-    this.notifications.unshift(
+    this.addNotification(
       'Meeting is ready. Participants can now submit their availability.'
     );
 
@@ -656,6 +688,8 @@ export class Dashboard implements OnInit {
     };
 
     this.createdMeetingId = null;
+
+    this.reschedulingMeeting = null;
 
     this.participantMeetingId = null;
 
@@ -687,40 +721,38 @@ export class Dashboard implements OnInit {
 
   rescheduleMeeting(meeting: any): void {
 
-    const newDate =
-      prompt(
-        'Enter new date (YYYY-MM-DD):',
-        meeting.meetingDate
-      );
+    this.reschedulingMeeting = meeting;
 
-    if (!newDate) {
+    this.schedulingType = meeting.meetingTime ? 'fixed' : 'availability';
 
-      return;
+    this.newMeeting = {
+      title: meeting.title || '',
+      meetingDate: meeting.meetingDate || '',
+      meetingTime: meeting.meetingTime || '',
+      priority: meeting.priority || 'Medium',
+      status: 'Scheduled',
+      creatorId: meeting.creatorId ?? meeting.createdById ?? null
+    };
 
-    }
+    this.activeView = 'create';
 
-    const newTime =
-      prompt(
-        'Enter new time (HH:MM):',
-        meeting.meetingTime || ''
-      );
+  }
 
-    if (newTime === null) {
+
+  updateRescheduledMeeting(): void {
+
+    const meeting = this.reschedulingMeeting;
+
+    if (!meeting) {
 
       return;
 
     }
 
     const updatedMeeting = {
-
       ...meeting,
-
-      meetingDate: newDate,
-
-      meetingTime: newTime,
-
+      ...this.newMeeting,
       status: 'Scheduled'
-
     };
 
     this.meetingService
@@ -732,11 +764,13 @@ export class Dashboard implements OnInit {
 
         next: () => {
 
-          this.notifications.unshift(
+          this.addNotification(
             `Meeting "${meeting.title}" was rescheduled.`
           );
 
-          this.loadMeetings();
+          this.reschedulingMeeting = null;
+
+          this.finishCreateFlow();
 
         },
 
@@ -775,7 +809,7 @@ export class Dashboard implements OnInit {
 
         next: () => {
 
-          this.notifications.unshift(
+          this.addNotification(
             `Meeting "${meeting.title}" was cancelled.`
           );
 
@@ -804,6 +838,12 @@ export class Dashboard implements OnInit {
 
   toggleUserSelection(userId: number): void {
 
+    if (this.isUserAlreadyParticipant(userId)) {
+
+      return;
+
+    }
+
     if (
       this.selectedUserIds.has(userId)
     ) {
@@ -824,6 +864,30 @@ export class Dashboard implements OnInit {
   isUserSelected(userId: number): boolean {
 
     return this.selectedUserIds.has(userId);
+
+  }
+
+
+  onParticipantMeetingChange(): void {
+
+    this.selectedUserIds.clear();
+
+  }
+
+
+  isUserAlreadyParticipant(userId: number): boolean {
+
+    if (!this.participantMeetingId) {
+
+      return false;
+
+    }
+
+    return this.participants.some(
+      participant =>
+        participant.meetingId === this.participantMeetingId &&
+        participant.userId === userId
+    );
 
   }
 
@@ -868,7 +932,7 @@ export class Dashboard implements OnInit {
 
       .then(() => {
 
-        this.notifications.unshift(
+        this.addNotification(
           `${this.selectedUserIds.size} participant(s) were added.`
         );
 
@@ -1017,7 +1081,7 @@ export class Dashboard implements OnInit {
     navigator.clipboard
       .writeText(link);
 
-    this.notifications.unshift(
+    this.addNotification(
       'Meeting invite link was copied to your clipboard.'
     );
 
