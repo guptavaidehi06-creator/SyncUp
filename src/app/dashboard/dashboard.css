@@ -251,8 +251,13 @@ button {
   transition: 0.2s;
 }
 
-.quiet:hover {
+.quiet:hover:not(:disabled) {
   background: #f7f8fa;
+}
+
+.quiet:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .danger {
@@ -284,12 +289,10 @@ button {
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
-  transition: 0.2s;
 }
 
 .notification-button:hover {
   background: #f8f9fc;
-  border-color: #d9dce5;
 }
 
 .notification-badge {
@@ -325,13 +328,11 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
 }
 
 .notification-header h3 {
   margin: 0 0 4px;
   font-size: 15px;
-  color: #252a35;
 }
 
 .notification-header small {
@@ -343,16 +344,9 @@ button {
   border: none;
   background: transparent;
   color: #4f46e5;
-  font: inherit;
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  white-space: nowrap;
-}
-
-.mark-read:hover {
-  color: #3730a3;
-  text-decoration: underline;
 }
 
 .notification-item {
@@ -360,10 +354,6 @@ button {
   gap: 10px;
   padding: 15px 18px;
   border-bottom: 1px solid #f0f1f4;
-}
-
-.notification-item:last-child {
-  border-bottom: none;
 }
 
 .notification-item.read {
@@ -393,11 +383,6 @@ button {
 .notification-empty {
   padding: 30px 20px;
   text-align: center;
-}
-
-.notification-empty b {
-  font-size: 14px;
-  color: #303642;
 }
 
 .notification-empty p {
@@ -482,9 +467,10 @@ button {
   background: #faf9ff;
 }
 
+/* CANCELLED MEETING */
+
 .meeting-list article.cancelled {
-  order: 1;
-  opacity: 0.58;
+  opacity: 0.55;
   background: #f5f6f8;
   border-color: #e3e5ea;
 }
@@ -500,8 +486,32 @@ button {
   color: #7b8190;
 }
 
-.meeting-list article.cancelled button {
-  cursor: not-allowed;
+/* PAST / COMPLETED MEETING */
+
+.meeting-list article.past:not(.cancelled) {
+  opacity: 0.62;
+  background: #fafafa;
+  border-color: #e5e7eb;
+}
+
+.meeting-list article.past:not(.cancelled) .date {
+  background: #f1f2f4;
+}
+
+.meeting-list article.past:not(.cancelled) .date b {
+  color: #6b7280;
+}
+
+.meeting-list article.past:not(.cancelled) .date small {
+  color: #9ca3af;
+}
+
+.meeting-list article.past:not(.cancelled) h3 {
+  color: #6b7280;
+}
+
+.meeting-list article.past:not(.cancelled) p {
+  color: #9ca3af;
 }
 
 .date {
@@ -550,10 +560,6 @@ button {
   gap: 7px;
 }
 
-.meeting-info .quiet {
-  margin: 0;
-}
-
 .meeting-list em {
   font-style: normal;
   font-size: 12px;
@@ -572,6 +578,11 @@ button {
 .meeting-list em.status-cancelled {
   color: #6b7280;
   background: #e5e7eb;
+}
+
+.meeting-list em.status-past {
+  color: #6b7280;
+  background: #f1f3f5;
 }
 
 /* ================= CREATE / FORM ================= */
@@ -766,6 +777,16 @@ button {
   white-space: nowrap;
 }
 
+.submitted-status {
+  color: #15803d !important;
+  background: #f0fdf4 !important;
+}
+
+.pending-status {
+  color: #b45309 !important;
+  background: #fffbeb !important;
+}
+
 /* ================= BEST SLOT ================= */
 
 .slot-result {
@@ -887,10 +908,6 @@ button {
   margin-top: 25px;
 }
 
-.logout-actions .quiet {
-  margin: 0;
-}
-
 .logout-confirm {
   border: none;
   background: #dc2626;
@@ -900,7 +917,6 @@ button {
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.2s;
 }
 
 .logout-confirm:hover {
@@ -942,14 +958,8 @@ button {
     font-size: 23px;
   }
 
-  .head-actions {
-    width: 100%;
-  }
-
-  .notification-wrapper {
-    width: 100%;
-  }
-
+  .head-actions,
+  .notification-wrapper,
   .notification-button {
     width: 100%;
   }
