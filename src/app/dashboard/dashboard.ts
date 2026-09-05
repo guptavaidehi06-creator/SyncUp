@@ -8,6 +8,7 @@ import { MeetingService } from '../services/meeting';
 import { ParticipantService } from '../services/participant';
 import { AvailabilityService } from '../services/availability';
 import { NotificationService } from '../services/notification';
+import { UserService } from '../services/user';
 
 type View =
   | 'home'
@@ -74,17 +75,23 @@ export class Dashboard implements OnInit {
   currentUser: User | null = null;
 
   users: User[] = [];
+
   meetings: Meeting[] = [];
+
   participants: Participant[] = [];
+
   availability: Availability[] = [];
+
   notifications: Notification[] = [];
 
   participantMeetingId: number | null = null;
+
   availabilityMeetingId: number | null = null;
 
   selectedUserIds = new Set<number>();
 
   bulkIsMandatory = false;
+
   schedulingType = 'fixed';
 
   reschedulingMeeting: Meeting | null = null;
@@ -108,7 +115,8 @@ export class Dashboard implements OnInit {
     private meetingService: MeetingService,
     private participantService: ParticipantService,
     private availabilityService: AvailabilityService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private userService: UserService
   ) {}
 
   ngOnInit(): void {
@@ -120,45 +128,41 @@ export class Dashboard implements OnInit {
       return;
     }
 
-    this.loadData();
+    this.loadUsers();
     this.loadMeetings();
     this.loadParticipants();
     this.loadAvailabilities();
     this.loadNotifications();
+
   }
 
   // =========================
-  // LOAD USERS
+  // LOAD REAL USERS
   // =========================
 
-  loadData(): void {
+  loadUsers(): void {
 
-    if (!this.currentUser) {
-      return;
-    }
+    this.userService
+      .getAllUsers()
+      .subscribe({
 
-    this.users = [
-      {
-        id: this.currentUser.id,
-        name: this.currentUser.name,
-        email: this.currentUser.email
-      },
-      {
-        id: 2,
-        name: 'Rahul Sharma',
-        email: 'rahul@example.com'
-      },
-      {
-        id: 3,
-        name: 'Priya Patel',
-        email: 'priya@example.com'
-      },
-      {
-        id: 4,
-        name: 'Aman Singh',
-        email: 'aman@example.com'
-      }
-    ];
+        next: (data: any) => {
+
+          this.users = data || [];
+
+        },
+
+        error: (err) => {
+
+          console.error(
+            'Error loading users:',
+            err
+          );
+
+        }
+
+      });
+
   }
 
   // =========================
@@ -172,14 +176,22 @@ export class Dashboard implements OnInit {
       .subscribe({
 
         next: (data: any) => {
+
           this.meetings = data || [];
+
         },
 
         error: (err) => {
-          console.error('Error loading meetings:', err);
+
+          console.error(
+            'Error loading meetings:',
+            err
+          );
+
         }
 
       });
+
   }
 
   // =========================
@@ -193,18 +205,26 @@ export class Dashboard implements OnInit {
       .subscribe({
 
         next: (data: any) => {
+
           this.participants = data || [];
+
         },
 
         error: (err) => {
-          console.error('Error loading participants:', err);
+
+          console.error(
+            'Error loading participants:',
+            err
+          );
+
         }
 
       });
+
   }
 
   // =========================
-  // LOAD AVAILABILITY
+  // LOAD AVAILABILITIES
   // =========================
 
   loadAvailabilities(): void {
@@ -214,14 +234,22 @@ export class Dashboard implements OnInit {
       .subscribe({
 
         next: (data: any) => {
+
           this.availability = data || [];
+
         },
 
         error: (err) => {
-          console.error('Error loading availabilities:', err);
+
+          console.error(
+            'Error loading availabilities:',
+            err
+          );
+
         }
 
       });
+
   }
 
   // =========================
@@ -235,18 +263,28 @@ export class Dashboard implements OnInit {
     }
 
     this.notificationService
-      .getNotificationsByUser(this.currentUser.id)
+      .getNotificationsByUser(
+        this.currentUser.id
+      )
       .subscribe({
 
         next: (data: any) => {
+
           this.notifications = data || [];
+
         },
 
         error: (err) => {
-          console.error('Error loading notifications:', err);
+
+          console.error(
+            'Error loading notifications:',
+            err
+          );
+
         }
 
       });
+
   }
 
   // =========================
@@ -254,12 +292,16 @@ export class Dashboard implements OnInit {
   // =========================
 
   toggleSidebar(): void {
-    this.sidebarOpen = !this.sidebarOpen;
+
+    this.sidebarOpen =
+      !this.sidebarOpen;
+
   }
 
   setView(view: View): void {
 
     this.activeView = view;
+
     this.notificationsOpen = false;
 
     if (view !== 'create') {
@@ -267,19 +309,27 @@ export class Dashboard implements OnInit {
     }
 
     if (view === 'participants') {
+
       this.selectedUserIds.clear();
+
+      this.loadUsers();
       this.loadParticipants();
     }
 
     if (view === 'availability') {
+
       this.loadParticipants();
+
       this.loadAvailabilities();
     }
 
     if (view === 'slot') {
+
       this.suggestResult = null;
+
       this.loadAvailabilities();
     }
+
   }
 
   // =========================
@@ -313,6 +363,7 @@ export class Dashboard implements OnInit {
       default:
         return 'Dashboard';
     }
+
   }
 
   getPageSubtitle(): string {
@@ -340,6 +391,7 @@ export class Dashboard implements OnInit {
       default:
         return '';
     }
+
   }
 
   // =========================
@@ -347,7 +399,10 @@ export class Dashboard implements OnInit {
   // =========================
 
   getCurrentUserName(): string {
-    return this.currentUser?.name || 'Workspace';
+
+    return this.currentUser?.name ||
+      'Workspace';
+
   }
 
   // =========================
@@ -358,17 +413,21 @@ export class Dashboard implements OnInit {
 
     const today = new Date();
 
-    const year = today.getFullYear();
+    const year =
+      today.getFullYear();
 
-    const month = String(
-      today.getMonth() + 1
-    ).padStart(2, '0');
+    const month =
+      String(
+        today.getMonth() + 1
+      ).padStart(2, '0');
 
-    const day = String(
-      today.getDate()
-    ).padStart(2, '0');
+    const day =
+      String(
+        today.getDate()
+      ).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
+
   }
 
   // =========================
@@ -382,6 +441,7 @@ export class Dashboard implements OnInit {
         meeting.status !== 'Cancelled' &&
         !this.isMeetingPast(meeting)
     );
+
   }
 
   getCompletedMeetings(): Meeting[] {
@@ -391,6 +451,7 @@ export class Dashboard implements OnInit {
         meeting.status !== 'Cancelled' &&
         this.isMeetingPast(meeting)
     );
+
   }
 
   getMeetingsForDisplay(): Meeting[] {
@@ -398,17 +459,20 @@ export class Dashboard implements OnInit {
     return [...this.meetings].sort(
       (a, b) => {
 
-        const dateA = new Date(
-          `${a.meetingDate}T${a.meetingTime || '00:00'}`
-        ).getTime();
+        const dateA =
+          new Date(
+            `${a.meetingDate}T${a.meetingTime || '00:00'}`
+          ).getTime();
 
-        const dateB = new Date(
-          `${b.meetingDate}T${b.meetingTime || '00:00'}`
-        ).getTime();
+        const dateB =
+          new Date(
+            `${b.meetingDate}T${b.meetingTime || '00:00'}`
+          ).getTime();
 
         return dateA - dateB;
       }
     );
+
   }
 
   getActiveMeetings(): Meeting[] {
@@ -418,9 +482,12 @@ export class Dashboard implements OnInit {
         meeting.status !== 'Cancelled' &&
         !this.isMeetingPast(meeting)
     );
+
   }
 
-  isMeetingPast(meeting: Meeting): boolean {
+  isMeetingPast(
+    meeting: Meeting
+  ): boolean {
 
     if (!meeting.meetingDate) {
       return false;
@@ -430,9 +497,12 @@ export class Dashboard implements OnInit {
       meeting.meetingTime || '00:00';
 
     const meetingDateTime =
-      new Date(`${meeting.meetingDate}T${time}`);
+      new Date(
+        `${meeting.meetingDate}T${time}`
+      );
 
     return meetingDateTime < new Date();
+
   }
 
   // =========================
@@ -456,7 +526,9 @@ export class Dashboard implements OnInit {
       return;
     }
 
+    // =========================
     // RESCHEDULE
+    // =========================
 
     if (this.reschedulingMeeting) {
 
@@ -493,11 +565,14 @@ export class Dashboard implements OnInit {
 
             const index =
               this.meetings.findIndex(
-                m => m.id === this.reschedulingMeeting!.id
+                m =>
+                  m.id ===
+                  this.reschedulingMeeting!.id
               );
 
             if (index !== -1) {
-              this.meetings[index] = updated;
+              this.meetings[index] =
+                updated;
             }
 
             this.addNotification(
@@ -508,17 +583,23 @@ export class Dashboard implements OnInit {
 
             this.resetMeetingForm();
 
-            this.reschedulingMeeting = null;
-            this.activeView = 'meetings';
+            this.reschedulingMeeting =
+              null;
+
+            this.activeView =
+              'meetings';
           },
 
           error: (err) => {
+
             console.error(
               'Error rescheduling meeting:',
               err
             );
 
-            alert('Unable to reschedule meeting.');
+            alert(
+              'Unable to reschedule meeting.'
+            );
           }
 
         });
@@ -526,7 +607,9 @@ export class Dashboard implements OnInit {
       return;
     }
 
+    // =========================
     // CREATE NEW MEETING
+    // =========================
 
     const meeting = {
 
@@ -554,7 +637,9 @@ export class Dashboard implements OnInit {
 
         next: (createdMeeting: any) => {
 
-          this.meetings.push(createdMeeting);
+          this.meetings.push(
+            createdMeeting
+          );
 
           this.addNotification(
             `New meeting "${createdMeeting.title}" was created.`,
@@ -564,7 +649,8 @@ export class Dashboard implements OnInit {
 
           this.resetMeetingForm();
 
-          this.activeView = 'meetings';
+          this.activeView =
+            'meetings';
         },
 
         error: (err) => {
@@ -574,10 +660,13 @@ export class Dashboard implements OnInit {
             err
           );
 
-          alert('Unable to create meeting.');
+          alert(
+            'Unable to create meeting.'
+          );
         }
 
       });
+
   }
 
   resetMeetingForm(): void {
@@ -589,21 +678,31 @@ export class Dashboard implements OnInit {
       priority: 'Medium'
     };
 
-    this.schedulingType = 'fixed';
+    this.schedulingType =
+      'fixed';
+
   }
 
   onSchedulingTypeChange(): void {
 
-    if (this.schedulingType === 'availability') {
-      this.newMeeting.meetingTime = '';
+    if (
+      this.schedulingType ===
+      'availability'
+    ) {
+
+      this.newMeeting.meetingTime =
+        '';
     }
+
   }
 
   // =========================
   // RESCHEDULE
   // =========================
 
-  rescheduleMeeting(meeting: Meeting): void {
+  rescheduleMeeting(
+    meeting: Meeting
+  ): void {
 
     if (
       meeting.status === 'Cancelled' ||
@@ -612,17 +711,22 @@ export class Dashboard implements OnInit {
       return;
     }
 
-    this.reschedulingMeeting = meeting;
+    this.reschedulingMeeting =
+      meeting;
 
     this.newMeeting = {
 
-      title: meeting.title,
+      title:
+        meeting.title,
 
-      meetingDate: meeting.meetingDate,
+      meetingDate:
+        meeting.meetingDate,
 
-      meetingTime: meeting.meetingTime,
+      meetingTime:
+        meeting.meetingTime,
 
-      priority: meeting.priority
+      priority:
+        meeting.priority
     };
 
     this.schedulingType =
@@ -630,14 +734,18 @@ export class Dashboard implements OnInit {
         ? 'fixed'
         : 'availability';
 
-    this.activeView = 'create';
+    this.activeView =
+      'create';
+
   }
 
   // =========================
   // CANCEL MEETING
   // =========================
 
-  cancelMeeting(meeting: Meeting): void {
+  cancelMeeting(
+    meeting: Meeting
+  ): void {
 
     if (
       meeting.status === 'Cancelled' ||
@@ -647,7 +755,9 @@ export class Dashboard implements OnInit {
     }
 
     const confirmed =
-      confirm(`Cancel "${meeting.title}"?`);
+      confirm(
+        `Cancel "${meeting.title}"?`
+      );
 
     if (!confirmed) {
       return;
@@ -675,7 +785,9 @@ export class Dashboard implements OnInit {
             );
 
           if (index !== -1) {
-            this.meetings[index] = updated;
+
+            this.meetings[index] =
+              updated;
           }
 
           this.addNotification(
@@ -692,17 +804,22 @@ export class Dashboard implements OnInit {
             err
           );
 
-          alert('Unable to cancel meeting.');
+          alert(
+            'Unable to cancel meeting.'
+          );
         }
 
       });
+
   }
 
   // =========================
   // COPY INVITE LINK
   // =========================
 
-  copyLink(meetingId: number): void {
+  copyLink(
+    meetingId: number
+  ): void {
 
     const link =
       `${window.location.origin}/submit-availability/${meetingId}`;
@@ -717,11 +834,17 @@ export class Dashboard implements OnInit {
           'Invite'
         );
 
-        alert('Invite link copied!');
+        alert(
+          'Invite link copied!'
+        );
       })
       .catch(() => {
-        alert('Unable to copy the invite link.');
+
+        alert(
+          'Unable to copy the invite link.'
+        );
       });
+
   }
 
   // =========================
@@ -732,32 +855,55 @@ export class Dashboard implements OnInit {
 
     this.selectedUserIds.clear();
 
-    this.bulkIsMandatory = false;
+    this.bulkIsMandatory =
+      false;
+
   }
 
-  toggleUserSelection(userId: number): void {
+  toggleUserSelection(
+    userId: number
+  ): void {
 
     if (
-      this.isUserAlreadyParticipant(userId)
+      this.isUserAlreadyParticipant(
+        userId
+      )
     ) {
       return;
     }
 
-    if (this.selectedUserIds.has(userId)) {
+    if (
+      this.selectedUserIds.has(
+        userId
+      )
+    ) {
 
-      this.selectedUserIds.delete(userId);
+      this.selectedUserIds.delete(
+        userId
+      );
 
     } else {
 
-      this.selectedUserIds.add(userId);
+      this.selectedUserIds.add(
+        userId
+      );
     }
+
   }
 
-  isUserSelected(userId: number): boolean {
-    return this.selectedUserIds.has(userId);
+  isUserSelected(
+    userId: number
+  ): boolean {
+
+    return this.selectedUserIds.has(
+      userId
+    );
+
   }
 
-  isUserAlreadyParticipant(userId: number): boolean {
+  isUserAlreadyParticipant(
+    userId: number
+  ): boolean {
 
     if (!this.participantMeetingId) {
       return false;
@@ -769,6 +915,7 @@ export class Dashboard implements OnInit {
           this.participantMeetingId &&
         participant.userId === userId
     );
+
   }
 
   // =========================
@@ -785,58 +932,72 @@ export class Dashboard implements OnInit {
     }
 
     const selectedUsers =
-      Array.from(this.selectedUserIds);
+      Array.from(
+        this.selectedUserIds
+      );
 
     let completed = 0;
 
-    selectedUsers.forEach(userId => {
+    selectedUsers.forEach(
+      userId => {
 
-      const participant = {
+        const participant = {
 
-        meetingId:
-          this.participantMeetingId!,
+          meetingId:
+            this.participantMeetingId!,
 
-        userId,
+          userId,
 
-        isMandatory:
-          this.bulkIsMandatory
-      };
+          isMandatory:
+            this.bulkIsMandatory
+        };
 
-      this.participantService
-        .addParticipant(participant)
-        .subscribe({
+        this.participantService
+          .addParticipant(
+            participant
+          )
+          .subscribe({
 
-          next: (created: any) => {
+            next: (created: any) => {
 
-            this.participants.push(created);
-
-            completed++;
-
-            if (
-              completed === selectedUsers.length
-            ) {
-
-              this.addNotification(
-                `${selectedUsers.length} participant(s) added to the meeting.`,
-                this.participantMeetingId,
-                'Participant'
+              this.participants.push(
+                created
               );
 
-              this.selectedUserIds.clear();
+              completed++;
 
-              this.bulkIsMandatory = false;
+              if (
+                completed ===
+                selectedUsers.length
+              ) {
+
+                this.addNotification(
+                  `${selectedUsers.length} participant(s) added to the meeting.`,
+                  this.participantMeetingId,
+                  'Participant'
+                );
+
+                this.selectedUserIds.clear();
+
+                this.bulkIsMandatory =
+                  false;
+              }
+
+            },
+
+            error: (err) => {
+
+              console.error(
+                'Error adding participant:',
+                err
+              );
+
             }
-          },
 
-          error: (err) => {
-            console.error(
-              'Error adding participant:',
-              err
-            );
-          }
+          });
+      }
+    );
 
-        });
-    });
   }
 
   // =========================
@@ -867,16 +1028,20 @@ export class Dashboard implements OnInit {
           this.availability.push(
             ...(data || [])
           );
+
         },
 
         error: (err) => {
+
           console.error(
             'Error loading meeting availability:',
             err
           );
+
         }
 
       });
+
   }
 
   getParticipantsForAvailability(): Participant[] {
@@ -890,6 +1055,7 @@ export class Dashboard implements OnInit {
         participant.meetingId ===
         this.availabilityMeetingId
     );
+
   }
 
   getAvailabilityForSelectedMeeting(): Availability[] {
@@ -903,9 +1069,12 @@ export class Dashboard implements OnInit {
         item.meetingId ===
         this.availabilityMeetingId
     );
+
   }
 
-  hasSubmittedAvailability(userId: number): boolean {
+  hasSubmittedAvailability(
+    userId: number
+  ): boolean {
 
     if (!this.availabilityMeetingId) {
       return false;
@@ -917,13 +1086,16 @@ export class Dashboard implements OnInit {
           this.availabilityMeetingId &&
         item.userId === userId
     );
+
   }
 
   // =========================
   // USERS
   // =========================
 
-  getUserName(userId: number): string {
+  getUserName(
+    userId: number
+  ): string {
 
     const user =
       this.users.find(
@@ -933,9 +1105,12 @@ export class Dashboard implements OnInit {
     return user
       ? user.name
       : 'Unknown User';
+
   }
 
-  getInitials(name: string): string {
+  getInitials(
+    name: string
+  ): string {
 
     if (!name) {
       return 'U';
@@ -944,11 +1119,13 @@ export class Dashboard implements OnInit {
     return name
       .split(' ')
       .map(
-        part => part.charAt(0)
+        part =>
+          part.charAt(0)
       )
       .join('')
       .substring(0, 2)
       .toUpperCase();
+
   }
 
   // =========================
@@ -965,7 +1142,9 @@ export class Dashboard implements OnInit {
     }
 
     this.availabilityService
-      .getAvailabilitiesByMeeting(meetingId)
+      .getAvailabilitiesByMeeting(
+        meetingId
+      )
       .subscribe({
 
         next: (data: any) => {
@@ -973,7 +1152,9 @@ export class Dashboard implements OnInit {
           const meetingAvailability =
             data || [];
 
-          if (!meetingAvailability.length) {
+          if (
+            !meetingAvailability.length
+          ) {
 
             this.suggestResult = {
 
@@ -996,22 +1177,29 @@ export class Dashboard implements OnInit {
             (item: any) => {
 
               if (
-                item.startTime > latestStart
+                item.startTime >
+                latestStart
               ) {
-                latestStart = item.startTime;
+
+                latestStart =
+                  item.startTime;
               }
 
               if (
-                item.endTime < earliestEnd
+                item.endTime <
+                earliestEnd
               ) {
-                earliestEnd = item.endTime;
+
+                earliestEnd =
+                  item.endTime;
               }
 
             }
           );
 
           if (
-            latestStart >= earliestEnd
+            latestStart >=
+            earliestEnd
           ) {
 
             this.suggestResult = {
@@ -1029,10 +1217,13 @@ export class Dashboard implements OnInit {
 
             success: true,
 
-            startTime: latestStart,
+            startTime:
+              latestStart,
 
-            endTime: earliestEnd
+            endTime:
+              earliestEnd
           };
+
         },
 
         error: (err) => {
@@ -1049,9 +1240,11 @@ export class Dashboard implements OnInit {
             message:
               'Unable to load participant availability.'
           };
+
         }
 
       });
+
   }
 
   // =========================
@@ -1059,8 +1252,10 @@ export class Dashboard implements OnInit {
   // =========================
 
   toggleNotifications(): void {
+
     this.notificationsOpen =
       !this.notificationsOpen;
+
   }
 
   get unreadNotificationCount(): number {
@@ -1069,6 +1264,7 @@ export class Dashboard implements OnInit {
       notification =>
         !notification.isRead
     ).length;
+
   }
 
   markAllNotificationsRead(): void {
@@ -1087,9 +1283,13 @@ export class Dashboard implements OnInit {
 
           this.notifications.forEach(
             notification => {
-              notification.isRead = true;
+
+              notification.isRead =
+                true;
+
             }
           );
+
         },
 
         error: (err) => {
@@ -1098,9 +1298,11 @@ export class Dashboard implements OnInit {
             'Error marking notifications as read:',
             err
           );
+
         }
 
       });
+
   }
 
   addNotification(
@@ -1132,7 +1334,9 @@ export class Dashboard implements OnInit {
     };
 
     this.notificationService
-      .addNotification(notification)
+      .addNotification(
+        notification
+      )
       .subscribe({
 
         next: (created: any) => {
@@ -1140,6 +1344,7 @@ export class Dashboard implements OnInit {
           this.notifications.unshift(
             created
           );
+
         },
 
         error: (err) => {
@@ -1148,9 +1353,11 @@ export class Dashboard implements OnInit {
             'Error saving notification:',
             err
           );
+
         }
 
       });
+
   }
 
   // =========================
@@ -1158,21 +1365,30 @@ export class Dashboard implements OnInit {
   // =========================
 
   openLogoutConfirmation(): void {
-    this.showLogoutConfirmation = true;
+
+    this.showLogoutConfirmation =
+      true;
+
   }
 
   closeLogoutConfirmation(): void {
-    this.showLogoutConfirmation = false;
+
+    this.showLogoutConfirmation =
+      false;
+
   }
 
   confirmLogout(): void {
 
-    this.showLogoutConfirmation = false;
+    this.showLogoutConfirmation =
+      false;
 
     this.authService.logout();
 
     this.router.navigate([
       '/login'
     ]);
+
   }
+
 }
