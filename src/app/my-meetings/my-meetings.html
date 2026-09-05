@@ -1,51 +1,394 @@
-<div style="min-height: 100vh; background: var(--bg);">
-
-  <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 32px; border-bottom: 1px solid var(--border); background: var(--surface);">
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <span style="font-weight: 600; font-size: 18px; color: var(--text-primary);">SyncUp</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 16px;">
-      <span style="font-size: 14px; color: var(--text-secondary);">{{ currentUser?.name }}</span>
-      <button class="btn btn-sm btn-outline-secondary" (click)="logout()">Logout</button>
-    </div>
-  </div>
-
-  <div style="max-width: 700px; margin: 0 auto; padding: 32px 24px;">
-
-    <h2 style="margin-bottom: 4px;">My Meetings</h2>
-    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">Meetings you've been invited to.</p>
-
-    <div *ngIf="myMeetings.length === 0" style="text-align: center; padding: 40px 0; color: var(--text-muted);">
-      You haven't been added to any meetings yet.
+<div class="user-dashboard">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <span>SyncUp</span>
     </div>
 
-    <div *ngFor="let meeting of myMeetings"
-      style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+    <nav class="sidebar-menu">
+      <a class="menu-item active">
+        <span>📅</span>
+        <span>My Meetings</span>
+      </a>
+
+      <a class="menu-item" (click)="toggleNotifications()">
+        <span>🔔</span>
+        <span>Notifications</span>
+
+        <span
+          class="notification-badge"
+          *ngIf="unreadNotificationCount > 0">
+          {{ unreadNotificationCount }}
+        </span>
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="user-info">
+        <div class="user-avatar">
+          {{ currentUser?.name?.charAt(0) }}
+        </div>
+
+        <div>
+          <p class="user-name">
+            {{ currentUser?.name }}
+          </p>
+
+          <p class="user-role">
+            Participant
+          </p>
+        </div>
+      </div>
+
+      <button
+        class="logout-btn"
+        (click)="logout()">
+        <span>↪</span>
+        Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Header -->
+    <div class="page-header">
       <div>
-        <p style="font-weight: 600; margin: 0 0 4px; color: var(--text-primary);">{{ meeting.title }}</p>
-        <p style="font-size: 13px; color: var(--text-muted); margin: 0;">
-          {{ meeting.meetingDate | date:'mediumDate' }} · {{ meeting.meetingTime }}
+        <h1>My Meetings</h1>
+
+        <p>
+          View your meeting invitations and manage your availability.
         </p>
       </div>
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <span *ngIf="meeting.status === 'Cancelled'"
-          style="font-size: 12px; padding: 4px 10px; border-radius: 5px; background: var(--danger-bg); color: var(--danger-text);">
-          Cancelled
-        </span>
-        <span *ngIf="meeting.status !== 'Cancelled' && !isUpcoming(meeting)"
-          style="font-size: 12px; padding: 4px 10px; border-radius: 5px; background: var(--warning-bg); color: var(--warning-text);">
-          Past
-        </span>
-        <span *ngIf="meeting.status !== 'Cancelled' && isUpcoming(meeting)"
-          style="font-size: 12px; padding: 4px 10px; border-radius: 5px; background: var(--success-bg); color: var(--success-text);">
-          {{ meeting.status }}
-        </span>
-        <button *ngIf="meeting.status !== 'Cancelled' && isUpcoming(meeting)" class="btn btn-sm btn-primary"
-          (click)="goToSubmitAvailability(meeting.id)">
-          Submit Availability
+
+      <!-- Notification Bell -->
+      <div class="notification-wrapper">
+        <button
+          class="notification-btn"
+          (click)="toggleNotifications()">
+
+          🔔
+
+          <span
+            class="notification-dot"
+            *ngIf="unreadNotificationCount > 0">
+          </span>
         </button>
+
+        <!-- Notification Dropdown -->
+        <div
+          class="notification-panel"
+          *ngIf="showNotifications">
+
+          <div class="notification-header">
+            <h3>Notifications</h3>
+
+            <button
+              *ngIf="notifications.length > 0"
+              (click)="markNotificationsAsRead()">
+
+              Mark all as read
+            </button>
+          </div>
+
+          <div
+            *ngIf="notifications.length === 0"
+            class="empty-notifications">
+
+            No notifications yet.
+          </div>
+
+          <div
+            *ngFor="let notification of notifications"
+            class="notification-item"
+            [class.unread]="!notification.isRead"
+            (click)="openNotification(notification)">
+
+            <div class="notification-icon">
+              <span
+                *ngIf="notification.type === 'Availability'">
+
+                📅
+              </span>
+
+              <span
+                *ngIf="notification.type !== 'Availability'">
+
+                🔔
+              </span>
+            </div>
+
+            <div class="notification-content">
+              <p class="notification-title">
+                {{ notification.title }}
+              </p>
+
+              <p class="notification-message">
+                {{ notification.message }}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-  </div>
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          📅
+        </div>
+
+        <div>
+          <p>Upcoming</p>
+
+          <h2>
+            {{ upcomingMeetings.length }}
+          </h2>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          ⏳
+        </div>
+
+        <div>
+          <p>Availability Pending</p>
+
+          <h2>
+            {{ pendingAvailabilityCount }}
+          </h2>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          ✓
+        </div>
+
+        <div>
+          <p>Availability Submitted</p>
+
+          <h2>
+            {{ submittedAvailabilityCount }}
+          </h2>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon">
+          🕘
+        </div>
+
+        <div>
+          <p>Past Meetings</p>
+
+          <h2>
+            {{ pastMeetings.length }}
+          </h2>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pending Availability -->
+    <section
+      class="meeting-section"
+      *ngIf="pendingMeetings.length > 0">
+
+      <div class="section-heading">
+        <div>
+          <h2>
+            Action Required
+          </h2>
+
+          <p>
+            Submit your availability for these meetings.
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="meeting-card pending-card"
+        *ngFor="let meeting of pendingMeetings">
+
+        <div class="meeting-details">
+          <div class="meeting-title-row">
+            <h3>
+              {{ meeting.title }}
+            </h3>
+
+            <span class="status pending">
+              Availability Pending
+            </span>
+          </div>
+
+          <p class="meeting-date">
+            {{ meeting.meetingDate | date:'mediumDate' }}
+            ·
+            {{ meeting.meetingTime || 'Time to be scheduled' }}
+          </p>
+        </div>
+
+        <button
+          class="primary-btn"
+          (click)="goToSubmitAvailability(meeting.id)">
+
+          Fill Availability
+        </button>
+      </div>
+    </section>
+
+    <!-- Upcoming Meetings -->
+    <section class="meeting-section">
+      <div class="section-heading">
+        <div>
+          <h2>
+            Upcoming Meetings
+          </h2>
+
+          <p>
+            Meetings scheduled for the future.
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="empty-state"
+        *ngIf="upcomingMeetings.length === 0">
+
+        No upcoming meetings.
+      </div>
+
+      <div
+        class="meeting-card"
+        *ngFor="let meeting of upcomingMeetings">
+
+        <div class="meeting-details">
+          <div class="meeting-title-row">
+            <h3>
+              {{ meeting.title }}
+            </h3>
+
+            <span
+              class="status submitted"
+              *ngIf="hasSubmittedAvailability(meeting.id)">
+
+              Availability Submitted
+            </span>
+
+            <span
+              class="status pending"
+              *ngIf="needsAvailability(meeting)">
+
+              Pending
+            </span>
+          </div>
+
+          <p class="meeting-date">
+            {{ meeting.meetingDate | date:'mediumDate' }}
+            ·
+            {{ meeting.meetingTime || 'Time to be scheduled' }}
+          </p>
+        </div>
+
+        <button
+          *ngIf="needsAvailability(meeting)"
+          class="primary-btn"
+          (click)="goToSubmitAvailability(meeting.id)">
+
+          Fill Availability
+        </button>
+
+        <span
+          *ngIf="hasSubmittedAvailability(meeting.id)"
+          class="submitted-text">
+
+          ✓ Submitted
+        </span>
+      </div>
+    </section>
+
+    <!-- Past Meetings -->
+    <section
+      class="meeting-section"
+      *ngIf="pastMeetings.length > 0">
+
+      <div class="section-heading">
+        <div>
+          <h2>
+            Past Meetings
+          </h2>
+
+          <p>
+            Meetings that have already taken place.
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="meeting-card past-card"
+        *ngFor="let meeting of pastMeetings">
+
+        <div class="meeting-details">
+          <div class="meeting-title-row">
+            <h3>
+              {{ meeting.title }}
+            </h3>
+
+            <span class="status past">
+              Past
+            </span>
+          </div>
+
+          <p class="meeting-date">
+            {{ meeting.meetingDate | date:'mediumDate' }}
+            ·
+            {{ meeting.meetingTime || 'Time to be scheduled' }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cancelled Meetings -->
+    <section
+      class="meeting-section"
+      *ngIf="cancelledMeetings.length > 0">
+
+      <div class="section-heading">
+        <div>
+          <h2>
+            Cancelled Meetings
+          </h2>
+
+          <p>
+            Meetings that were cancelled.
+          </p>
+        </div>
+      </div>
+
+      <div
+        class="meeting-card cancelled-card"
+        *ngFor="let meeting of cancelledMeetings">
+
+        <div class="meeting-details">
+          <div class="meeting-title-row">
+            <h3>
+              {{ meeting.title }}
+            </h3>
+
+            <span class="status cancelled">
+              Cancelled
+            </span>
+          </div>
+
+          <p class="meeting-date">
+            {{ meeting.meetingDate | date:'mediumDate' }}
+            ·
+            {{ meeting.meetingTime || 'Time to be scheduled' }}
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>
