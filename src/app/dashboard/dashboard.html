@@ -2,7 +2,6 @@
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
-
     <div class="sidebar-top">
       <div class="brand">
         <b>S</b>
@@ -20,122 +19,70 @@
     </div>
 
     <nav>
-
-      <button
-        [class.active]="activeView === 'home'"
-        (click)="setView('home')">
-
+      <button [class.active]="activeView === 'home'" (click)="setView('home')">
         <b>⌂</b>
         <span *ngIf="sidebarOpen">Home</span>
-
       </button>
 
-      <button
-        [class.active]="activeView === 'meetings'"
-        (click)="setView('meetings')">
-
+      <button [class.active]="activeView === 'meetings'" (click)="setView('meetings')">
         <b>▣</b>
         <span *ngIf="sidebarOpen">My Meetings</span>
-
       </button>
 
-      <button
-        [class.active]="activeView === 'create'"
-        (click)="setView('create')">
-
+      <button [class.active]="activeView === 'create'" (click)="setView('create')">
         <b>＋</b>
         <span *ngIf="sidebarOpen">Create Meeting</span>
-
       </button>
 
-      <button
-        [class.active]="activeView === 'participants'"
-        (click)="setView('participants')">
-
+      <button [class.active]="activeView === 'participants'" (click)="setView('participants')">
         <b>♙</b>
         <span *ngIf="sidebarOpen">Participants</span>
-
       </button>
 
-      <button
-        [class.active]="activeView === 'availability'"
-        (click)="setView('availability')">
-
+      <button [class.active]="activeView === 'availability'" (click)="setView('availability')">
         <b>◷</b>
         <span *ngIf="sidebarOpen">Availability</span>
-
       </button>
 
-      <button
-        class="best-slot"
-        [class.active]="activeView === 'slot'"
-        (click)="setView('slot')">
-
+      <button class="best-slot" [class.active]="activeView === 'slot'" (click)="setView('slot')">
         <b>✦</b>
         <span *ngIf="sidebarOpen">Find Best Slot</span>
-
       </button>
-
     </nav>
 
-    <button
-      class="logout"
-      (click)="openLogoutConfirmation()">
-
+    <button class="logout" (click)="openLogoutConfirmation()">
       <b>↪</b>
       <span *ngIf="sidebarOpen">Log out</span>
-
     </button>
-
   </aside>
-
 
   <!-- MAIN -->
   <main>
 
     <!-- HEADER -->
     <header class="page-head">
-
       <div>
         <h1>{{ getPageTitle() }}</h1>
-        <p class="page-subtitle">
-          {{ getPageSubtitle() }}
-        </p>
+        <p class="page-subtitle">{{ getPageSubtitle() }}</p>
       </div>
 
-
-      <!-- NOTIFICATIONS -->
       <div class="head-actions">
 
+        <!-- NOTIFICATIONS -->
         <div class="notification-wrapper">
 
-          <button
-            class="notification-button"
-            (click)="toggleNotifications()">
-
+          <button class="notification-button" (click)="toggleNotifications()">
             🔔 Notifications
 
-            <span
-              class="notification-badge"
-              *ngIf="unreadNotificationCount">
-
+            <span class="notification-badge" *ngIf="unreadNotificationCount">
               {{ unreadNotificationCount }}
-
             </span>
-
           </button>
 
-
-          <div
-            class="notification-dropdown"
-            *ngIf="notificationsOpen">
+          <div class="notification-dropdown" *ngIf="notificationsOpen">
 
             <div class="notification-header">
-
-              <div>
-                <h3>Notifications</h3>
-                <small>Recent workspace activity</small>
-              </div>
+              <h3>Notifications</h3>
 
               <button
                 class="mark-read"
@@ -145,27 +92,21 @@
                 Mark all as read
 
               </button>
-
             </div>
-
 
             <div
               class="notification-item"
-              *ngFor="let notification of notifications"
-              [class.read]="notification.isRead">
+              [class.read]="notification.isRead"
+              *ngFor="let notification of notifications">
 
               <span
                 class="notification-dot"
                 *ngIf="!notification.isRead">
               </span>
 
-              <div>
-                <b>{{ notification.title }}</b>
-                <p>{{ notification.message }}</p>
-              </div>
+              <p>{{ notification.message }}</p>
 
             </div>
-
 
             <div
               class="notification-empty"
@@ -181,17 +122,12 @@
         </div>
 
       </div>
-
     </header>
 
-
     <!-- HOME -->
-    <section
-      *ngIf="activeView === 'home'"
-      class="home-view">
+    <section *ngIf="activeView === 'home'" class="home-view">
 
       <div class="stats">
-
         <div>
           <b>{{ getUpcomingMeetings().length }}</b>
           <span>Upcoming meetings</span>
@@ -206,34 +142,73 @@
           <b>{{ users.length }}</b>
           <span>People in workspace</span>
         </div>
-
       </div>
 
-
       <div class="section-title">
-
         <div>
           <h2>Upcoming meetings</h2>
           <p>Keep track of your upcoming schedule.</p>
         </div>
 
-        <button
-          class="link"
-          (click)="setView('meetings')">
-
+        <button class="link" (click)="setView('meetings')">
           View all →
-
         </button>
+      </div>
+
+      <div class="meeting-list" *ngIf="getUpcomingMeetings().length; else emptyHome">
+
+        <article *ngFor="let meeting of getUpcomingMeetings() | slice:0:4">
+
+          <div class="date">
+            <b>{{ meeting.meetingDate | date:'dd' }}</b>
+            <small>{{ meeting.meetingDate | date:'MMM' }}</small>
+          </div>
+
+          <div class="meeting-info">
+            <h3>{{ meeting.title }}</h3>
+
+            <p>
+              {{ meeting.meetingTime || 'Time to be scheduled' }}
+              · {{ meeting.priority }} priority
+            </p>
+          </div>
+
+          <em>{{ meeting.status }}</em>
+
+        </article>
 
       </div>
 
+      <ng-template #emptyHome>
+        <div class="empty">
+          <h3>No upcoming meetings</h3>
+          <p>Meetings scheduled in your workspace will appear here.</p>
+        </div>
+      </ng-template>
 
-      <div
-        class="meeting-list"
-        *ngIf="getUpcomingMeetings().length; else emptyHome">
+    </section>
+
+    <!-- MY MEETINGS -->
+    <section *ngIf="activeView === 'meetings'">
+
+      <div class="section-title">
+        <div>
+          <h2>My Meetings</h2>
+          <p>View your upcoming, completed and cancelled meetings.</p>
+        </div>
+
+        <button class="primary" (click)="setView('create')">
+          + Create Meeting
+        </button>
+      </div>
+
+      <div class="meeting-list" *ngIf="meetings.length; else emptyMeetings">
 
         <article
-          *ngFor="let meeting of getUpcomingMeetings() | slice:0:4">
+          *ngFor="let meeting of getMeetingsForDisplay()"
+          [class.cancelled]="meeting.status === 'Cancelled'"
+          [class.rescheduled]="meeting.status === 'Rescheduled'"
+          [class.past]="isMeetingPast(meeting)">
 
           <div class="date">
             <b>{{ meeting.meetingDate | date:'dd' }}</b>
@@ -249,127 +224,30 @@
               · {{ meeting.priority }} priority
             </p>
 
-          </div>
-
-          <em>{{ meeting.status }}</em>
-
-        </article>
-
-      </div>
-
-
-      <ng-template #emptyHome>
-
-        <div class="empty">
-
-          <h3>No upcoming meetings</h3>
-
-          <p>
-            Meetings scheduled in your workspace
-            will appear here.
-          </p>
-
-        </div>
-
-      </ng-template>
-
-    </section>
-
-
-    <!-- MY MEETINGS -->
-    <section *ngIf="activeView === 'meetings'">
-
-      <div class="section-title">
-
-        <div>
-          <h2>My Meetings</h2>
-
-          <p>
-            View your upcoming, completed
-            and cancelled meetings.
-          </p>
-
-        </div>
-
-        <button
-          class="primary"
-          (click)="setView('create')">
-
-          + Create Meeting
-
-        </button>
-
-      </div>
-
-
-      <div
-        class="meeting-list"
-        *ngIf="meetings.length; else emptyMeetings">
-
-        <article
-          *ngFor="let meeting of getMeetingsForDisplay()"
-          [class.cancelled]="meeting.status === 'Cancelled'"
-          [class.rescheduled]="meeting.status === 'Rescheduled'"
-          [class.past]="isMeetingPast(meeting)">
-
-          <div class="date">
-
-            <b>
-              {{ meeting.meetingDate | date:'dd' }}
-            </b>
-
-            <small>
-              {{ meeting.meetingDate | date:'MMM' }}
-            </small>
-
-          </div>
-
-
-          <div class="meeting-info">
-
-            <h3>{{ meeting.title }}</h3>
-
-            <p>
-              {{ meeting.meetingTime || 'Time to be scheduled' }}
-              · {{ meeting.priority }} priority
-            </p>
-
-
             <div>
 
               <button
                 class="quiet"
                 (click)="rescheduleMeeting(meeting)"
-                [disabled]="
-                  meeting.status === 'Cancelled' ||
-                  isMeetingPast(meeting)
-                ">
+                [disabled]="meeting.status === 'Cancelled' || isMeetingPast(meeting)">
 
                 Reschedule
 
               </button>
 
-
               <button
                 class="quiet danger"
                 (click)="cancelMeeting(meeting)"
-                [disabled]="
-                  meeting.status === 'Cancelled' ||
-                  isMeetingPast(meeting)
-                ">
+                [disabled]="meeting.status === 'Cancelled' || isMeetingPast(meeting)">
 
                 Cancel
 
               </button>
 
-
               <button
                 class="quiet"
                 (click)="copyLink(meeting.id)"
-                [disabled]="
-                  meeting.status === 'Cancelled' ||
-                  isMeetingPast(meeting)
-                ">
+                [disabled]="meeting.status === 'Cancelled' || isMeetingPast(meeting)">
 
                 Copy invite link
 
@@ -379,18 +257,10 @@
 
           </div>
 
-
           <em
-            [class.status-rescheduled]="
-              meeting.status === 'Rescheduled'
-            "
-            [class.status-cancelled]="
-              meeting.status === 'Cancelled'
-            "
-            [class.status-past]="
-              isMeetingPast(meeting) &&
-              meeting.status !== 'Cancelled'
-            ">
+            [class.status-rescheduled]="meeting.status === 'Rescheduled'"
+            [class.status-cancelled]="meeting.status === 'Cancelled'"
+            [class.status-past]="isMeetingPast(meeting) && meeting.status !== 'Cancelled'">
 
             {{
               meeting.status === 'Cancelled'
@@ -406,38 +276,21 @@
 
       </div>
 
-
       <ng-template #emptyMeetings>
-
         <div class="empty">
-
           <h3>No meetings found</h3>
-
-          <p>
-            Create a meeting to start scheduling
-            with your workspace.
-          </p>
-
+          <p>Create a meeting to start scheduling with your workspace.</p>
         </div>
-
       </ng-template>
 
     </section>
 
-
     <!-- CREATE MEETING -->
-    <section
-      *ngIf="activeView === 'create'"
-      class="narrow">
+    <section *ngIf="activeView === 'create'" class="narrow">
 
       <div class="view-intro">
-
         <h2>
-          {{
-            reschedulingMeeting
-              ? 'Reschedule meeting'
-              : 'Meeting details'
-          }}
+          {{ reschedulingMeeting ? 'Reschedule meeting' : 'Meeting details' }}
         </h2>
 
         <p>
@@ -447,17 +300,11 @@
               : 'Create your meeting. You can add participants afterwards.'
           }}
         </p>
-
       </div>
 
-
-      <form
-        #meetingForm="ngForm"
-        class="form"
-        (ngSubmit)="saveMeeting()">
+      <form #meetingForm="ngForm" class="form" (ngSubmit)="saveMeeting()">
 
         <label>
-
           Meeting title
 
           <input
@@ -466,12 +313,9 @@
             required
             minlength="3"
             placeholder="Enter meeting title">
-
         </label>
 
-
         <label>
-
           Scheduling type
 
           <select
@@ -488,27 +332,22 @@
             </option>
 
           </select>
-
         </label>
-
 
         <ng-container *ngIf="schedulingType === 'fixed'">
 
           <label>
-
             Date
 
             <input
               type="date"
               name="meetingDate"
               [(ngModel)]="newMeeting.meetingDate"
+              [min]="getTodayDate()"
               required>
-
           </label>
 
-
           <label>
-
             Time
 
             <input
@@ -516,45 +355,34 @@
               name="meetingTime"
               [(ngModel)]="newMeeting.meetingTime"
               required>
-
           </label>
 
         </ng-container>
 
-
         <ng-container *ngIf="schedulingType === 'availability'">
 
           <label>
-
             Preferred date
 
             <input
               type="date"
               name="meetingDate"
               [(ngModel)]="newMeeting.meetingDate"
+              [min]="getTodayDate()"
               required>
-
           </label>
 
         </ng-container>
 
-
         <label>
-
           Priority
 
-          <select
-            name="priority"
-            [(ngModel)]="newMeeting.priority">
-
+          <select name="priority" [(ngModel)]="newMeeting.priority">
             <option>High</option>
             <option>Medium</option>
             <option>Low</option>
-
           </select>
-
         </label>
-
 
         <button
           type="submit"
@@ -573,42 +401,26 @@
 
     </section>
 
-
     <!-- PARTICIPANTS -->
-    <section
-      *ngIf="activeView === 'participants'"
-      class="narrow">
+    <section *ngIf="activeView === 'participants'" class="narrow">
 
       <div class="view-intro">
-
         <span class="eyebrow">WORKSPACE</span>
-
         <h2>Manage participants</h2>
-
-        <p>
-          Select an active meeting and manage
-          the people who will participate.
-        </p>
-
+        <p>Select an active meeting and manage the people who will participate.</p>
       </div>
-
 
       <div class="form">
 
         <label>
-
           Select meeting
 
           <select
             [(ngModel)]="participantMeetingId"
             (ngModelChange)="onParticipantMeetingChange()">
 
-            <option
-              [ngValue]="null"
-              disabled>
-
+            <option [ngValue]="null" disabled>
               Select a meeting
-
             </option>
 
             <option
@@ -620,23 +432,12 @@
             </option>
 
           </select>
-
         </label>
 
-
-        <div
-          class="empty"
-          *ngIf="!participantMeetingId">
-
+        <div class="empty" *ngIf="!participantMeetingId">
           <h3>Select a meeting</h3>
-
-          <p>
-            Only active upcoming meetings
-            can have participants added.
-          </p>
-
+          <p>Only active upcoming meetings can have participants added.</p>
         </div>
-
 
         <ng-container *ngIf="participantMeetingId">
 
@@ -645,9 +446,7 @@
             <label
               *ngFor="let user of users"
               class="person-card"
-              [class.already-added]="
-                isUserAlreadyParticipant(user.id)
-              ">
+              [class.already-added]="isUserAlreadyParticipant(user.id)">
 
               <input
                 type="checkbox"
@@ -660,9 +459,7 @@
               </span>
 
               <span>
-
                 <b>{{ user.name }}</b>
-
                 <small>{{ user.email }}</small>
 
                 <small
@@ -679,25 +476,18 @@
 
           </div>
 
-
           <label class="check">
-
             <input
               type="checkbox"
               [(ngModel)]="bulkIsMandatory">
 
             Mandatory attendees
-
           </label>
-
 
           <button
             class="primary"
             (click)="addSelectedParticipants()"
-            [disabled]="
-              !participantMeetingId ||
-              !selectedUserIds.size
-            ">
+            [disabled]="!participantMeetingId || !selectedUserIds.size">
 
             Add participants
 
@@ -709,30 +499,18 @@
 
     </section>
 
-
     <!-- AVAILABILITY -->
-    <section
-      *ngIf="activeView === 'availability'"
-      class="narrow">
+    <section *ngIf="activeView === 'availability'" class="narrow">
 
       <div class="view-intro">
-
         <span class="eyebrow">AVAILABILITY</span>
-
         <h2>Meeting availability</h2>
-
-        <p>
-          Select an active meeting
-          to see participant availability.
-        </p>
-
+        <p>Select an active meeting to see participant availability.</p>
       </div>
-
 
       <div class="form">
 
         <label>
-
           Select meeting
 
           <select
@@ -752,77 +530,47 @@
             </option>
 
           </select>
-
         </label>
 
-
-        <div
-          class="empty"
-          *ngIf="!availabilityMeetingId">
-
+        <div class="empty" *ngIf="!availabilityMeetingId">
           <h3>Select a meeting</h3>
-
-          <p>
-            Choose an active meeting to review
-            participant availability.
-          </p>
-
+          <p>Choose an active meeting to review participant availability.</p>
         </div>
 
-
-        <div
-          class="availability"
-          *ngIf="availabilityMeetingId">
+        <div class="availability" *ngIf="availabilityMeetingId">
 
           <div
             class="availability-card"
-            *ngFor="
-              let participant of
-              getParticipantsForAvailability()
-            ">
+            *ngFor="let participant of getParticipantsForAvailability()">
 
             <span class="avatar">
-              {{
-                getInitials(
-                  getUserName(participant.userId)
-                )
-              }}
+              {{ getInitials(getUserName(participant.userId)) }}
             </span>
 
             <div>
 
-              <b>
-                {{ getUserName(participant.userId) }}
-              </b>
+              <b>{{ getUserName(participant.userId) }}</b>
 
               <small>
-
                 {{
                   hasSubmittedAvailability(participant.userId)
                     ? 'Availability submitted'
                     : 'Waiting for availability'
                 }}
-
               </small>
 
             </div>
 
-
             <strong
-              *ngIf="
-                hasSubmittedAvailability(participant.userId)
-              "
+              *ngIf="hasSubmittedAvailability(participant.userId)"
               class="submitted-status">
 
               Submitted
 
             </strong>
 
-
             <strong
-              *ngIf="
-                !hasSubmittedAvailability(participant.userId)
-              "
+              *ngIf="!hasSubmittedAvailability(participant.userId)"
               class="pending-status">
 
               Pending
@@ -831,59 +579,33 @@
 
           </div>
 
-
           <div
             class="availability-card availability-time-card"
-            *ngFor="
-              let avail of
-              getAvailabilityForSelectedMeeting()
-            ">
+            *ngFor="let avail of getAvailabilityForSelectedMeeting()">
 
             <span class="avatar">
-
-              {{
-                getInitials(
-                  getUserName(avail.userId)
-                )
-              }}
-
+              {{ getInitials(getUserName(avail.userId)) }}
             </span>
 
-
             <div>
-
-              <b>
-                {{ getUserName(avail.userId) }}
-              </b>
-
+              <b>{{ getUserName(avail.userId) }}</b>
               <small>Submitted time</small>
-
             </div>
 
-
             <strong>
-              {{ avail.startTime }}
-              –
-              {{ avail.endTime }}
+              {{ avail.startTime }} – {{ avail.endTime }}
             </strong>
 
           </div>
 
         </div>
 
-
         <div
           class="empty"
-          *ngIf="
-            availabilityMeetingId &&
-            getParticipantsForAvailability().length === 0
-          ">
+          *ngIf="availabilityMeetingId && getParticipantsForAvailability().length === 0">
 
           <h3>No participants</h3>
-
-          <p>
-            Add participants to this meeting first.
-          </p>
+          <p>Add participants to this meeting first.</p>
 
         </div>
 
@@ -891,45 +613,24 @@
 
     </section>
 
-
     <!-- FIND BEST SLOT -->
-    <section
-      *ngIf="activeView === 'slot'"
-      class="narrow">
+    <section *ngIf="activeView === 'slot'" class="narrow">
 
       <div class="view-intro">
-
-        <span class="eyebrow">
-          SMART SCHEDULING
-        </span>
-
-        <h2>
-          Find the best meeting time
-        </h2>
-
-        <p>
-          Select an active meeting
-          to find a suitable time.
-        </p>
-
+        <span class="eyebrow">SMART SCHEDULING</span>
+        <h2>Find the best meeting time</h2>
+        <p>Select an active meeting to find a suitable time.</p>
       </div>
-
 
       <div class="form">
 
         <label>
-
           Select meeting
 
-          <select
-            [(ngModel)]="suggestRequest.meetingId">
+          <select [(ngModel)]="suggestRequest.meetingId">
 
-            <option
-              [ngValue]="null"
-              disabled>
-
+            <option [ngValue]="null" disabled>
               Select a meeting
-
             </option>
 
             <option
@@ -941,9 +642,7 @@
             </option>
 
           </select>
-
         </label>
-
 
         <button
           class="primary"
@@ -954,64 +653,33 @@
 
         </button>
 
+        <div class="slot-result" *ngIf="suggestResult">
 
-        <div
-          class="slot-result"
-          *ngIf="suggestResult">
+          <ng-container *ngIf="suggestResult.success !== false">
 
-          <ng-container
-            *ngIf="suggestResult.success !== false">
+            <div class="slot-icon">✓</div>
 
-            <div class="slot-icon">
-              ✓
-            </div>
-
-            <h3>
-              Suggested meeting time
-            </h3>
+            <h3>Suggested meeting time</h3>
 
             <p>
-              SyncUp found a suitable time
-              based on submitted availability.
+              SyncUp found a suitable time based on submitted availability.
             </p>
 
             <div class="slot-time">
-
-              <b>
-                {{
-                  suggestResult.startTime ||
-                  suggestResult.start
-                }}
-              </b>
-
+              <b>{{ suggestResult.startTime || suggestResult.start }}</b>
               <span>to</span>
-
-              <b>
-                {{
-                  suggestResult.endTime ||
-                  suggestResult.end
-                }}
-              </b>
-
+              <b>{{ suggestResult.endTime || suggestResult.end }}</b>
             </div>
 
           </ng-container>
 
+          <ng-container *ngIf="suggestResult.success === false">
 
-          <ng-container
-            *ngIf="suggestResult.success === false">
+            <div class="slot-icon">!</div>
 
-            <div class="slot-icon">
-              !
-            </div>
+            <h3>Unable to find a slot</h3>
 
-            <h3>
-              Unable to find a slot
-            </h3>
-
-            <p>
-              {{ suggestResult.message }}
-            </p>
+            <p>{{ suggestResult.message }}</p>
 
           </ng-container>
 
@@ -1023,21 +691,14 @@
 
   </main>
 
-
   <!-- LOGOUT MODAL -->
-  <div
-    class="logout-overlay"
-    *ngIf="showLogoutConfirmation">
+  <div class="logout-overlay" *ngIf="showLogoutConfirmation">
 
     <div class="logout-modal">
 
       <h2>Log out?</h2>
 
-      <p>
-        Are you sure you want
-        to log out of SyncUp?
-      </p>
-
+      <p>Are you sure you want to log out of SyncUp?</p>
 
       <div class="logout-actions">
 
@@ -1048,7 +709,6 @@
           Cancel
 
         </button>
-
 
         <button
           class="logout-confirm"
