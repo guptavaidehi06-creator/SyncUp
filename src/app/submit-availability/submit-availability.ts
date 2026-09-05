@@ -38,22 +38,24 @@ export class SubmitAvailability implements OnInit {
     private meetingService: MeetingService,
     private availabilityService: AvailabilityService,
     private cdr: ChangeDetectorRef
-  ) { }
+  ) {}
 
   ngOnInit(): void {
 
-    // URL se meeting ID lena
     this.meetingId = Number(
       this.route.snapshot.paramMap.get('meetingId')
     );
 
-    // Current logged-in user
     this.currentUser = this.authService.getUser();
 
-    // Meeting details load karna
-    this.meetingService.getAllMeetings().subscribe({
+    if (!this.meetingId) {
+      console.error('Invalid meeting ID');
+      return;
+    }
 
-      next: (meetings) => {
+    this.meetingService.getMeetings().subscribe({
+
+      next: (meetings: any[]) => {
 
         this.meeting = meetings.find(
           (m: any) => m.id === this.meetingId
@@ -63,7 +65,7 @@ export class SubmitAvailability implements OnInit {
 
       },
 
-      error: (err) => {
+      error: (err: any) => {
 
         console.error(
           'Error fetching meeting:',
@@ -110,59 +112,62 @@ export class SubmitAvailability implements OnInit {
 
   submitAvailability(): void {
 
-  if (!this.currentUser || !this.meeting) return;
+    if (!this.currentUser || !this.meeting) {
+      return;
+    }
 
-  this.submitting = true;
+    this.submitting = true;
 
-  const requests = this.timeWindows.map(window => {
+    const requests = this.timeWindows.map(window => {
 
-    const payload = {
+      const payload = {
 
-      meetingId: this.meetingId,
+        meetingId: this.meetingId,
 
-      userId: this.currentUser.id,
+        userId: this.currentUser.id,
 
-      specificDate: this.meeting.meetingDate,
+        specificDate: this.meeting.meetingDate,
 
-      dayOfWeek: null,
+        dayOfWeek: null,
 
-      startTime: window.startTime,
+        startTime: window.startTime,
 
-      endTime: window.endTime
+        endTime: window.endTime
 
-    };
+      };
 
-    return this.availabilityService
-      .addAvailability(payload)
-      .toPromise();
-
-  });
-
-
-  Promise.all(requests)
-
-    .then(() => {
-
-      this.submitted = true;
-
-      this.submitting = false;
-
-      this.cdr.detectChanges();
-
-    })
-
-    .catch((err) => {
-
-      console.error(
-        'Error submitting availability:',
-        err
-      );
-
-      this.submitting = false;
-
-      this.cdr.detectChanges();
+      return this.availabilityService
+        .addAvailability(payload)
+        .toPromise();
 
     });
 
-}
+
+    Promise.all(requests)
+
+      .then(() => {
+
+        this.submitted = true;
+
+        this.submitting = false;
+
+        this.cdr.detectChanges();
+
+      })
+
+      .catch((err: any) => {
+
+        console.error(
+          'Error submitting availability:',
+          err
+        );
+
+        this.submitting = false;
+
+        this.cdr.detectChanges();
+
+      });
+
+  }
+
 }

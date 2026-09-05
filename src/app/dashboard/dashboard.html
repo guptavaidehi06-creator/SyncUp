@@ -246,7 +246,7 @@
 
               <button
                 class="quiet"
-                (click)="copyLink(meeting.id)"
+                (click)="copyLink(meeting.id!)"
                 [disabled]="meeting.status === 'Cancelled' || isMeetingPast(meeting)">
 
                 Copy invite link
