@@ -6,62 +6,114 @@ import { Observable, tap } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'https://syncup-backend-production28.up.railway.app/api/auth';
+
+  private apiUrl =
+    'https://syncup-backend-production28.up.railway.app/api/auth';
 
   constructor(private http: HttpClient) { }
 
+
   register(data: any): Observable<any> {
-    return this.http.post(this.apiUrl + '/register', data);
+    return this.http.post(
+      this.apiUrl + '/register',
+      data
+    );
   }
+
 
   verify(data: any): Observable<any> {
-    return this.http.post(this.apiUrl + '/verify', data).pipe(
+    return this.http.post(
+      this.apiUrl + '/verify',
+      data
+    ).pipe(
       tap((res: any) => this.saveSession(res))
     );
   }
 
+
   login(data: any): Observable<any> {
-    return this.http.post(this.apiUrl + '/login', data).pipe(
+    return this.http.post(
+      this.apiUrl + '/login',
+      data
+    ).pipe(
       tap((res: any) => this.saveSession(res))
     );
   }
+
 
   saveSession(res: any): void {
     localStorage.setItem('token', res.token);
-    localStorage.setItem('user', JSON.stringify(res.user));
+    localStorage.setItem(
+      'user',
+      JSON.stringify(res.user)
+    );
   }
+
 
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   }
 
+
   isLoggedIn(): boolean {
     return !!localStorage.getItem('token');
   }
+
 
   getToken(): string | null {
     return localStorage.getItem('token');
   }
 
+
   getUser(): any {
     const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+
+    return user
+      ? JSON.parse(user)
+      : null;
   }
+
 
   isAdmin(): boolean {
     const user = this.getUser();
-    return user ? user.isAdmin === true : false;
+
+    return user
+      ? user.isAdmin === true
+      : false;
   }
+
+
+  // ================= FORGOT PASSWORD =================
+
   forgotPassword(data: any): Observable<any> {
-  return this.http.post(this.apiUrl + '/forgot-password', data);
-}
+    return this.http.post(
+      this.apiUrl + '/forgot-password',
+      data,
+      { responseType: 'text' }
+    );
+  }
 
-resetPassword(data: any): Observable<any> {
-  return this.http.post(this.apiUrl + '/reset-password', data);
-}
 
-resendVerification(data: any): Observable<any> {
-  return this.http.post(this.apiUrl + '/resend-verification', data);
-}
+  // ================= RESET PASSWORD =================
+
+  resetPassword(data: any): Observable<any> {
+    return this.http.post(
+      this.apiUrl + '/reset-password',
+      data,
+      { responseType: 'text' }
+    );
+  }
+
+
+  // ================= RESEND VERIFICATION =================
+
+  resendVerification(data: any): Observable<any> {
+    return this.http.post(
+      this.apiUrl + '/resend-verification',
+      data,
+      { responseType: 'text' }
+    );
+  }
+
 }
