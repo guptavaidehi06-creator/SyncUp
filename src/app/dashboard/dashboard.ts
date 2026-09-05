@@ -555,6 +555,26 @@ export class Dashboard implements OnInit {
   }
 
 
+  getMeetingsForDisplay(): any[] {
+
+    return [...this.meetings].sort((first, second) => {
+
+      const firstCancelled = first.status === 'Cancelled';
+      const secondCancelled = second.status === 'Cancelled';
+
+      if (firstCancelled === secondCancelled) {
+
+        return 0;
+
+      }
+
+      return firstCancelled ? 1 : -1;
+
+    });
+
+  }
+
+
   createMeeting(): void {
 
     const title =
@@ -752,7 +772,7 @@ export class Dashboard implements OnInit {
     const updatedMeeting = {
       ...meeting,
       ...this.newMeeting,
-      status: 'Scheduled'
+      status: 'Rescheduled'
     };
 
     this.meetingService
