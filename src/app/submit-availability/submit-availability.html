@@ -1,58 +1,87 @@
-<div class="d-flex align-items-center justify-content-center py-5" style="min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+<main class="avail-page">
 
-  <div class="card shadow-lg border-0" style="max-width: 480px; width: 90%; border-radius: 16px;" *ngIf="meeting">
-    <div class="card-body p-4">
+  <section class="avail-card" *ngIf="meeting">
 
-      <div class="text-center mb-4">
-        <h4 class="fw-bold mb-1">{{ meeting.title }}</h4>
-        <span class="badge bg-primary">{{ meeting.meetingDate | date }}</span>
-      </div>
-
-      <div *ngIf="!submitted">
-        <p class="text-center mb-3">👋 Hi <strong>{{ currentUser?.name }}</strong>, let us know when you're free.</p>
-
-        <form #availForm="ngForm" (ngSubmit)="submitAvailability()">
-
-          <label class="form-label fw-semibold">Your available time windows</label>
-
-          <div *ngFor="let window of timeWindows; let i = index" class="border rounded-3 p-3 mb-2 bg-light">
-            <div class="d-flex gap-2 align-items-end">
-              <div class="flex-fill">
-                <label class="form-label small text-muted">Start Time</label>
-                <input type="time" class="form-control" name="startTime{{i}}" [(ngModel)]="window.startTime" required>
-              </div>
-              <div class="flex-fill">
-                <label class="form-label small text-muted">End Time</label>
-                <input type="time" class="form-control" name="endTime{{i}}" [(ngModel)]="window.endTime" required>
-              </div>
-              <button type="button" class="btn btn-sm btn-outline-danger" *ngIf="timeWindows.length > 1"
-                (click)="removeWindow(i)">✕</button>
-            </div>
-          </div>
-
-          <button type="button" class="btn btn-sm btn-outline-primary mb-3 w-100" (click)="addAnotherWindow()">
-            + Add another time window
-          </button>
-
-          <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold" [disabled]="availForm.invalid || submitting">
-            {{ submitting ? 'Submitting...' : 'Submit Availability' }}
-          </button>
-
-        </form>
-      </div>
-
-      <div *ngIf="submitted" class="text-center py-3">
-        <div class="mb-3" style="font-size: 3rem;">✅</div>
-        <h5 class="text-success mb-2">Thank you!</h5>
-        <p class="text-muted">Your availability has been submitted successfully.</p>
-      </div>
-
+    <div class="avail-intro">
+      <span class="eyebrow">AVAILABILITY</span>
+      <h1>{{ meeting.title }}</h1>
+      <p *ngIf="!submitted">
+        Hi {{ currentUser?.name }}, let us know when you are free.
+      </p>
+      <span class="meeting-chip">
+        {{ meeting.meetingDate | date }}
+      </span>
     </div>
-  </div>
 
-  <div *ngIf="!meeting" class="text-white text-center">
-    <div class="spinner-border mb-2" role="status"></div>
-    <p>Loading meeting details...</p>
-  </div>
+    <form
+      *ngIf="!submitted"
+      class="form"
+      #availForm="ngForm"
+      (ngSubmit)="submitAvailability()">
 
-</div>
+      <label>
+        Your available time windows
+      </label>
+
+      <div
+        *ngFor="let window of timeWindows; let i = index"
+        class="time-window">
+
+        <label>
+          Start time
+          <input
+            type="time"
+            name="startTime{{i}}"
+            [(ngModel)]="window.startTime"
+            required>
+        </label>
+
+        <label>
+          End time
+          <input
+            type="time"
+            name="endTime{{i}}"
+            [(ngModel)]="window.endTime"
+            required>
+        </label>
+
+        <button
+          type="button"
+          class="quiet danger"
+          *ngIf="timeWindows.length > 1"
+          (click)="removeWindow(i)">
+          Remove
+        </button>
+
+      </div>
+
+      <button
+        type="button"
+        class="quiet"
+        (click)="addAnotherWindow()">
+        + Add another time window
+      </button>
+
+      <button
+        type="submit"
+        class="primary"
+        [disabled]="availForm.invalid || submitting">
+        {{ submitting ? 'Submitting...' : 'Submit Availability' }}
+      </button>
+
+    </form>
+
+    <div *ngIf="submitted" class="success-state">
+      <div class="slot-icon">✓</div>
+      <h2>Thank you</h2>
+      <p>Your availability has been submitted successfully.</p>
+    </div>
+
+  </section>
+
+  <section class="avail-empty" *ngIf="!meeting">
+    <h2>Loading meeting details</h2>
+    <p>Please wait while SyncUp loads this meeting.</p>
+  </section>
+
+</main>

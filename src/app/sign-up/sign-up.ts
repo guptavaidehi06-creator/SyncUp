@@ -8,8 +8,6 @@ import { Router } from '@angular/router';
 
 import { AuthService } from '../services/auth';
 
-import { NotificationService } from '../services/notification';
-
 @Component({
 
   selector: 'app-sign-up',
@@ -48,7 +46,6 @@ export class SignUp {
 
   constructor(
     private authService: AuthService,
-    private notificationService: NotificationService,
     private router: Router
   ) { }
 
@@ -85,91 +82,9 @@ export class SignUp {
       code: this.verificationCode
     }).subscribe({
 
-      next: (res: any) => {
+      next: () => {
 
-        const user = res.user;
-
-        if (!user || !user.id) {
-
-          this.router.navigate(['/']);
-
-          return;
-
-        }
-
-        this.notificationService
-          .getNotificationsByUser(user.id)
-          .subscribe({
-
-            next: (notifications: any[]) => {
-
-              const welcomeAlreadyExists =
-                notifications.some(
-                  notification =>
-                    notification.type === 'Welcome'
-                );
-
-              if (welcomeAlreadyExists) {
-
-                this.router.navigate(['/']);
-
-                return;
-
-              }
-
-              const notification = {
-
-                userId: user.id,
-
-                meetingId: null,
-
-                title: 'Welcome to SyncUp',
-
-                message: 'Welcome to SyncUp!',
-
-                type: 'Welcome',
-
-                isRead: false
-
-              };
-
-              this.notificationService
-                .addNotification(notification)
-                .subscribe({
-
-                  next: () => {
-
-                    this.router.navigate(['/']);
-
-                  },
-
-                  error: (err) => {
-
-                    console.error(
-                      'Error creating welcome notification:',
-                      err
-                    );
-
-                    this.router.navigate(['/']);
-
-                  }
-
-                });
-
-            },
-
-            error: (err) => {
-
-              console.error(
-                'Error checking notifications:',
-                err
-              );
-
-              this.router.navigate(['/']);
-
-            }
-
-          });
+        this.router.navigate(['/']);
 
       },
 

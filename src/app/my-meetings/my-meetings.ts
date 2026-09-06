@@ -164,8 +164,6 @@ export class MyMeetings implements OnInit {
             }
           );
 
-          this.updateNotifications();
-
           this.cdr.detectChanges();
         },
 
@@ -215,91 +213,6 @@ export class MyMeetings implements OnInit {
         }
 
       });
-
-  }
-
-  // =========================
-  // CREATE AVAILABILITY NOTIFICATIONS
-  // =========================
-
-  updateNotifications(): void {
-
-    if (!this.currentUser) {
-      return;
-    }
-
-    this.myMeetings.forEach(
-      (meeting: any) => {
-
-        if (
-          this.needsAvailability(meeting)
-        ) {
-
-          const alreadyExists =
-            this.notifications.some(
-              (notification: any) =>
-                notification.meetingId === meeting.id &&
-                notification.type === 'Availability'
-            );
-
-          if (!alreadyExists) {
-
-            const notification = {
-
-              userId:
-                this.currentUser.id,
-
-              meetingId:
-                meeting.id,
-
-              title:
-                'Availability Required',
-
-              message:
-                `Please submit your availability for ${meeting.title}`,
-
-              type:
-                'Availability',
-
-              isRead:
-                false
-
-            };
-
-            this.notificationService
-              .addNotification(
-                notification
-              )
-              .subscribe({
-
-                next: (
-                  createdNotification: any
-                ) => {
-
-                  this.notifications.unshift(
-                    createdNotification
-                  );
-
-                  this.cdr.detectChanges();
-                },
-
-                error: (err: any) => {
-
-                  console.error(
-                    'Error creating notification:',
-                    err
-                  );
-
-                }
-
-              });
-
-          }
-
-        }
-
-      }
-    );
 
   }
 
