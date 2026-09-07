@@ -6,10 +6,16 @@ export interface Meeting {
   id?: number;
   title: string;
   meetingDate: string;
-  meetingTime: string;
+  meetingTime?: string | null;
   priority: string;
   status: string;
   createdBy: number;
+}
+
+export interface CreateMeetingRequest {
+  title: string;
+  meetingDate: string;
+  priority: string;
 }
 
 @Injectable({
@@ -28,7 +34,7 @@ export class MeetingService {
     return this.http.get<Meeting[]>(this.apiUrl);
   }
 
-  addMeeting(meeting: Meeting): Observable<Meeting> {
+  addMeeting(meeting: CreateMeetingRequest): Observable<Meeting> {
     return this.http.post<Meeting>(
       this.apiUrl,
       meeting

@@ -243,7 +243,7 @@ export class MyMeetings implements OnInit {
 
           this.notifications.forEach(
             (notification: any) => {
-
+              
               notification.isRead =
                 true;
 
@@ -331,30 +331,21 @@ export class MyMeetings implements OnInit {
 
   get upcomingMeetings(): any[] {
 
-    return this.myMeetings.filter(
-      (meeting: any) =>
-        meeting.status !== 'Cancelled' &&
-        this.isUpcoming(meeting)
-    );
+    return this.myMeetings
+      .filter((meeting: any) => !this.isPastMeeting(meeting))
+      .sort((a: any, b: any) =>
+        this.getMeetingTimestamp(a) - this.getMeetingTimestamp(b)
+      );
 
   }
 
   get pastMeetings(): any[] {
 
-    return this.myMeetings.filter(
-      (meeting: any) =>
-        meeting.status !== 'Cancelled' &&
-        !this.isUpcoming(meeting)
-    );
-
-  }
-
-  get cancelledMeetings(): any[] {
-
-    return this.myMeetings.filter(
-      (meeting: any) =>
-        meeting.status === 'Cancelled'
-    );
+    return this.myMeetings
+      .filter((meeting: any) => this.isPastMeeting(meeting))
+      .sort((a: any, b: any) =>
+        this.getMeetingTimestamp(b) - this.getMeetingTimestamp(a)
+      );
 
   }
 
@@ -427,13 +418,26 @@ export class MyMeetings implements OnInit {
     meeting: any
   ): boolean {
 
-    if (!meeting.meetingDate) {
+    return !this.isPastMeeting(meeting);
+  }
+
+  isPastMeeting(
+    meeting: any
+  ): boolean {
+
+    const status = meeting.status?.toLowerCase();
+
+    if (status === 'cancelled' || status === 'completed') {
       return true;
+    }
+
+    if (!meeting.meetingDate) {
+      return false;
     }
 
     const meetingDateTime =
       new Date(
-        meeting.meetingDate
+        `${meeting.meetingDate}T${meeting.meetingTime || '00:00'}`
       );
 
     if (meeting.meetingTime) {
@@ -457,11 +461,34 @@ export class MyMeetings implements OnInit {
 
     }
 
-    return (
-      meetingDateTime >=
-      new Date()
-    );
+    return meetingDateTime < new Date();
 
+  }
+
+  getPastStatus(meeting: any): string {
+
+    const status = meeting.status?.toLowerCase();
+
+    if (status === 'cancelled') {
+      return 'Cancelled';
+    }
+
+    if (status === 'completed') {
+      return 'Completed';
+    }
+
+    return 'Past';
+  }
+
+  private getMeetingTimestamp(meeting: any): number {
+
+    if (!meeting.meetingDate) {
+      return Number.MAX_SAFE_INTEGER;
+    }
+
+    return new Date(
+      `${meeting.meetingDate}T${meeting.meetingTime || '00:00'}`
+    ).getTime();
   }
 
   // =========================

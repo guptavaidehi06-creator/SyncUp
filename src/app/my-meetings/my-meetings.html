@@ -7,21 +7,11 @@
     </div>
 
     <nav class="sidebar-menu">
-      <a class="menu-item active">
+      <a class="menu-item active" aria-current="page">
         <span>📅</span>
         <span>My Meetings</span>
       </a>
 
-      <a class="menu-item" (click)="toggleNotifications()">
-        <span>🔔</span>
-        <span>Notifications</span>
-
-        <span
-          class="notification-badge"
-          *ngIf="unreadNotificationCount > 0">
-          {{ unreadNotificationCount }}
-        </span>
-      </a>
     </nav>
 
     <div class="sidebar-bottom">
@@ -55,10 +45,10 @@
     <!-- Header -->
     <div class="page-header">
       <div>
-        <h1>My Meetings</h1>
+        <h1>Welcome, {{ currentUser?.name }}</h1>
 
         <p>
-          View your meeting invitations and manage your availability.
+          View your meetings and manage your availability.
         </p>
       </div>
 
@@ -322,7 +312,7 @@
           </h2>
 
           <p>
-            Meetings that have already taken place.
+            Completed, cancelled and previously scheduled meetings.
           </p>
         </div>
       </div>
@@ -338,7 +328,7 @@
             </h3>
 
             <span class="status past">
-              Past
+              {{ getPastStatus(meeting) }}
             </span>
           </div>
 
@@ -351,45 +341,5 @@
       </div>
     </section>
 
-    <!-- Cancelled Meetings -->
-    <section
-      class="meeting-section"
-      *ngIf="cancelledMeetings.length > 0">
-
-      <div class="section-heading">
-        <div>
-          <h2>
-            Cancelled Meetings
-          </h2>
-
-          <p>
-            Meetings that were cancelled.
-          </p>
-        </div>
-      </div>
-
-      <div
-        class="meeting-card cancelled-card"
-        *ngFor="let meeting of cancelledMeetings">
-
-        <div class="meeting-details">
-          <div class="meeting-title-row">
-            <h3>
-              {{ meeting.title }}
-            </h3>
-
-            <span class="status cancelled">
-              Cancelled
-            </span>
-          </div>
-
-          <p class="meeting-date">
-            {{ meeting.meetingDate | date:'mediumDate' }}
-            ·
-            {{ meeting.meetingTime || 'Time to be scheduled' }}
-          </p>
-        </div>
-      </div>
-    </section>
   </main>
 </div>
