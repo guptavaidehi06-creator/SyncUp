@@ -84,13 +84,11 @@ export class SignUp {
 
       error: (err) => {
 
-        this.errorMessage =
-          err.error ||
-          'Something went wrong. Please try again.';
+        this.errorMessage = this.getSignupErrorMessage(err);
 
         // The account and its verification code are persisted before Brevo is
         // called. Keep the user on the verification step so they can resend.
-        if (err.status === 503) {
+        if (err?.status === 503 || this.isUnverifiedAccountError(err)) {
           this.step = 'verify';
         }
 
@@ -98,6 +96,33 @@ export class SignUp {
 
     });
 
+  }
+
+  private getSignupErrorMessage(err: any): string {
+    if (err?.status === 503) {
+      return "Account created, but we couldn't send the verification email. Please try again.";
+    }
+
+    if (this.isUnverifiedAccountError(err)) {
+      return 'An account with this email already exists but is not verified. Please verify your email or resend the verification code.';
+    }
+
+    if (err?.status === 400 && typeof err?.error === 'string' &&
+      err.error.toLowerCase().includes('already exists')) {
+      return 'An account with this email already exists. Please log in.';
+    }
+
+    if (err?.status === 0 || err?.status >= 500) {
+      return 'Unable to connect to the server. Please try again.';
+    }
+
+    return 'Unable to create your account. Please check your details and try again.';
+  }
+
+  private isUnverifiedAccountError(err: any): boolean {
+    return err?.status === 400 &&
+      typeof err?.error === 'string' &&
+      err.error.toLowerCase().includes('not verified');
   }
 
   verify(verifyForm: NgForm): void {
