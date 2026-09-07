@@ -67,6 +67,12 @@ export class SignUp {
           err.error ||
           'Something went wrong. Please try again.';
 
+        // The account and its verification code are persisted before Brevo is
+        // called. Keep the user on the verification step so they can resend.
+        if (err.status === 503) {
+          this.step = 'verify';
+        }
+
       }
 
     });
