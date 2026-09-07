@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 
 import { Router } from '@angular/router';
+import { finalize } from 'rxjs';
 
 import { AuthService } from '../services/auth';
 
@@ -66,15 +67,16 @@ export class SignUp {
     this.successMessage = '';
     this.isSubmitting = true;
 
-    this.authService.register(this.newUser).subscribe({
+    this.authService.register(this.newUser).pipe(
+      finalize(() => {
+        this.isSubmitting = false;
+      })
+    ).subscribe({
 
-      next: (response: any) => {
+      next: () => {
 
         this.successMessage =
-          response?.message ||
           'Account created successfully! Verification code sent to your email.';
-
-        this.isSubmitting = false;
 
         this.step = 'verify';
 
@@ -85,8 +87,6 @@ export class SignUp {
         this.errorMessage =
           err.error ||
           'Something went wrong. Please try again.';
-
-        this.isSubmitting = false;
 
         // The account and its verification code are persisted before Brevo is
         // called. Keep the user on the verification step so they can resend.
