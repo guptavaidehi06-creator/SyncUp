@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 
 import { Router } from '@angular/router';
 
@@ -27,6 +27,9 @@ export class SignUp {
   step: 'form' | 'verify' = 'form';
 
   errorMessage: string = '';
+  successMessage: string = '';
+  isSubmitting = false;
+  isVerifying = false;
 
   newUser = {
 
@@ -49,13 +52,29 @@ export class SignUp {
     private router: Router
   ) { }
 
-  register(): void {
+  register(signUpForm: NgForm): void {
+    if (signUpForm.invalid) {
+      signUpForm.control.markAllAsTouched();
+      return;
+    }
+
+    if (this.isSubmitting) {
+      return;
+    }
 
     this.errorMessage = '';
+    this.successMessage = '';
+    this.isSubmitting = true;
 
     this.authService.register(this.newUser).subscribe({
 
-      next: () => {
+      next: (response: any) => {
+
+        this.successMessage =
+          response?.message ||
+          'Account created successfully! Verification code sent to your email.';
+
+        this.isSubmitting = false;
 
         this.step = 'verify';
 
@@ -66,6 +85,8 @@ export class SignUp {
         this.errorMessage =
           err.error ||
           'Something went wrong. Please try again.';
+
+        this.isSubmitting = false;
 
         // The account and its verification code are persisted before Brevo is
         // called. Keep the user on the verification step so they can resend.
@@ -79,9 +100,18 @@ export class SignUp {
 
   }
 
-  verify(): void {
+  verify(verifyForm: NgForm): void {
+    if (verifyForm.invalid) {
+      verifyForm.control.markAllAsTouched();
+      return;
+    }
+
+    if (this.isVerifying) {
+      return;
+    }
 
     this.errorMessage = '';
+    this.isVerifying = true;
 
     this.authService.verify({
       email: this.newUser.email,
@@ -89,6 +119,8 @@ export class SignUp {
     }).subscribe({
 
       next: () => {
+
+        this.isVerifying = false;
 
         this.router.navigate(['/']);
 
@@ -99,6 +131,8 @@ export class SignUp {
         this.errorMessage =
           err.error ||
           'Invalid code. Please try again.';
+
+        this.isVerifying = false;
 
       }
 

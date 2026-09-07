@@ -2,7 +2,6 @@
 
   <div class="auth-card">
 
-```
 <!-- BRAND -->
 
 <div class="auth-brand">
@@ -30,6 +29,12 @@
 
 </div>
 
+<div *ngIf="successMessage" class="success-message">
+
+  {{ successMessage }}
+
+</div>
+
 
 <!-- ================= SIGN UP FORM ================= -->
 
@@ -37,7 +42,7 @@
 
   <form
     #signUpForm="ngForm"
-    (ngSubmit)="register()">
+    (ngSubmit)="register(signUpForm)">
 
 
     <!-- NAME -->
@@ -91,8 +96,7 @@
         #email="ngModel"
         required
         email
-        pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$"
-        placeholder="you@gmail.com">
+        placeholder="you@example.com">
 
       <div
         *ngIf="email.invalid && email.touched"
@@ -104,11 +108,10 @@
 
         <span
           *ngIf="
-            email.errors?.['email'] ||
-            email.errors?.['pattern']
+            email.errors?.['email']
           ">
 
-          Enter a valid Gmail address.
+          Enter a valid email address.
 
         </span>
 
@@ -162,9 +165,9 @@
     <button
       type="submit"
       class="primary-button"
-      [disabled]="signUpForm.invalid">
+      [disabled]="isSubmitting">
 
-      Create account
+      {{ isSubmitting ? 'Creating account...' : 'Create account' }}
 
     </button>
 
@@ -194,7 +197,7 @@
 
   <form
     #verifyForm="ngForm"
-    (ngSubmit)="verify()">
+    (ngSubmit)="verify(verifyForm)">
 
 
     <div class="form-group">
@@ -220,9 +223,9 @@
     <button
       type="submit"
       class="primary-button"
-      [disabled]="verifyForm.invalid">
+      [disabled]="isVerifying">
 
-      Verify account
+      {{ isVerifying ? 'Verifying...' : 'Verify account' }}
 
     </button>
 

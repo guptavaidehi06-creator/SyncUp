@@ -100,8 +100,10 @@ export class Dashboard implements OnInit {
   isSavingMeeting = false;
 
   createdMeetingTitle: string | null = null;
+  participantSuccessMessage: string | null = null;
 
   private meetingSuccessTimer?: ReturnType<typeof setTimeout>;
+  private participantSuccessTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
     private router: Router,
@@ -991,9 +993,7 @@ export class Dashboard implements OnInit {
                 this.loadParticipants();
                 this.loadNotifications();
 
-                alert(
-                  'Participants added successfully!'
-                );
+                this.showParticipantSuccess();
               }
             },
 
@@ -1004,8 +1004,8 @@ export class Dashboard implements OnInit {
                 err
               );
 
-              alert(
-                'Error adding participant.'
+              console.error(
+                err?.error || 'Unable to add participant.'
               );
             }
 
@@ -1328,6 +1328,20 @@ export class Dashboard implements OnInit {
         }
 
       });
+  }
+
+  private showParticipantSuccess(): void {
+
+    this.participantSuccessMessage =
+      'Participants added successfully! 🎉';
+
+    if (this.participantSuccessTimer) {
+      clearTimeout(this.participantSuccessTimer);
+    }
+
+    this.participantSuccessTimer = setTimeout(() => {
+      this.participantSuccessMessage = null;
+    }, 3500);
   }
 
   markNotificationRead(notification: Notification): void {

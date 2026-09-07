@@ -473,8 +473,11 @@
 
 @media (max-width: 600px) {
   .page-header {
-    flex-direction: column;
-    gap: 18px;
+    align-items: flex-start;
+  }
+
+  .notification-wrapper {
+    margin-left: auto;
   }
 
   .stats-grid {

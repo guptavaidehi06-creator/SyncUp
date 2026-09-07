@@ -687,6 +687,10 @@
     Meeting '{{ createdMeetingTitle }}' is created successfully! 🎉
   </div>
 
+  <div class="meeting-success-toast" *ngIf="participantSuccessMessage" role="status">
+    {{ participantSuccessMessage }}
+  </div>
+
   <!-- LOGOUT MODAL -->
   <div class="logout-overlay" *ngIf="showLogoutConfirmation">
 

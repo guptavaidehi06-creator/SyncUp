@@ -988,8 +988,7 @@ button {
   }
 
   .page-head {
-    flex-direction: column;
-    gap: 18px;
+    align-items: flex-start;
     margin-bottom: 25px;
   }
 
@@ -997,16 +996,14 @@ button {
     font-size: 23px;
   }
 
-  .head-actions,
-  .notification-wrapper,
-  .notification-button {
-    width: 100%;
+  .head-actions {
+    margin-left: auto;
   }
 
   .notification-dropdown {
-    right: auto;
-    left: 0;
-    width: 100%;
+    right: 0;
+    left: auto;
+    width: min(340px, calc(100vw - 30px));
   }
 
   .stats {
