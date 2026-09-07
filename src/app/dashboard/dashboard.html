@@ -61,7 +61,7 @@
 
     <!-- HEADER -->
     <header class="page-head">
-      <div>
+      <div *ngIf="activeView !== 'home' && activeView !== 'meetings'">
         <h1>{{ getPageTitle() }}</h1>
         <p class="page-subtitle">{{ getPageSubtitle() }}</p>
       </div>
@@ -97,7 +97,8 @@
             <div
               class="notification-item"
               [class.read]="notification.isRead"
-              *ngFor="let notification of notifications">
+              *ngFor="let notification of notifications"
+              (click)="markNotificationRead(notification)">
 
               <span
                 class="notification-dot"
@@ -126,6 +127,11 @@
 
     <!-- HOME -->
     <section *ngIf="activeView === 'home'" class="home-view">
+
+      <div class="welcome-message">
+        <h2>Welcome, {{ getCurrentUserName() }}! 👋</h2>
+        <p>Here is your meeting activity and availability status.</p>
+      </div>
 
       <div class="stats">
         <div>
@@ -202,13 +208,11 @@
         </button>
       </div>
 
-      <div class="meeting-list" *ngIf="meetings.length; else emptyMeetings">
+      <div class="meeting-list" *ngIf="getUpcomingMeetings().length; else emptyMeetings">
 
         <article
-          *ngFor="let meeting of getMeetingsForDisplay()"
-          [class.cancelled]="meeting.status === 'Cancelled'"
-          [class.rescheduled]="meeting.status === 'Rescheduled'"
-          [class.past]="isMeetingPast(meeting)">
+          *ngFor="let meeting of getUpcomingMeetings()"
+          [class.rescheduled]="meeting.status === 'Rescheduled'">
 
           <div class="date">
             <b>{{ meeting.meetingDate | date:'dd' }}</b>
@@ -229,7 +233,7 @@
               <button
                 class="quiet"
                 (click)="rescheduleMeeting(meeting)"
-                [disabled]="meeting.status === 'Cancelled' || isMeetingPast(meeting)">
+                [disabled]="isMeetingPast(meeting)">
 
                 Reschedule
 
@@ -238,7 +242,7 @@
               <button
                 class="quiet danger"
                 (click)="cancelMeeting(meeting)"
-                [disabled]="meeting.status === 'Cancelled' || isMeetingPast(meeting)">
+                [disabled]="isMeetingPast(meeting)">
 
                 Cancel
 
@@ -247,7 +251,7 @@
               <button
                 class="quiet"
                 (click)="copyLink(meeting.id!)"
-                [disabled]="meeting.status === 'Cancelled' || isMeetingPast(meeting)">
+                [disabled]="isMeetingPast(meeting)">
 
                 Copy invite link
 
@@ -258,17 +262,9 @@
           </div>
 
           <em
-            [class.status-rescheduled]="meeting.status === 'Rescheduled'"
-            [class.status-cancelled]="meeting.status === 'Cancelled'"
-            [class.status-past]="isMeetingPast(meeting) && meeting.status !== 'Cancelled'">
+            [class.status-rescheduled]="meeting.status === 'Rescheduled'">
 
-            {{
-              meeting.status === 'Cancelled'
-                ? 'Cancelled'
-                : isMeetingPast(meeting)
-                  ? 'Past'
-                  : meeting.status
-            }}
+            {{ meeting.status }}
 
           </em>
 
@@ -276,9 +272,53 @@
 
       </div>
 
+      <div class="section-title meeting-history-title">
+        <div>
+          <h2>Past Meetings / Meeting History</h2>
+          <p>Completed, cancelled and previously scheduled meetings.</p>
+        </div>
+      </div>
+
+      <div class="meeting-list" *ngIf="getPastMeetings().length; else emptyHistory">
+
+        <article
+          *ngFor="let meeting of getPastMeetings()"
+          [class.cancelled]="getMeetingHistoryStatus(meeting) === 'Cancelled'"
+          class="past">
+
+          <div class="date">
+            <b>{{ meeting.meetingDate | date:'dd' }}</b>
+            <small>{{ meeting.meetingDate | date:'MMM' }}</small>
+          </div>
+
+          <div class="meeting-info">
+            <h3>{{ meeting.title }}</h3>
+            <p>
+              {{ meeting.meetingTime || 'Time to be scheduled' }}
+              · {{ meeting.priority }} priority
+            </p>
+          </div>
+
+          <em
+            [class.status-cancelled]="getMeetingHistoryStatus(meeting) === 'Cancelled'"
+            [class.status-past]="getMeetingHistoryStatus(meeting) !== 'Cancelled'">
+            {{ getMeetingHistoryStatus(meeting) }}
+          </em>
+
+        </article>
+
+      </div>
+
+      <ng-template #emptyHistory>
+        <div class="empty">
+          <h3>No meeting history</h3>
+          <p>Completed and cancelled meetings will appear here.</p>
+        </div>
+      </ng-template>
+
       <ng-template #emptyMeetings>
         <div class="empty">
-          <h3>No meetings found</h3>
+          <h3>No upcoming meetings</h3>
           <p>Create a meeting to start scheduling with your workspace.</p>
         </div>
       </ng-template>
@@ -296,7 +336,7 @@
         <p>
           {{
             reschedulingMeeting
-              ? 'Update the meeting date or time.'
+              ? 'Update the meeting details and preferred date.'
               : 'Create your meeting. You can add participants afterwards.'
           }}
         </p>
@@ -316,63 +356,15 @@
         </label>
 
         <label>
-          Scheduling type
+          Preferred date
 
-          <select
-            name="schedulingType"
-            [(ngModel)]="schedulingType"
-            (change)="onSchedulingTypeChange()">
-
-            <option value="fixed">
-              Fixed date and time
-            </option>
-
-            <option value="availability">
-              Find time based on availability
-            </option>
-
-          </select>
+          <input
+            type="date"
+            name="meetingDate"
+            [(ngModel)]="newMeeting.meetingDate"
+            [min]="getTodayDate()"
+            required>
         </label>
-
-        <ng-container *ngIf="schedulingType === 'fixed'">
-
-          <label>
-            Date
-
-            <input
-              type="date"
-              name="meetingDate"
-              [(ngModel)]="newMeeting.meetingDate"
-              [min]="getTodayDate()"
-              required>
-          </label>
-
-          <label>
-            Time
-
-            <input
-              type="time"
-              name="meetingTime"
-              [(ngModel)]="newMeeting.meetingTime"
-              required>
-          </label>
-
-        </ng-container>
-
-        <ng-container *ngIf="schedulingType === 'availability'">
-
-          <label>
-            Preferred date
-
-            <input
-              type="date"
-              name="meetingDate"
-              [(ngModel)]="newMeeting.meetingDate"
-              [min]="getTodayDate()"
-              required>
-          </label>
-
-        </ng-container>
 
         <label>
           Priority
@@ -386,12 +378,13 @@
 
         <button
           type="submit"
-          class="primary">
+          class="primary"
+          [disabled]="isSavingMeeting">
 
           {{
             reschedulingMeeting
-              ? 'Save reschedule'
-              : 'Create meeting'
+              ? (isSavingMeeting ? 'Saving reschedule...' : 'Save reschedule')
+              : (isSavingMeeting ? 'Creating meeting...' : 'Create meeting')
           }}
 
         </button>
@@ -689,6 +682,10 @@
     </section>
 
   </main>
+
+  <div class="meeting-success-toast" *ngIf="createdMeetingTitle" role="status">
+    Meeting '{{ createdMeetingTitle }}' is created successfully! 🎉
+  </div>
 
   <!-- LOGOUT MODAL -->
   <div class="logout-overlay" *ngIf="showLogoutConfirmation">

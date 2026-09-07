@@ -4,7 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../services/auth';
-import { MeetingService, Meeting } from '../services/meeting';
+import {
+  MeetingService,
+  Meeting,
+  CreateMeetingRequest
+} from '../services/meeting';
 import { ParticipantService } from '../services/participant';
 import { AvailabilityService } from '../services/availability';
 import { NotificationService } from '../services/notification';
@@ -79,8 +83,6 @@ export class Dashboard implements OnInit {
 
   bulkIsMandatory = false;
 
-  schedulingType = 'fixed';
-
   reschedulingMeeting: Meeting | null = null;
 
   suggestRequest = {
@@ -92,11 +94,14 @@ export class Dashboard implements OnInit {
   newMeeting = {
     title: '',
     meetingDate: '',
-    meetingTime: '',
     priority: 'Medium'
   };
 
   isSavingMeeting = false;
+
+  createdMeetingTitle: string | null = null;
+
+  private meetingSuccessTimer?: ReturnType<typeof setTimeout>;
 
   constructor(
     private router: Router,
@@ -431,66 +436,78 @@ export class Dashboard implements OnInit {
 
   getUpcomingMeetings(): Meeting[] {
 
-    return this.meetings.filter(
-      meeting =>
-        meeting.status !== 'Cancelled' &&
-        !this.isMeetingPast(meeting)
-    );
+    return this.meetings
+      .filter(meeting => !this.isMeetingPast(meeting))
+      .sort((a, b) =>
+        this.getMeetingTimestamp(a) -
+        this.getMeetingTimestamp(b)
+      );
   }
 
   getCompletedMeetings(): Meeting[] {
 
-    return this.meetings.filter(
-      meeting =>
-        meeting.status !== 'Cancelled' &&
-        this.isMeetingPast(meeting)
-    );
+    return this.getPastMeetings();
   }
 
-  getMeetingsForDisplay(): Meeting[] {
+  getPastMeetings(): Meeting[] {
 
-    return [...this.meetings].sort(
-      (a, b) => {
-
-        const dateA =
-          new Date(
-            `${a.meetingDate}T${a.meetingTime || '00:00'}`
-          ).getTime();
-
-        const dateB =
-          new Date(
-            `${b.meetingDate}T${b.meetingTime || '00:00'}`
-          ).getTime();
-
-        return dateA - dateB;
-      }
-    );
+    return this.meetings
+      .filter(meeting => this.isMeetingPast(meeting))
+      .sort((a, b) =>
+        this.getMeetingTimestamp(b) -
+        this.getMeetingTimestamp(a)
+      );
   }
 
   getActiveMeetings(): Meeting[] {
 
-    return this.meetings.filter(
-      meeting =>
-        meeting.status !== 'Cancelled' &&
-        !this.isMeetingPast(meeting)
-    );
+    return this.getUpcomingMeetings();
   }
 
   isMeetingPast(meeting: Meeting): boolean {
+
+    const status = meeting.status?.toLowerCase();
+
+    if (status === 'cancelled' || status === 'completed') {
+      return true;
+    }
 
     if (!meeting.meetingDate) {
       return false;
     }
 
-    const time =
-      meeting.meetingTime || '00:00';
+    return this.getMeetingDateTime(meeting) < new Date();
+  }
 
-    const meetingDateTime =
-      new Date(
-        `${meeting.meetingDate}T${time}`
-      );
+  getMeetingHistoryStatus(meeting: Meeting): string {
 
-    return meetingDateTime < new Date();
+    const status = meeting.status?.toLowerCase();
+
+    if (status === 'cancelled') {
+      return 'Cancelled';
+    }
+
+    if (status === 'completed') {
+      return 'Completed';
+    }
+
+    return 'Past';
+  }
+
+  private getMeetingDateTime(meeting: Meeting): Date {
+
+    return new Date(
+      `${meeting.meetingDate}T${meeting.meetingTime || '00:00'}`
+    );
+  }
+
+  private getMeetingTimestamp(meeting: Meeting): number {
+
+    if (!meeting.meetingDate) {
+      return Number.MAX_SAFE_INTEGER;
+    }
+
+    return this.getMeetingDateTime(meeting).getTime();
   }
 
   // =========================
@@ -524,16 +541,6 @@ export class Dashboard implements OnInit {
       return;
     }
 
-    if (
-      this.schedulingType === 'fixed' &&
-      !this.newMeeting.meetingTime
-    ) {
-
-      alert('Please select a time.');
-
-      return;
-    }
-
     this.isSavingMeeting = true;
 
     // =========================
@@ -555,10 +562,7 @@ export class Dashboard implements OnInit {
         meetingDate:
           this.newMeeting.meetingDate,
 
-        meetingTime:
-          this.schedulingType === 'fixed'
-            ? this.newMeeting.meetingTime
-            : '',
+        meetingTime: null,
 
         priority:
           this.newMeeting.priority,
@@ -624,9 +628,7 @@ export class Dashboard implements OnInit {
     // CREATE NEW MEETING
     // =========================
 
-    const meeting: Meeting = {
-
-      id: 0,
+    const meeting: CreateMeetingRequest = {
 
       title:
         this.newMeeting.title.trim(),
@@ -634,19 +636,8 @@ export class Dashboard implements OnInit {
       meetingDate:
         this.newMeeting.meetingDate,
 
-      meetingTime:
-        this.schedulingType === 'fixed'
-          ? this.newMeeting.meetingTime
-          : '',
-
       priority:
-        this.newMeeting.priority,
-
-      status:
-        'Upcoming',
-
-      createdBy:
-        this.getCurrentUserId()
+        this.newMeeting.priority
     };
 
     this.meetingService
@@ -654,6 +645,10 @@ export class Dashboard implements OnInit {
       .subscribe({
 
         next: (createdMeeting: Meeting) => {
+
+          this.showMeetingCreatedSuccess(
+            createdMeeting.title || meeting.title
+          );
 
           const alreadyExists =
             this.meetings.some(
@@ -669,12 +664,13 @@ export class Dashboard implements OnInit {
             );
           }
 
+          this.isSavingMeeting = false;
+
           this.resetMeetingForm();
 
           this.activeView = 'meetings';
 
-          this.isSavingMeeting = false;
-
+          this.loadMeetings();
           this.loadNotifications();
         },
 
@@ -687,9 +683,7 @@ export class Dashboard implements OnInit {
 
           this.isSavingMeeting = false;
 
-          alert(
-            'Unable to create meeting.'
-          );
+          alert(this.getMeetingSaveError(err));
         }
 
       });
@@ -705,27 +699,10 @@ export class Dashboard implements OnInit {
 
       title: '',
       meetingDate: '',
-      meetingTime: '',
       priority: 'Medium'
 
     };
 
-    this.schedulingType = 'fixed';
-  }
-
-  // =========================
-  // SCHEDULING TYPE CHANGE
-  // =========================
-
-  onSchedulingTypeChange(): void {
-
-    if (
-      this.schedulingType ===
-      'availability'
-    ) {
-
-      this.newMeeting.meetingTime = '';
-    }
   }
 
   // =========================
@@ -754,19 +731,42 @@ export class Dashboard implements OnInit {
       meetingDate:
         meeting.meetingDate,
 
-      meetingTime:
-        meeting.meetingTime,
-
       priority:
         meeting.priority
     };
 
-    this.schedulingType =
-      meeting.meetingTime
-        ? 'fixed'
-        : 'availability';
-
     this.activeView = 'create';
+  }
+
+  private getMeetingSaveError(err: any): string {
+
+    if (err?.status === 401) {
+      return 'Your session has expired. Please log in again.';
+    }
+
+    if (err?.status === 403) {
+      return 'You do not have permission to create meetings.';
+    }
+
+    const message =
+      typeof err?.error === 'string'
+        ? err.error
+        : err?.error?.message;
+
+    return message || 'Unable to create meeting. Please try again.';
+  }
+
+  private showMeetingCreatedSuccess(title: string): void {
+
+    this.createdMeetingTitle = title;
+
+    if (this.meetingSuccessTimer) {
+      clearTimeout(this.meetingSuccessTimer);
+    }
+
+    this.meetingSuccessTimer = setTimeout(() => {
+      this.createdMeetingTitle = null;
+    }, 3500);
   }
 
   // =========================
@@ -1323,6 +1323,30 @@ export class Dashboard implements OnInit {
 
           console.error(
             'Error marking notifications as read:',
+            err
+          );
+        }
+
+      });
+  }
+
+  markNotificationRead(notification: Notification): void {
+
+    if (notification.isRead) {
+      return;
+    }
+
+    this.notificationService
+      .markAsRead(notification.id)
+      .subscribe({
+
+        next: () => {
+          notification.isRead = true;
+        },
+
+        error: (err) => {
+          console.error(
+            'Error marking notification as read:',
             err
           );
         }
