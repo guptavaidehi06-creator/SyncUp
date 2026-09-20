@@ -11,6 +11,7 @@ import {
 } from '../services/meeting';
 import { ParticipantService } from '../services/participant';
 import { AvailabilityService } from '../services/availability';
+import { SchedulingService } from '../services/scheduling';
 import { NotificationService } from '../services/notification';
 import { UserService } from '../services/user';
 
@@ -86,7 +87,8 @@ export class Dashboard implements OnInit {
   reschedulingMeeting: Meeting | null = null;
 
   suggestRequest = {
-    meetingId: null as number | null
+    meetingId: null as number | null,
+    durationMinutes: 60
   };
 
   suggestResult: any = null;
@@ -111,6 +113,7 @@ export class Dashboard implements OnInit {
     private meetingService: MeetingService,
     private participantService: ParticipantService,
     private availabilityService: AvailabilityService,
+    private schedulingService: SchedulingService,
     private notificationService: NotificationService,
     private userService: UserService
   ) {}
@@ -497,10 +500,12 @@ export class Dashboard implements OnInit {
   }
 
   private getMeetingDateTime(meeting: Meeting): Date {
-
-    return new Date(
-      `${meeting.meetingDate}T${meeting.meetingTime || '00:00'}`
-    );
+    const date = new Date(`${String(meeting.meetingDate).slice(0, 10)}T00:00:00`);
+    if (meeting.meetingTime) {
+      const [hours, minutes] = meeting.meetingTime.split(':').map(Number);
+      date.setHours(hours, minutes, 0, 0);
+    }
+    return date;
   }
 
   private getMeetingTimestamp(meeting: Meeting): number {
@@ -1162,90 +1167,15 @@ export class Dashboard implements OnInit {
       return;
     }
 
-    this.availabilityService
-      .getAvailabilitiesByMeeting(
-        meetingId
-      )
+    this.schedulingService
+      .suggestSlot({
+        meetingId,
+        durationMinutes: this.suggestRequest.durationMinutes
+      })
       .subscribe({
 
         next: (data: any) => {
-
-          const meetingAvailability =
-            data || [];
-
-          if (
-            !meetingAvailability.length
-          ) {
-
-            this.suggestResult = {
-
-              success: false,
-
-              message:
-                'No participant availability has been submitted yet.'
-            };
-
-            return;
-          }
-
-          let latestStart =
-            meetingAvailability[0]
-              .startTime;
-
-          let earliestEnd =
-            meetingAvailability[0]
-              .endTime;
-
-          meetingAvailability.forEach(
-            (item: any) => {
-
-              if (
-                item.startTime >
-                latestStart
-              ) {
-
-                latestStart =
-                  item.startTime;
-              }
-
-              if (
-                item.endTime <
-                earliestEnd
-              ) {
-
-                earliestEnd =
-                  item.endTime;
-              }
-
-            }
-          );
-
-          if (
-            latestStart >=
-            earliestEnd
-          ) {
-
-            this.suggestResult = {
-
-              success: false,
-
-              message:
-                'No common available time was found.'
-            };
-
-            return;
-          }
-
-          this.suggestResult = {
-
-            success: true,
-
-            startTime:
-              latestStart,
-
-            endTime:
-              earliestEnd
-          };
+          this.suggestResult = data;
         },
 
         error: (err) => {
@@ -1260,7 +1190,7 @@ export class Dashboard implements OnInit {
             success: false,
 
             message:
-              'Unable to load participant availability.'
+              err?.error || 'Unable to find a best slot.'
           };
         }
 
@@ -1328,6 +1258,43 @@ export class Dashboard implements OnInit {
         }
 
       });
+  }
+
+  confirmBestSlot(): void {
+    if (!this.suggestResult?.success || !this.suggestRequest.meetingId) {
+      return;
+    }
+
+    this.schedulingService.confirmSlot({
+      meetingId: this.suggestRequest.meetingId,
+      meetingDate: this.suggestResult.meetingDate,
+      startTime: this.suggestResult.suggestedStartTime,
+      endTime: this.suggestResult.suggestedEndTime,
+      durationMinutes: this.suggestResult.durationMinutes
+    }).subscribe({
+      next: (meeting: Meeting) => {
+        const index = this.meetings.findIndex(item => item.id === meeting.id);
+        if (index !== -1) this.meetings[index] = meeting;
+        this.suggestResult = null;
+        this.loadMeetings();
+        this.loadNotifications();
+      },
+      error: (err) => {
+        alert(typeof err?.error === 'string' ? err.error : 'Unable to confirm the best slot.');
+      }
+    });
+  }
+
+  formatDuration(minutes: number): string {
+    if (minutes % 60 === 0) return `${minutes / 60} hour${minutes === 60 ? '' : 's'}`;
+    return `${minutes} minutes`;
+  }
+
+  formatTime(time: string): string {
+    const [hours, minutes] = time.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const displayHour = hours % 12 || 12;
+    return `${displayHour}:${String(minutes).padStart(2, '0')} ${period}`;
   }
 
   private showParticipantSuccess(): void {

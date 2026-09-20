@@ -435,10 +435,9 @@ export class MyMeetings implements OnInit {
       return false;
     }
 
-    const meetingDateTime =
-      new Date(
-        `${meeting.meetingDate}T${meeting.meetingTime || '00:00'}`
-      );
+    const meetingDateTime = new Date(
+      `${String(meeting.meetingDate).slice(0, 10)}T00:00:00`
+    );
 
     if (meeting.meetingTime) {
 
@@ -486,9 +485,12 @@ export class MyMeetings implements OnInit {
       return Number.MAX_SAFE_INTEGER;
     }
 
-    return new Date(
-      `${meeting.meetingDate}T${meeting.meetingTime || '00:00'}`
-    ).getTime();
+    const date = new Date(`${String(meeting.meetingDate).slice(0, 10)}T00:00:00`);
+    if (meeting.meetingTime) {
+      const [hours, minutes] = meeting.meetingTime.split(':').map(Number);
+      date.setHours(hours, minutes, 0, 0);
+    }
+    return date.getTime();
   }
 
   // =========================

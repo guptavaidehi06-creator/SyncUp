@@ -141,6 +141,12 @@
   color: #dc2626;
 }
 
+.time-validation {
+  margin: -8px 0 0;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
 .success-state {
   text-align: center;
   padding: 30px 10px;

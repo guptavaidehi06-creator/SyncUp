@@ -13,4 +13,8 @@ export class SchedulingService {
   suggestSlot(request: any): Observable<any> {
     return this.http.post(this.apiUrl + '/suggest', request);
   }
+
+  confirmSlot(request: any): Observable<any> {
+    return this.http.post(this.apiUrl + '/confirm', request);
+  }
 }

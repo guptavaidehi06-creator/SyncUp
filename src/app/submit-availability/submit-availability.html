@@ -33,6 +33,8 @@
             type="time"
             name="startTime{{i}}"
             [(ngModel)]="window.startTime"
+            (ngModelChange)="onStartTimeChange(window)"
+            step="60"
             required>
         </label>
 
@@ -42,6 +44,8 @@
             type="time"
             name="endTime{{i}}"
             [(ngModel)]="window.endTime"
+            [min]="getMinimumEndTime(window.startTime)"
+            step="60"
             required>
         </label>
 
@@ -55,6 +59,10 @@
 
       </div>
 
+      <p class="time-validation" *ngIf="timeValidationMessage">
+        {{ timeValidationMessage }}
+      </p>
+
       <button
         type="button"
         class="quiet"
@@ -65,7 +73,7 @@
       <button
         type="submit"
         class="primary"
-        [disabled]="availForm.invalid || submitting">
+        [disabled]="availForm.invalid || !hasValidTimeWindows() || submitting">
         {{ submitting ? 'Submitting...' : 'Submit Availability' }}
       </button>
 

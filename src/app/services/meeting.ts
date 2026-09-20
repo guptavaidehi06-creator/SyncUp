@@ -7,6 +7,8 @@ export interface Meeting {
   title: string;
   meetingDate: string;
   meetingTime?: string | null;
+  meetingEndTime?: string | null;
+  durationMinutes?: number | null;
   priority: string;
   status: string;
   createdBy: number;

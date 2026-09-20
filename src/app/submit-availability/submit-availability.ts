@@ -24,6 +24,7 @@ export class SubmitAvailability implements OnInit {
   submitted: boolean = false;
 
   submitting: boolean = false;
+  timeValidationMessage: string | null = null;
 
   timeWindows: { startTime: string; endTime: string }[] = [
     {
@@ -107,6 +108,28 @@ export class SubmitAvailability implements OnInit {
 
   }
 
+  getMinimumEndTime(startTime: string): string {
+    if (!startTime) return '';
+
+    const [hours, minutes] = startTime.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes + 1;
+    if (totalMinutes >= 24 * 60) return '23:59';
+
+    return `${String(Math.floor(totalMinutes / 60)).padStart(2, '0')}:${String(totalMinutes % 60).padStart(2, '0')}`;
+  }
+
+  onStartTimeChange(window: { startTime: string; endTime: string }): void {
+    if (window.endTime && window.endTime <= window.startTime) {
+      window.endTime = '';
+    }
+    this.timeValidationMessage = null;
+  }
+
+  hasValidTimeWindows(): boolean {
+    return this.timeWindows.every(window =>
+      !!window.startTime && !!window.endTime && window.endTime > window.startTime);
+  }
+
 
   /* ================= SUBMIT AVAILABILITY ================= */
 
@@ -115,6 +138,13 @@ export class SubmitAvailability implements OnInit {
     if (!this.currentUser || !this.meeting) {
       return;
     }
+
+    if (!this.hasValidTimeWindows()) {
+      this.timeValidationMessage = 'Each end time must be after its start time.';
+      return;
+    }
+
+    this.timeValidationMessage = null;
 
     this.submitting = true;
 
