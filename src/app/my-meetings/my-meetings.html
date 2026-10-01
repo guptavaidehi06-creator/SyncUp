@@ -65,6 +65,9 @@
       <div class="notification-wrapper">
         <button
           class="notification-btn"
+          type="button"
+          aria-label="Notifications"
+          [attr.aria-expanded]="showNotifications"
           (click)="toggleNotifications()">
 
           🔔

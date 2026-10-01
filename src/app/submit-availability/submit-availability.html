@@ -2,7 +2,12 @@
 
   <header class="avail-header">
     <div class="notification-wrapper">
-      <button class="notification-btn" type="button" (click)="toggleNotifications()" aria-label="Notifications">
+      <button
+        class="notification-btn"
+        type="button"
+        aria-label="Notifications"
+        [attr.aria-expanded]="showNotifications"
+        (click)="toggleNotifications()">
         🔔
         <span class="notification-dot" *ngIf="unreadNotificationCount > 0"></span>
       </button>
