@@ -451,34 +451,6 @@ button {
   text-align: center;
 }
 
-.stats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-  margin-bottom: 36px;
-}
-
-.stats > div,
-.stats > button {
-  background: white;
-  border: 1px solid #e7e9ef;
-  border-radius: 12px;
-  padding: 22px;
-  text-align: left;
-}
-
-.stats b {
-  display: block;
-  font-size: 28px;
-  color: #242936;
-  margin-bottom: 8px;
-}
-
-.stats span {
-  color: #7b8290;
-  font-size: 13px;
-}
-
 .section-title {
   display: flex;
   align-items: center;
@@ -830,8 +802,6 @@ button {
   background: #fffbeb !important;
 }
 
-/* ================= BEST SLOT ================= */
-
 .slot-result {
   margin-top: 4px;
   padding: 22px;
@@ -864,9 +834,6 @@ button {
   font-size: 22px;
   font-weight: 700;
 }
-
-
-/* ================= EMPTY STATE ================= */
 
 .empty {
   background: white;
@@ -1001,10 +968,6 @@ button {
     top: 72px;
     max-height: calc(100vh - 88px);
     width: min(340px, calc(100vw - 30px));
-  }
-
-  .stats {
-    gap: 12px;
   }
 
   .meeting-list article {

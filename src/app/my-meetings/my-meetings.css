@@ -555,6 +555,13 @@
     width: min(340px, calc(100vw - 40px));
   }
 
+  .notification-panel {
+    right: 20px;
+    top: 76px;
+    max-height: calc(100vh - 92px);
+    width: min(340px, calc(100vw - 40px));
+  }
+
   .sidebar-collapsed .main-content {
     margin-left: 76px;
   }

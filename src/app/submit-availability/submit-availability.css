@@ -48,17 +48,18 @@
 }
 
 .notification-panel {
-  position: absolute;
-  right: 0;
-  top: 50px;
+  position: fixed;
+  right: 45px;
+  top: 84px;
   width: min(340px, calc(100vw - 40px));
-  max-height: 430px;
+  max-height: calc(100vh - 100px);
+  overflow-x: hidden;
   overflow-y: auto;
   background: white;
   border: 1px solid #e6e8ef;
   border-radius: 10px;
   box-shadow: 0 15px 35px rgba(31, 35, 50, 0.12);
-  z-index: 50;
+  z-index: 100;
 }
 
 .notification-header {
@@ -293,6 +294,13 @@
 }
 
 @media (max-width: 600px) {
+  .notification-panel {
+    right: 15px;
+    top: 72px;
+    max-height: calc(100vh - 88px);
+    width: min(340px, calc(100vw - 30px));
+  }
+
   .time-window {
     grid-template-columns: 1fr;
   }
