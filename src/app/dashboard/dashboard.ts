@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { finalize } from 'rxjs';
+import { finalize, timeout } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -101,6 +101,14 @@ export class Dashboard implements OnInit {
   };
 
   isSavingMeeting = false;
+  meetingSaveError: string | null = null;
+  isMeetingSaveOutcomeUnknown = false;
+  isCheckingMeetingStatus = false;
+  private pendingMeetingSave: {
+    title: string;
+    meetingDate: string;
+    existingMeetingIds: Set<number>;
+  } | null = null;
 
   createdMeetingTitle: string | null = null;
   participantSuccessMessage: string | null = null;
@@ -304,6 +312,7 @@ export class Dashboard implements OnInit {
 
       this.loadMeetings();
       this.loadParticipants();
+      this.loadAvailabilities();
       this.loadNotifications();
 
     }
@@ -438,6 +447,23 @@ export class Dashboard implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  getAdminTodayMeetingCount(): number {
+    const today = this.getTodayDate();
+    const userId = this.getCurrentUserId();
+    const participantMeetingIds = new Set(
+      this.participants
+        .filter(participant => Number(participant.userId) === userId)
+        .map(participant => Number(participant.meetingId))
+    );
+
+    return this.meetings.filter(meeting => {
+      const status = meeting.status?.toLowerCase();
+      return String(meeting.meetingDate).slice(0, 10) === today &&
+        status !== 'cancelled' && status !== 'completed' &&
+        (Number(meeting.createdBy) === userId || participantMeetingIds.has(Number(meeting.id)));
+    }).length;
+  }
+
   getTomorrowDate(): string {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -488,6 +514,34 @@ export class Dashboard implements OnInit {
       const status = meeting.status?.trim().toLowerCase();
       return status !== 'scheduled' && status !== 'confirmed';
     });
+  }
+
+  getAdminAvailabilityMeetings(): Meeting[] {
+    const userId = this.getCurrentUserId();
+    const participantMeetingIds = new Set(
+      this.participants
+        .filter(participant => Number(participant.userId) === userId)
+        .map(participant => Number(participant.meetingId))
+    );
+
+    return this.getUpcomingMeetings()
+      .filter(meeting => {
+        const status = meeting.status?.trim().toLowerCase();
+        return meeting.id !== undefined && participantMeetingIds.has(Number(meeting.id)) &&
+          status !== 'scheduled' && status !== 'confirmed';
+      });
+  }
+
+  getPendingAdminAvailabilityMeetings(): Meeting[] {
+    return this.getAdminAvailabilityMeetings()
+      .filter(meeting => !this.hasAdminSubmittedAvailability(Number(meeting.id)));
+  }
+
+  hasAdminSubmittedAvailability(meetingId: number): boolean {
+    const userId = this.getCurrentUserId();
+    return this.availability.some(item =>
+      Number(item.meetingId) === meetingId && Number(item.userId) === userId
+    );
   }
 
   isMeetingPast(meeting: Meeting): boolean {
@@ -552,29 +606,29 @@ export class Dashboard implements OnInit {
       return;
     }
 
+    if (this.isMeetingSaveOutcomeUnknown) {
+      return;
+    }
+
+    this.meetingSaveError = null;
+
     if (!this.currentUser) {
-
-      alert('User not logged in.');
-
+      this.meetingSaveError = 'Your session is unavailable. Please log in again.';
       return;
     }
 
     if (!this.newMeeting.title.trim()) {
-
-      alert('Please enter meeting title.');
-
+      this.meetingSaveError = 'Please enter a meeting title.';
       return;
     }
 
     if (!this.newMeeting.meetingDate) {
-
-      alert('Please select a date.');
-
+      this.meetingSaveError = 'Please select a meeting date.';
       return;
     }
 
     if (this.newMeeting.meetingDate < this.getTomorrowDate()) {
-      alert('Meeting date must be tomorrow or later.');
+      this.meetingSaveError = 'Meeting date must be tomorrow or later.';
       return;
     }
 
@@ -676,14 +730,28 @@ export class Dashboard implements OnInit {
         this.newMeeting.priority
     };
 
+    this.pendingMeetingSave = {
+      title: meeting.title,
+      meetingDate: meeting.meetingDate.slice(0, 10),
+      existingMeetingIds: new Set(
+        this.meetings
+          .map(existingMeeting => Number(existingMeeting.id))
+          .filter(id => Number.isFinite(id))
+      )
+    };
+
     this.meetingService
       .addMeeting(meeting)
+      .pipe(timeout({ first: 30_000 }))
       .pipe(finalize(() => {
         this.isSavingMeeting = false;
       }))
       .subscribe({
 
         next: (createdMeeting: Meeting) => {
+
+          this.pendingMeetingSave = null;
+          this.isMeetingSaveOutcomeUnknown = false;
 
           this.showMeetingCreatedSuccess(
             createdMeeting.title || meeting.title
@@ -718,7 +786,9 @@ export class Dashboard implements OnInit {
             err
           );
 
-          alert(this.getMeetingSaveError(err));
+          this.isMeetingSaveOutcomeUnknown =
+            err?.name === 'TimeoutError' || err?.status === 0 || err?.status >= 500;
+          this.meetingSaveError = this.getMeetingSaveError(err);
         }
 
       });
@@ -775,6 +845,14 @@ export class Dashboard implements OnInit {
 
   private getMeetingSaveError(err: any): string {
 
+    if (err?.name === 'TimeoutError') {
+      return 'The request timed out. The meeting may have been saved; check its status before retrying.';
+    }
+
+    if (err?.status === 0) {
+      return 'The API connection was interrupted. The meeting may have been saved; check its status before retrying.';
+    }
+
     if (err?.status === 401) {
       return 'Your session has expired. Please log in again.';
     }
@@ -788,7 +866,11 @@ export class Dashboard implements OnInit {
         ? err.error
         : err?.error?.message;
 
-    return message || 'Unable to create meeting. Please try again.';
+    if (err?.status >= 500) {
+      return `${message || 'The server could not confirm the save.'} Check the meeting list before retrying.`;
+    }
+
+    return message || 'Unable to create meeting. Please review the error and try again.';
   }
 
   private showMeetingCreatedSuccess(title: string): void {
@@ -802,6 +884,52 @@ export class Dashboard implements OnInit {
     this.meetingSuccessTimer = setTimeout(() => {
       this.createdMeetingTitle = null;
     }, 3500);
+  }
+
+  checkMeetingSaveOutcome(): void {
+    const pendingSave = this.pendingMeetingSave;
+    if (!this.isMeetingSaveOutcomeUnknown || !pendingSave || this.isCheckingMeetingStatus) {
+      return;
+    }
+
+    this.isCheckingMeetingStatus = true;
+    this.meetingService.getMeetings().pipe(
+      timeout({ first: 15_000 }),
+      finalize(() => {
+        this.isCheckingMeetingStatus = false;
+      })
+    ).subscribe({
+      next: meetings => {
+        this.meetings = meetings || [];
+        const savedMeeting = this.meetings.find(meeting =>
+          meeting.id !== undefined &&
+          !pendingSave.existingMeetingIds.has(Number(meeting.id)) &&
+          Number(meeting.createdBy) === this.getCurrentUserId() &&
+          meeting.title.trim().toLowerCase() === pendingSave.title.toLowerCase() &&
+          String(meeting.meetingDate).slice(0, 10) === pendingSave.meetingDate
+        );
+
+        if (!savedMeeting) {
+          this.meetingSaveError = 'No matching meeting was found yet. Check again before retrying to avoid a duplicate.';
+          return;
+        }
+
+        this.pendingMeetingSave = null;
+        this.isMeetingSaveOutcomeUnknown = false;
+        this.meetingSaveError = null;
+        this.showMeetingCreatedSuccess(savedMeeting.title);
+        this.resetMeetingForm();
+        this.activeView = 'meetings';
+        this.loadNotifications();
+      },
+      error: () => {
+        this.meetingSaveError = 'Could not verify whether the meeting was saved. Check again before retrying.';
+      }
+    });
+  }
+
+  goToSubmitAvailability(meetingId: number): void {
+    this.router.navigate(['/submit-availability', meetingId]);
   }
 
   // =========================

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth';
 
@@ -10,6 +10,7 @@ describe('Dashboard', () => {
   let component: Dashboard;
   let fixture: ComponentFixture<Dashboard>;
   let navigateSpy: ReturnType<typeof vi.fn>;
+  let httpMock: HttpTestingController;
 
   beforeEach(async () => {
     navigateSpy = vi.fn();
@@ -25,7 +26,13 @@ describe('Dashboard', () => {
 
     fixture = TestBed.createComponent(Dashboard);
     component = fixture.componentInstance;
+    httpMock = TestBed.inject(HttpTestingController);
     await fixture.whenStable();
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+    vi.useRealTimers();
   });
 
   it('should create', () => {
@@ -56,5 +63,114 @@ describe('Dashboard', () => {
     } finally {
       Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth });
     }
+  });
+
+  it('shows availability only for the current admin participant and counts today meetings', () => {
+    component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
+    const tomorrow = component.getTomorrowDate();
+    const today = component.getTodayDate();
+    component.meetings = [
+      { id: 1, title: 'Pending', meetingDate: tomorrow, status: 'Upcoming', priority: 'Medium', createdBy: 7 },
+      { id: 2, title: 'Submitted', meetingDate: tomorrow, status: 'Rescheduled', priority: 'Medium', createdBy: 2 },
+      { id: 3, title: 'Scheduled', meetingDate: tomorrow, status: 'Scheduled', priority: 'Medium', createdBy: 7 },
+      { id: 4, title: 'Today', meetingDate: today, status: 'Upcoming', priority: 'Medium', createdBy: 7 }
+    ];
+    component.participants = [
+      { meetingId: 1, userId: 7, isMandatory: true },
+      { meetingId: 2, userId: 7, isMandatory: false },
+      { meetingId: 3, userId: 7, isMandatory: true }
+    ];
+    component.availability = [
+      { meetingId: 2, userId: 7, startTime: '09:00', endTime: '10:00' }
+    ];
+
+    expect(component.getAdminAvailabilityMeetings().map(meeting => meeting.id)).toEqual([1, 2]);
+    expect(component.getPendingAdminAvailabilityMeetings().map(meeting => meeting.id)).toEqual([1]);
+    expect(component.hasAdminSubmittedAvailability(2)).toBe(true);
+    expect(component.getAdminTodayMeetingCount()).toBe(1);
+  });
+
+  it('stops loading and prevents a blind retry when meeting creation times out', async () => {
+    vi.useFakeTimers();
+    component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
+    component.newMeeting = {
+      title: 'Planning',
+      meetingDate: component.getTomorrowDate(),
+      priority: 'High'
+    };
+    component.saveMeeting();
+    const request = httpMock.expectOne(request => request.url.endsWith('/api/meetings'));
+
+    await vi.advanceTimersByTimeAsync(30_001);
+
+    expect(request.cancelled).toBe(true);
+    expect(component.isSavingMeeting).toBe(false);
+    expect(component.isMeetingSaveOutcomeUnknown).toBe(true);
+    expect(component.meetingSaveError).toContain('may have been saved');
+
+    component.saveMeeting();
+    httpMock.expectNone(request => request.url.endsWith('/api/meetings'));
+  });
+
+  it('shows success and clears loading only after the API returns the created meeting', () => {
+    vi.useFakeTimers();
+    component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
+    component.newMeeting = {
+      title: 'Planning',
+      meetingDate: component.getTomorrowDate(),
+      priority: 'High'
+    };
+    component.saveMeeting();
+
+    const meeting = {
+      id: 24,
+      title: 'Planning',
+      meetingDate: component.newMeeting.meetingDate,
+      priority: 'High',
+      status: 'Upcoming',
+      createdBy: 7
+    };
+    httpMock.expectOne(request => request.method === 'POST' && request.url.endsWith('/api/meetings'))
+      .flush(meeting);
+
+    expect(component.isSavingMeeting).toBe(false);
+    expect(component.createdMeetingTitle).toBe('Planning');
+    expect(component.activeView).toBe('meetings');
+
+    httpMock.expectOne(request => request.method === 'GET' && request.url.endsWith('/api/meetings'))
+      .flush([meeting]);
+    httpMock.expectOne(request => request.method === 'GET' && request.url.endsWith('/api/notification/user/7'))
+      .flush([]);
+    vi.runOnlyPendingTimers();
+  });
+
+  it('preserves API error details and verifies meeting status before retrying', () => {
+    component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
+    component.newMeeting = {
+      title: 'Planning',
+      meetingDate: component.getTomorrowDate(),
+      priority: 'High'
+    };
+    component.saveMeeting();
+    httpMock.expectOne(request => request.url.endsWith('/api/meetings')).flush(
+      'Database write failed',
+      { status: 500, statusText: 'Server Error' }
+    );
+
+    expect(component.isSavingMeeting).toBe(false);
+    expect(component.isMeetingSaveOutcomeUnknown).toBe(true);
+    expect(component.meetingSaveError).toContain('Database write failed');
+
+    component.checkMeetingSaveOutcome();
+    const statusRequest = httpMock.expectOne(request =>
+      request.url.endsWith('/api/meetings') && request.method === 'GET'
+    );
+    statusRequest.flush([]);
+
+    expect(component.isMeetingSaveOutcomeUnknown).toBe(true);
+    expect(component.meetingSaveError).toContain('Check again before retrying');
+
+    component.saveMeeting();
+    httpMock.expectNone(request => request.method === 'POST' && request.url.endsWith('/api/meetings'));
   });
 });

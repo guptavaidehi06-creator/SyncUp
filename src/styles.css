@@ -126,7 +126,62 @@ app-dashboard .availability-summary b {
   font-size: 18px;
 }
 
+app-dashboard .home-action-required {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 28px 0;
+  padding: 18px 20px;
+  border: 1px solid #fcdba5;
+  border-radius: 10px;
+  background: #fffbeb;
+}
+
+app-dashboard .home-action-required h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+app-dashboard .home-action-required p {
+  margin: 6px 0 0;
+  color: #737987;
+  font-size: 13px;
+}
+
+app-dashboard .home-availability-status {
+  margin-top: 32px;
+}
+
+app-dashboard .meeting-list em.availability-pending {
+  color: #b45309;
+  background: #fffbeb;
+}
+
+app-dashboard .meeting-save-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+app-dashboard .meeting-save-error p {
+  margin: 0;
+}
+
 @media (max-width: 600px) {
+  app-dashboard .home-action-required,
+  app-dashboard .meeting-save-error {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   app-dashboard .availability-summary {
     grid-template-columns: 1fr;
   }

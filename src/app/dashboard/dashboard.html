@@ -143,6 +143,11 @@
           <b>{{ users.length }}</b>
           <span>People in workspace</span>
         </button>
+
+        <div>
+          <b>{{ getAdminTodayMeetingCount() }}</b>
+          <span>Today's meetings</span>
+        </div>
       </div>
 
       <div class="section-title">
@@ -186,6 +191,55 @@
           <p>Meetings scheduled in your workspace will appear here.</p>
         </div>
       </ng-template>
+
+      <section class="home-action-required" *ngIf="getPendingAdminAvailabilityMeetings().length">
+        <div>
+          <h2>Action Required</h2>
+          <p>You have {{ getPendingAdminAvailabilityMeetings().length }} meeting(s) waiting for your availability.</p>
+        </div>
+        <button class="primary" type="button" (click)="goToSubmitAvailability(getPendingAdminAvailabilityMeetings()[0].id!)">
+          Fill Availability
+        </button>
+      </section>
+
+      <section class="home-availability-status">
+        <div class="section-title">
+          <div>
+            <h2>Availability Status</h2>
+            <p>Your availability for meetings where you are a participant.</p>
+          </div>
+        </div>
+
+        <div class="meeting-list" *ngIf="getAdminAvailabilityMeetings().length; else noAdminAvailability">
+          <article *ngFor="let meeting of getAdminAvailabilityMeetings()">
+            <div class="date">
+              <b>{{ meeting.meetingDate | date:'dd' }}</b>
+              <small>{{ meeting.meetingDate | date:'MMM' }}</small>
+            </div>
+            <div class="meeting-info">
+              <h3>{{ meeting.title }}</h3>
+              <p>{{ meeting.meetingDate | date:'mediumDate' }}</p>
+            </div>
+            <em [class.availability-pending]="!hasAdminSubmittedAvailability(meeting.id!)">
+              {{ hasAdminSubmittedAvailability(meeting.id!) ? 'Availability Submitted' : 'Availability Pending' }}
+            </em>
+            <button
+              *ngIf="!hasAdminSubmittedAvailability(meeting.id!)"
+              class="quiet"
+              type="button"
+              (click)="goToSubmitAvailability(meeting.id!)">
+              Fill Availability
+            </button>
+          </article>
+        </div>
+
+        <ng-template #noAdminAvailability>
+          <div class="empty">
+            <h3>No availability to submit</h3>
+            <p>Meetings where you are a participant will appear here.</p>
+          </div>
+        </ng-template>
+      </section>
 
     </section>
 
@@ -359,15 +413,27 @@
         <button
           type="submit"
           class="primary"
-          [disabled]="isSavingMeeting">
+          [disabled]="isSavingMeeting || isMeetingSaveOutcomeUnknown">
 
           {{
             reschedulingMeeting
               ? (isSavingMeeting ? 'Saving reschedule...' : 'Save reschedule')
-              : (isSavingMeeting ? 'Creating meeting...' : 'Create meeting')
+              : (isSavingMeeting ? 'Creating meeting...' : isMeetingSaveOutcomeUnknown ? 'Check save status' : 'Create meeting')
           }}
 
         </button>
+
+        <div class="meeting-save-error" *ngIf="meetingSaveError" role="alert">
+          <p>{{ meetingSaveError }}</p>
+          <button
+            *ngIf="isMeetingSaveOutcomeUnknown"
+            type="button"
+            class="quiet"
+            [disabled]="isCheckingMeetingStatus"
+            (click)="checkMeetingSaveOutcome()">
+            {{ isCheckingMeetingStatus ? 'Checking My Meetings...' : 'Check My Meetings' }}
+          </button>
+        </div>
 
       </form>
 

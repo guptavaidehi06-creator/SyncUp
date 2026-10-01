@@ -323,16 +323,18 @@ button {
 }
 
 .notification-dropdown {
-  position: absolute;
-  right: 0;
-  top: 52px;
-  width: 340px;
+  position: fixed;
+  right: 45px;
+  top: 84px;
+  width: min(340px, calc(100vw - 30px));
+  max-height: calc(100vh - 100px);
   background: white;
   border: 1px solid #e6e8ef;
   border-radius: 12px;
   box-shadow: 0 15px 35px rgba(31, 35, 50, 0.12);
-  overflow: hidden;
-  z-index: 50;
+  overflow-x: hidden;
+  overflow-y: auto;
+  z-index: 100;
 }
 
 .notification-header {
@@ -969,6 +971,9 @@ button {
   }
 
   .notification-dropdown {
+    right: 20px;
+    top: 76px;
+    max-height: calc(100vh - 92px);
     width: min(340px, calc(100vw - 40px));
   }
 }
@@ -992,8 +997,9 @@ button {
   }
 
   .notification-dropdown {
-    right: 0;
-    left: auto;
+    right: 15px;
+    top: 72px;
+    max-height: calc(100vh - 88px);
     width: min(340px, calc(100vw - 30px));
   }
 
@@ -1023,7 +1029,4 @@ button {
     padding: 18px;
   }
 
-  .slot-time {
-    flex-wrap: wrap;
-  }
 }
