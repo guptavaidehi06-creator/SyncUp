@@ -61,7 +61,7 @@
 
     <!-- HEADER -->
     <header class="page-head">
-      <div *ngIf="activeView !== 'home' && activeView !== 'meetings'">
+      <div>
         <h1>{{ getPageTitle() }}</h1>
         <p class="page-subtitle">{{ getPageSubtitle() }}</p>
       </div>
@@ -129,11 +129,6 @@
 
     <!-- HOME -->
     <section *ngIf="activeView === 'home'" class="home-view">
-
-      <div class="welcome-message">
-        <h2>Welcome, {{ getCurrentUserName() }}! 👋</h2>
-        <p>Here is your meeting activity and availability status.</p>
-      </div>
 
       <div class="stats">
         <div>
@@ -248,12 +243,7 @@
     <!-- MY MEETINGS -->
     <section *ngIf="activeView === 'meetings'">
 
-      <div class="section-title">
-        <div>
-          <h2>My Meetings</h2>
-          <p>View your upcoming, completed and cancelled meetings.</p>
-        </div>
-
+      <div class="section-title meeting-actions">
         <button class="primary" (click)="setView('create')">
           + Create Meeting
         </button>

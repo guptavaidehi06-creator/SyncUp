@@ -1,6 +1,14 @@
 <main class="avail-page">
 
   <header class="avail-header">
+    <div class="avail-heading">
+      <span class="eyebrow" *ngIf="meeting && !submitted">AVAILABILITY</span>
+      <h1>{{ submitted ? 'Thank you' : (meeting?.title || 'Loading meeting details') }}</h1>
+      <p *ngIf="submitted">Your availability has been submitted successfully.</p>
+      <p *ngIf="meeting && !submitted">Hi {{ currentUser?.name }}, let us know when you are free.</p>
+      <p *ngIf="!meeting && !submitted">Please wait while SyncUp loads this meeting.</p>
+    </div>
+
     <div class="notification-wrapper">
       <button
         class="notification-btn"
@@ -33,11 +41,6 @@
   <section class="avail-card" *ngIf="meeting">
 
     <div class="avail-intro">
-      <span class="eyebrow">AVAILABILITY</span>
-      <h1>{{ meeting.title }}</h1>
-      <p *ngIf="!submitted">
-        Hi {{ currentUser?.name }}, let us know when you are free.
-      </p>
       <span class="meeting-chip">
         {{ meeting.meetingDate | date }}
       </span>
@@ -111,15 +114,8 @@
 
     <div *ngIf="submitted" class="success-state">
       <div class="slot-icon">✓</div>
-      <h2>Thank you</h2>
-      <p>Your availability has been submitted successfully.</p>
     </div>
 
-  </section>
-
-  <section class="avail-empty" *ngIf="!meeting">
-    <h2>Loading meeting details</h2>
-    <p>Please wait while SyncUp loads this meeting.</p>
   </section>
 
 </main>

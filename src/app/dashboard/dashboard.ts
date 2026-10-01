@@ -358,7 +358,7 @@ export class Dashboard implements OnInit {
     switch (this.activeView) {
 
       case 'home':
-        return 'Dashboard';
+        return `Welcome, ${this.getCurrentUserName()}! 👋`;
 
       case 'meetings':
         return 'My Meetings';
@@ -387,7 +387,7 @@ export class Dashboard implements OnInit {
     switch (this.activeView) {
 
       case 'home':
-        return 'Manage your meetings and stay organized.';
+        return 'Here is your meeting activity and availability status.';
 
       case 'meetings':
         return 'View and manage all your meetings.';
