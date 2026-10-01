@@ -704,8 +704,8 @@
             </p>
             <p><b>Duration:</b> {{ formatDuration(suggestResult.durationMinutes) }}</p>
 
-            <button class="primary" (click)="confirmBestSlot()">
-              Confirm Best Slot
+            <button class="primary" (click)="confirmBestSlot()" [disabled]="isConfirmingSlot">
+              {{ isConfirmingSlot ? 'Confirming...' : 'Confirm Best Slot' }}
             </button>
 
           </ng-container>
@@ -728,8 +728,12 @@
 
   </main>
 
-  <div class="meeting-success-toast" *ngIf="createdMeetingTitle" role="status">
-    Meeting '{{ createdMeetingTitle }}' is created successfully! 🎉
+  <div
+    class="meeting-success-toast"
+    [class.error]="meetingToastType === 'error'"
+    *ngIf="meetingToastMessage"
+    [attr.role]="meetingToastType === 'error' ? 'alert' : 'status'">
+    {{ meetingToastMessage }}
   </div>
 
   <div class="meeting-success-toast" *ngIf="participantSuccessMessage" role="status">

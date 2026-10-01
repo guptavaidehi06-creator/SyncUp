@@ -134,7 +134,8 @@ describe('Dashboard', () => {
       .flush(meeting);
 
     expect(component.isSavingMeeting).toBe(false);
-    expect(component.createdMeetingTitle).toBe('Planning');
+    expect(component.meetingToastMessage).toBe('Meeting created successfully! 🎉');
+    expect(component.meetingToastType).toBe('success');
     expect(component.activeView).toBe('meetings');
 
     httpMock.expectOne(request => request.method === 'GET' && request.url.endsWith('/api/meetings'))
@@ -160,6 +161,8 @@ describe('Dashboard', () => {
     expect(component.isSavingMeeting).toBe(false);
     expect(component.isMeetingSaveOutcomeUnknown).toBe(true);
     expect(component.meetingSaveError).toContain('Database write failed');
+    expect(component.meetingToastMessage).toContain('Database write failed');
+    expect(component.meetingToastType).toBe('error');
 
     component.checkMeetingSaveOutcome();
     const statusRequest = httpMock.expectOne(request =>
@@ -172,5 +175,71 @@ describe('Dashboard', () => {
 
     component.saveMeeting();
     httpMock.expectNone(request => request.method === 'POST' && request.url.endsWith('/api/meetings'));
+  });
+
+  it('guards duplicate confirmation, updates the meeting, and shows success after the API responds', () => {
+    component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
+    component.meetings = [
+      { id: 24, title: 'Planning', meetingDate: component.getTomorrowDate(), priority: 'High', status: 'Upcoming', createdBy: 7 }
+    ];
+    component.suggestRequest.meetingId = 24;
+    component.suggestResult = {
+      success: true,
+      meetingDate: component.getTomorrowDate(),
+      suggestedStartTime: '09:00:00',
+      suggestedEndTime: '10:00:00',
+      durationMinutes: 60
+    };
+
+    component.confirmBestSlot();
+    expect(component.isConfirmingSlot).toBe(true);
+    component.confirmBestSlot();
+
+    const confirmRequest = httpMock.expectOne(request => request.url.endsWith('/api/scheduling/confirm'));
+    expect(confirmRequest.request.method).toBe('POST');
+    confirmRequest.flush({
+      ...component.meetings[0],
+      meetingTime: '09:00:00',
+      meetingEndTime: '10:00:00',
+      durationMinutes: 60,
+      status: 'Scheduled'
+    });
+
+    expect(component.isConfirmingSlot).toBe(false);
+    expect(component.meetings[0].status).toBe('Scheduled');
+    expect(component.meetingToastMessage).toBe('Meeting confirmed successfully! 🎉');
+    expect(component.meetingToastType).toBe('success');
+    expect(component.suggestResult).toBeNull();
+
+    httpMock.expectOne(request => request.method === 'GET' && request.url.endsWith('/api/meetings'))
+      .flush(component.meetings);
+    httpMock.expectOne(request => request.method === 'GET' && request.url.endsWith('/api/notification/user/7'))
+      .flush([]);
+  });
+
+  it('stops confirmation loading and shows an error toast when the API rejects confirmation', () => {
+    component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
+    component.meetings = [
+      { id: 24, title: 'Planning', meetingDate: component.getTomorrowDate(), priority: 'High', status: 'Upcoming', createdBy: 7 }
+    ];
+    component.participants = [
+      { meetingId: 24, userId: 7, isMandatory: true }
+    ];
+    component.suggestRequest.meetingId = 24;
+    component.suggestResult = {
+      success: true,
+      meetingDate: component.getTomorrowDate(),
+      suggestedStartTime: '09:00:00',
+      suggestedEndTime: '10:00:00',
+      durationMinutes: 60
+    };
+
+    component.confirmBestSlot();
+    httpMock.expectOne(request => request.url.endsWith('/api/scheduling/confirm'))
+      .flush('The selected slot is no longer available.', { status: 409, statusText: 'Conflict' });
+
+    expect(component.isConfirmingSlot).toBe(false);
+    expect(component.meetingToastMessage).toBe('The selected slot is no longer available.');
+    expect(component.meetingToastType).toBe('error');
   });
 });

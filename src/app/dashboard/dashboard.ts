@@ -101,6 +101,7 @@ export class Dashboard implements OnInit {
   };
 
   isSavingMeeting = false;
+  isConfirmingSlot = false;
   meetingSaveError: string | null = null;
   isMeetingSaveOutcomeUnknown = false;
   isCheckingMeetingStatus = false;
@@ -110,7 +111,8 @@ export class Dashboard implements OnInit {
     existingMeetingIds: Set<number>;
   } | null = null;
 
-  createdMeetingTitle: string | null = null;
+  meetingToastMessage: string | null = null;
+  meetingToastType: 'success' | 'error' = 'success';
   participantSuccessMessage: string | null = null;
 
   private meetingSuccessTimer?: ReturnType<typeof setTimeout>;
@@ -753,9 +755,7 @@ export class Dashboard implements OnInit {
           this.pendingMeetingSave = null;
           this.isMeetingSaveOutcomeUnknown = false;
 
-          this.showMeetingCreatedSuccess(
-            createdMeeting.title || meeting.title
-          );
+          this.showMeetingToast('Meeting created successfully! 🎉');
 
           const alreadyExists =
             this.meetings.some(
@@ -789,6 +789,7 @@ export class Dashboard implements OnInit {
           this.isMeetingSaveOutcomeUnknown =
             err?.name === 'TimeoutError' || err?.status === 0 || err?.status >= 500;
           this.meetingSaveError = this.getMeetingSaveError(err);
+          this.showMeetingToast(this.meetingSaveError, 'error');
         }
 
       });
@@ -873,16 +874,20 @@ export class Dashboard implements OnInit {
     return message || 'Unable to create meeting. Please review the error and try again.';
   }
 
-  private showMeetingCreatedSuccess(title: string): void {
+  private showMeetingToast(
+    message: string,
+    type: 'success' | 'error' = 'success'
+  ): void {
 
-    this.createdMeetingTitle = title;
+    this.meetingToastMessage = message;
+    this.meetingToastType = type;
 
     if (this.meetingSuccessTimer) {
       clearTimeout(this.meetingSuccessTimer);
     }
 
     this.meetingSuccessTimer = setTimeout(() => {
-      this.createdMeetingTitle = null;
+      this.meetingToastMessage = null;
     }, 3500);
   }
 
@@ -911,19 +916,21 @@ export class Dashboard implements OnInit {
 
         if (!savedMeeting) {
           this.meetingSaveError = 'No matching meeting was found yet. Check again before retrying to avoid a duplicate.';
+          this.showMeetingToast(this.meetingSaveError, 'error');
           return;
         }
 
         this.pendingMeetingSave = null;
         this.isMeetingSaveOutcomeUnknown = false;
         this.meetingSaveError = null;
-        this.showMeetingCreatedSuccess(savedMeeting.title);
+        this.showMeetingToast('Meeting created successfully! 🎉');
         this.resetMeetingForm();
         this.activeView = 'meetings';
         this.loadNotifications();
       },
       error: () => {
         this.meetingSaveError = 'Could not verify whether the meeting was saved. Check again before retrying.';
+        this.showMeetingToast(this.meetingSaveError, 'error');
       }
     });
   }
@@ -1437,7 +1444,7 @@ export class Dashboard implements OnInit {
   }
 
   confirmBestSlot(): void {
-    if (!this.suggestResult?.success || !this.suggestRequest.meetingId) {
+    if (this.isConfirmingSlot || !this.suggestResult?.success || !this.suggestRequest.meetingId) {
       return;
     }
 
@@ -1446,23 +1453,33 @@ export class Dashboard implements OnInit {
       return;
     }
 
+    this.isConfirmingSlot = true;
+
     this.schedulingService.confirmSlot({
       meetingId: this.suggestRequest.meetingId,
       meetingDate: this.suggestResult.meetingDate,
       startTime: this.suggestResult.suggestedStartTime,
       endTime: this.suggestResult.suggestedEndTime,
       durationMinutes: this.suggestResult.durationMinutes
-    }).subscribe({
+    }).pipe(
+      finalize(() => {
+        this.isConfirmingSlot = false;
+      })
+    ).subscribe({
       next: (meeting: Meeting) => {
         const index = this.meetings.findIndex(item => item.id === meeting.id);
         if (index !== -1) this.meetings[index] = meeting;
+        this.showMeetingToast('Meeting confirmed successfully! 🎉');
         this.suggestResult = null;
         this.suggestRequest.meetingId = null;
         this.loadMeetings();
         this.loadNotifications();
       },
       error: (err) => {
-        alert(typeof err?.error === 'string' ? err.error : 'Unable to confirm the best slot.');
+        const message = typeof err?.error === 'string'
+          ? err.error
+          : err?.error?.message || 'Unable to confirm the best slot.';
+        this.showMeetingToast(message, 'error');
       }
     });
   }
