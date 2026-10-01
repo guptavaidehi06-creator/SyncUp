@@ -8,7 +8,7 @@
         <span *ngIf="sidebarOpen">SyncUp</span>
       </div>
 
-      <button class="sidebar-toggle" (click)="toggleSidebar()">
+      <button class="sidebar-toggle" (click)="toggleSidebar()" [attr.aria-label]="sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'">
         {{ sidebarOpen ? '‹' : '›' }}
       </button>
     </div>
@@ -139,15 +139,10 @@
           <span>Upcoming meetings</span>
         </div>
 
-        <div>
-          <b>{{ getCompletedMeetings().length }}</b>
-          <span>Past meetings</span>
-        </div>
-
-        <div>
+        <button type="button" class="workspace-stat" (click)="setView('participants')">
           <b>{{ users.length }}</b>
           <span>People in workspace</span>
-        </div>
+        </button>
       </div>
 
       <div class="section-title">
@@ -327,21 +322,6 @@
 
     <!-- CREATE MEETING -->
     <section *ngIf="activeView === 'create'" class="narrow">
-
-      <div class="view-intro">
-        <h2>
-          {{ reschedulingMeeting ? 'Reschedule meeting' : 'Meeting details' }}
-        </h2>
-
-        <p>
-          {{
-            reschedulingMeeting
-              ? 'Update the meeting details and preferred date.'
-              : 'Create your meeting. You can add participants afterwards.'
-          }}
-        </p>
-      </div>
-
       <form #meetingForm="ngForm" class="form" (ngSubmit)="saveMeeting()">
 
         <label>
@@ -362,7 +342,7 @@
             type="date"
             name="meetingDate"
             [(ngModel)]="newMeeting.meetingDate"
-            [min]="getTodayDate()"
+            [min]="getTomorrowDate()"
             required>
         </label>
 
@@ -395,13 +375,6 @@
 
     <!-- PARTICIPANTS -->
     <section *ngIf="activeView === 'participants'" class="narrow">
-
-      <div class="view-intro">
-        <span class="eyebrow">WORKSPACE</span>
-        <h2>Manage participants</h2>
-        <p>Select an active meeting and manage the people who will participate.</p>
-      </div>
-
       <div class="form">
 
         <label>
@@ -493,13 +466,6 @@
 
     <!-- AVAILABILITY -->
     <section *ngIf="activeView === 'availability'" class="narrow">
-
-      <div class="view-intro">
-        <span class="eyebrow">AVAILABILITY</span>
-        <h2>Meeting availability</h2>
-        <p>Select an active meeting to see participant availability.</p>
-      </div>
-
       <div class="form">
 
         <label>
@@ -530,6 +496,17 @@
         </div>
 
         <div class="availability" *ngIf="availabilityMeetingId">
+
+          <div class="availability-summary">
+            <div>
+              <span>Pending</span>
+              <b>{{ getPendingAvailabilityCount() }}</b>
+            </div>
+            <div>
+              <span>Availability Submitted</span>
+              <b>{{ getSubmittedAvailabilityCount() }}</b>
+            </div>
+          </div>
 
           <div
             class="availability-card"
@@ -607,13 +584,6 @@
 
     <!-- FIND BEST SLOT -->
     <section *ngIf="activeView === 'slot'" class="narrow">
-
-      <div class="view-intro">
-        <span class="eyebrow">SMART SCHEDULING</span>
-        <h2>Find the best meeting time</h2>
-        <p>Select an active meeting to find a suitable time.</p>
-      </div>
-
       <div class="form">
 
         <label>
@@ -626,7 +596,7 @@
             </option>
 
             <option
-              *ngFor="let meeting of getActiveMeetings()"
+              *ngFor="let meeting of getMeetingsEligibleForBestSlot()"
               [ngValue]="meeting.id">
 
               {{ meeting.title }}

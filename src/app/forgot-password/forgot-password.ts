@@ -26,6 +26,8 @@ export class ForgotPassword {
   code: string = '';
   newPassword: string = '';
   confirmPassword: string = '';
+  showNewPassword = false;
+  showConfirmPassword = false;
 
   constructor(
     private authService: AuthService,

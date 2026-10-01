@@ -136,6 +136,26 @@ border-color 0.2s,
 box-shadow 0.2s;
 }
 
+.password-field {
+position: relative;
+}
+
+.password-field input {
+padding-right: 48px;
+}
+
+.password-visibility {
+position: absolute;
+top: 50%;
+right: 8px;
+transform: translateY(-50%);
+border: 0;
+background: transparent;
+color: #6b7280;
+font-size: 18px;
+cursor: pointer;
+}
+
 .form-group input::placeholder {
 color: #9ca3af;
 }

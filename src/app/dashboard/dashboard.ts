@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { finalize } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -63,7 +64,7 @@ interface Notification {
 })
 export class Dashboard implements OnInit {
 
-  sidebarOpen = true;
+  sidebarOpen = typeof window === 'undefined' || window.innerWidth > 850;
   activeView: View = 'home';
 
   notificationsOpen = false;
@@ -383,16 +384,18 @@ export class Dashboard implements OnInit {
         return 'View and manage all your meetings.';
 
       case 'create':
-        return 'Schedule a new meeting with your workspace.';
+          return this.reschedulingMeeting
+           ? 'Choose a new date for this meeting.'
+           : 'Choose a title, date, and priority for the meeting.';
 
       case 'participants':
-        return 'Manage meeting participants.';
+          return 'Add people to an upcoming meeting.';
 
       case 'availability':
-        return 'Check participant availability.';
+          return 'Review submitted and pending participant availability.';
 
       case 'slot':
-        return 'Find the best time for everyone.';
+          return 'Choose an unconfirmed meeting to find a suitable time.';
 
       default:
         return '';
@@ -435,6 +438,17 @@ export class Dashboard implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  getTomorrowDate(): string {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const year = tomorrow.getFullYear();
+    const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const day = String(tomorrow.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
   // =========================
   // MEETINGS
   // =========================
@@ -469,6 +483,13 @@ export class Dashboard implements OnInit {
     return this.getUpcomingMeetings();
   }
 
+  getMeetingsEligibleForBestSlot(): Meeting[] {
+    return this.getUpcomingMeetings().filter(meeting => {
+      const status = meeting.status?.trim().toLowerCase();
+      return status !== 'scheduled' && status !== 'confirmed';
+    });
+  }
+
   isMeetingPast(meeting: Meeting): boolean {
 
     const status = meeting.status?.toLowerCase();
@@ -479,6 +500,10 @@ export class Dashboard implements OnInit {
 
     if (!meeting.meetingDate) {
       return false;
+    }
+
+    if (!meeting.meetingTime) {
+      return String(meeting.meetingDate).slice(0, 10) < this.getTodayDate();
     }
 
     return this.getMeetingDateTime(meeting) < new Date();
@@ -548,6 +573,11 @@ export class Dashboard implements OnInit {
       return;
     }
 
+    if (this.newMeeting.meetingDate < this.getTomorrowDate()) {
+      alert('Meeting date must be tomorrow or later.');
+      return;
+    }
+
     this.isSavingMeeting = true;
 
     // =========================
@@ -586,6 +616,9 @@ export class Dashboard implements OnInit {
           meetingId,
           updatedMeeting
         )
+        .pipe(finalize(() => {
+          this.isSavingMeeting = false;
+        }))
         .subscribe({
 
           next: (updated: Meeting) => {
@@ -607,8 +640,6 @@ export class Dashboard implements OnInit {
 
             this.activeView = 'meetings';
 
-            this.isSavingMeeting = false;
-
             this.loadNotifications();
           },
 
@@ -618,8 +649,6 @@ export class Dashboard implements OnInit {
               'Error rescheduling meeting:',
               err
             );
-
-            this.isSavingMeeting = false;
 
             alert(
               'Unable to reschedule meeting.'
@@ -649,6 +678,9 @@ export class Dashboard implements OnInit {
 
     this.meetingService
       .addMeeting(meeting)
+      .pipe(finalize(() => {
+        this.isSavingMeeting = false;
+      }))
       .subscribe({
 
         next: (createdMeeting: Meeting) => {
@@ -671,8 +703,6 @@ export class Dashboard implements OnInit {
             );
           }
 
-          this.isSavingMeeting = false;
-
           this.resetMeetingForm();
 
           this.activeView = 'meetings';
@@ -687,8 +717,6 @@ export class Dashboard implements OnInit {
             'Error creating meeting:',
             err
           );
-
-          this.isSavingMeeting = false;
 
           alert(this.getMeetingSaveError(err));
         }
@@ -1115,6 +1143,18 @@ export class Dashboard implements OnInit {
     );
   }
 
+  getPendingAvailabilityCount(): number {
+    return this.getParticipantsForAvailability()
+      .filter(participant => !this.hasSubmittedAvailability(participant.userId))
+      .length;
+  }
+
+  getSubmittedAvailabilityCount(): number {
+    return this.getParticipantsForAvailability()
+      .filter(participant => this.hasSubmittedAvailability(participant.userId))
+      .length;
+  }
+
   // =========================
   // USERS
   // =========================
@@ -1164,6 +1204,14 @@ export class Dashboard implements OnInit {
     if (
       meetingId === null
     ) {
+      return;
+    }
+
+    if (!this.getMeetingsEligibleForBestSlot().some(meeting => meeting.id === meetingId)) {
+      this.suggestResult = {
+        success: false,
+        message: 'Select an eligible, unconfirmed meeting.'
+      };
       return;
     }
 
@@ -1265,6 +1313,11 @@ export class Dashboard implements OnInit {
       return;
     }
 
+    if (!this.getMeetingsEligibleForBestSlot().some(meeting => meeting.id === this.suggestRequest.meetingId)) {
+      this.suggestResult = null;
+      return;
+    }
+
     this.schedulingService.confirmSlot({
       meetingId: this.suggestRequest.meetingId,
       meetingDate: this.suggestResult.meetingDate,
@@ -1276,6 +1329,7 @@ export class Dashboard implements OnInit {
         const index = this.meetings.findIndex(item => item.id === meeting.id);
         if (index !== -1) this.meetings[index] = meeting;
         this.suggestResult = null;
+        this.suggestRequest.meetingId = null;
         this.loadMeetings();
         this.loadNotifications();
       },

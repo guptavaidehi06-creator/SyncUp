@@ -31,6 +31,7 @@ export class SignUp {
   successMessage: string = '';
   isSubmitting = false;
   isVerifying = false;
+  showPassword = false;
 
   newUser = {
 
@@ -141,11 +142,13 @@ export class SignUp {
     this.authService.verify({
       email: this.newUser.email,
       code: this.verificationCode
-    }).subscribe({
+    }).pipe(
+      finalize(() => {
+        this.isVerifying = false;
+      })
+    ).subscribe({
 
       next: () => {
-
-        this.isVerifying = false;
 
         this.router.navigate(['/']);
 
@@ -156,8 +159,6 @@ export class SignUp {
         this.errorMessage =
           err.error ||
           'Invalid code. Please try again.';
-
-        this.isVerifying = false;
 
       }
 
@@ -177,6 +178,9 @@ export class SignUp {
       .resendVerification({
         email: this.newUser.email
       })
+      .pipe(finalize(() => {
+        this.isResending = false;
+      }))
       .subscribe({
 
         next: (message) => {
@@ -186,8 +190,6 @@ export class SignUp {
               ? message
               : 'A new code has been sent.';
 
-          this.isResending = false;
-
         },
 
         error: (err) => {
@@ -195,8 +197,6 @@ export class SignUp {
           this.errorMessage =
             err.error ||
             'Unable to resend the code. Please try again.';
-
-          this.isResending = false;
 
         }
 

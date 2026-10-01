@@ -17,6 +17,9 @@ import { NotificationService } from '../services/notification';
 })
 export class MyMeetings implements OnInit {
 
+  sidebarOpen = typeof window === 'undefined' || window.innerWidth > 850;
+  activePage: 'meetings' | 'availability' = 'meetings';
+
   currentUser: any = null;
 
   myMeetings: any[] = [];
@@ -349,6 +352,25 @@ export class MyMeetings implements OnInit {
 
   }
 
+  get todayMeetings(): any[] {
+    const today = this.getLocalDateString();
+    return this.myMeetings.filter((meeting: any) => {
+      const status = meeting.status?.toLowerCase();
+      return status !== 'cancelled' && status !== 'completed' &&
+        String(meeting.meetingDate).slice(0, 10) === today;
+    }).sort((a: any, b: any) =>
+      this.getMeetingTimestamp(a) - this.getMeetingTimestamp(b)
+    );
+  }
+
+  get futureMeetings(): any[] {
+    return this.upcomingMeetings.filter((meeting: any) => !this.isMeetingToday(meeting));
+  }
+
+  get displayUpcomingMeetings(): any[] {
+    return this.futureMeetings.filter((meeting: any) => !this.needsAvailability(meeting));
+  }
+
   get pendingMeetings(): any[] {
 
     return this.upcomingMeetings.filter(
@@ -435,6 +457,10 @@ export class MyMeetings implements OnInit {
       return false;
     }
 
+    if (!meeting.meetingTime) {
+      return String(meeting.meetingDate).slice(0, 10) < this.getLocalDateString();
+    }
+
     const meetingDateTime = new Date(
       `${String(meeting.meetingDate).slice(0, 10)}T00:00:00`
     );
@@ -462,6 +488,27 @@ export class MyMeetings implements OnInit {
 
     return meetingDateTime < new Date();
 
+  }
+
+  private isMeetingToday(meeting: any): boolean {
+    return String(meeting.meetingDate).slice(0, 10) === this.getLocalDateString();
+  }
+
+  private getLocalDateString(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  toggleSidebar(): void {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
+  setPage(page: 'meetings' | 'availability'): void {
+    this.activePage = page;
+    this.showNotifications = false;
   }
 
   getPastStatus(meeting: any): string {

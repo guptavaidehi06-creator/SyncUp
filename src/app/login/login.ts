@@ -21,6 +21,7 @@ export class Login {
 
   errorMessage: string = '';
   isSubmitting = false;
+  showPassword = false;
 
   constructor(private authService: AuthService, private router: Router) { }
 
@@ -59,14 +60,14 @@ export class Login {
       return typeof err?.error === 'string' &&
         err.error.toLowerCase().includes('verify')
         ? 'Please verify your email before logging in.'
-        : 'Invalid email or password.';
+        : 'Incorrect email or password. Please try again.';
     }
 
     if (err?.status === 0 || err?.status >= 500) {
       return 'Unable to connect to the server. Please try again.';
     }
 
-    return 'Invalid email or password.';
+    return 'Incorrect email or password. Please try again.';
   }
 
 }

@@ -1,5 +1,30 @@
 <main class="avail-page">
 
+  <header class="avail-header">
+    <div class="notification-wrapper">
+      <button class="notification-btn" type="button" (click)="toggleNotifications()" aria-label="Notifications">
+        🔔
+        <span class="notification-dot" *ngIf="unreadNotificationCount > 0"></span>
+      </button>
+
+      <div class="notification-panel" *ngIf="showNotifications">
+        <div class="notification-header">
+          <h3>Notifications</h3>
+          <button type="button" *ngIf="unreadNotificationCount > 0" (click)="markNotificationsAsRead()">
+            Mark all as read
+          </button>
+        </div>
+        <div class="empty-notifications" *ngIf="notifications.length === 0">
+          No notifications yet.
+        </div>
+        <div class="notification-item" *ngFor="let notification of notifications">
+          <p class="notification-title">{{ notification.title }}</p>
+          <p class="notification-message">{{ notification.message }}</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
   <section class="avail-card" *ngIf="meeting">
 
     <div class="avail-intro">

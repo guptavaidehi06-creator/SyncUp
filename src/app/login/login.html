@@ -66,13 +66,23 @@
       Password
     </label>
 
-    <input
-      id="password"
-      type="password"
-      name="password"
-      [(ngModel)]="credentials.password"
-      required
-      placeholder="Enter your password">
+    <div class="password-field">
+      <input
+        id="password"
+        [type]="showPassword ? 'text' : 'password'"
+        name="password"
+        [(ngModel)]="credentials.password"
+        required
+        placeholder="Enter your password">
+      <button
+        type="button"
+        class="password-visibility"
+        [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+        [attr.aria-pressed]="showPassword"
+        (click)="showPassword = !showPassword">
+        <span aria-hidden="true">&#128065;</span>
+      </button>
+    </div>
 
   </div>
 

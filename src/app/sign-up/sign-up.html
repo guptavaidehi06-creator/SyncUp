@@ -61,6 +61,7 @@
         #name="ngModel"
         required
         minlength="3"
+        pattern="^[A-Za-z ]+$"
         placeholder="Enter your full name">
 
       <div
@@ -73,6 +74,10 @@
 
         <span *ngIf="name.errors?.['minlength']">
           Name must be at least 3 characters.
+        </span>
+
+        <span *ngIf="name.errors?.['pattern']">
+          Name can contain only letters and spaces.
         </span>
 
       </div>
@@ -128,16 +133,26 @@
         Password
       </label>
 
-      <input
-        id="password"
-        type="password"
-        name="password"
-        [(ngModel)]="newUser.password"
-        #password="ngModel"
-        required
-        minlength="8"
-        pattern="^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&amp;*()_+\-=\[\]{};':&quot;\\|,.&lt;&gt;\/?]).+$"
-        placeholder="Create a secure password">
+      <div class="password-field">
+        <input
+          id="password"
+          [type]="showPassword ? 'text' : 'password'"
+          name="password"
+          [(ngModel)]="newUser.password"
+          #password="ngModel"
+          required
+          minlength="8"
+          pattern="^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&amp;*()_+\-=[]{};':&quot;\\|,.&lt;&gt;/?]).+$"
+          placeholder="Create a secure password">
+        <button
+          type="button"
+          class="password-visibility"
+          [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+          [attr.aria-pressed]="showPassword"
+          (click)="showPassword = !showPassword">
+          <span aria-hidden="true">&#128065;</span>
+        </button>
+      </div>
 
       <div
         *ngIf="password.invalid && password.touched"

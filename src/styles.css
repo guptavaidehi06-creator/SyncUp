@@ -88,3 +88,46 @@ h1, h2, h3, h4, h5, h6 {
 .text-primary {
   color: var(--accent) !important;
 }
+
+app-dashboard .workspace-stat {
+  font: inherit;
+  cursor: pointer;
+}
+
+app-dashboard .workspace-stat:hover {
+  border-color: #c7d2fe !important;
+  background: #fafbff !important;
+}
+
+app-dashboard .availability-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+app-dashboard .availability-summary > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #e7e9ef;
+  border-radius: 8px;
+  background: #fff;
+}
+
+app-dashboard .availability-summary span {
+  color: #737987;
+  font-size: 12px;
+}
+
+app-dashboard .availability-summary b {
+  color: #252a35;
+  font-size: 18px;
+}
+
+@media (max-width: 600px) {
+  app-dashboard .availability-summary {
+    grid-template-columns: 1fr;
+  }
+}
