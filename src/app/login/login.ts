@@ -22,8 +22,15 @@ export class Login {
   errorMessage: string = '';
   isSubmitting = false;
   showPassword = false;
+  rememberMe = true;
 
-  constructor(private authService: AuthService, private router: Router) { }
+  constructor(private authService: AuthService, private router: Router) {
+    const rememberedEmail = localStorage.getItem('syncupRememberedEmail');
+    if (rememberedEmail) {
+      this.credentials.email = rememberedEmail;
+      this.rememberMe = true;
+    }
+  }
 
   login(loginForm: NgForm): void {
     if (loginForm.invalid) {
@@ -43,6 +50,11 @@ export class Login {
       })
     ).subscribe({
       next: () => {
+        if (this.rememberMe) {
+          localStorage.setItem('syncupRememberedEmail', this.credentials.email);
+        } else {
+          localStorage.removeItem('syncupRememberedEmail');
+        }
         this.router.navigate(['/']);
       },
       error: (err) => {
