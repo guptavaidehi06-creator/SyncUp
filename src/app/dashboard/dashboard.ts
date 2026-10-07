@@ -466,6 +466,28 @@ export class Dashboard implements OnInit {
     }).length;
   }
 
+  getMeetingParticipantCount(meetingId: number | undefined): number {
+    if (meetingId === undefined) return 0;
+    return this.participants.filter(participant =>
+      Number(participant.meetingId) === meetingId
+    ).length;
+  }
+
+  getMeetingDuration(meeting: Meeting): string {
+    if (meeting.durationMinutes) return this.formatDuration(meeting.durationMinutes);
+    if (meeting.meetingTime && meeting.meetingEndTime) {
+      return `${meeting.meetingTime} – ${meeting.meetingEndTime}`;
+    }
+    return 'Duration not set';
+  }
+
+  getBestSlotAvailabilityCount(): number {
+    const meetingId = Number(this.suggestRequest.meetingId);
+    return new Set(this.availability
+      .filter(item => Number(item.meetingId) === meetingId)
+      .map(item => Number(item.userId))).size;
+  }
+
   getTomorrowDate(): string {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);

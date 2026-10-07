@@ -1,132 +1,37 @@
 <main class="auth-page">
+  <section class="auth-shell" aria-label="SyncUp sign in">
+    <aside class="brand-panel">
+      <a class="brand-lockup" routerLink="/login" aria-label="SyncUp home">
+        <span class="brand-mark">S</span><span>SyncUp</span>
+      </a>
+      <div class="brand-copy">
+        <span class="brand-kicker">MAKE TIME FOR WHAT MATTERS</span>
+        <h1>Smarter Meetings.<br><span>Better Connections.</span></h1>
+        <p>Bring people together at the right time. SyncUp makes planning, availability, and collaboration feel effortless.</p>
+      </div>
+      <div class="visual-card" aria-hidden="true">
+        <div class="visual-top"><span>YOUR WEEK, IN SYNC</span><span class="live-dot"></span></div>
+        <div class="visual-date">October <b>2026</b></div>
+        <div class="calendar-grid"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>10</i><i>11</i><i>12</i><i>13</i><i class="selected">14</i><i>15</i><i>16</i><i>17</i><i>18</i></div>
+        <div class="visual-meeting"><span class="meeting-icon">✦</span><div><b>Team catch-up</b><small>Today · 10:30 AM</small></div><div class="avatars"><i>V</i><i>A</i><i>M</i><b>+2</b></div></div>
+        <span class="decor decor-one"></span><span class="decor decor-two"></span>
+      </div>
+      <div class="brand-foot"><span>✦</span> One less thing to coordinate.</div>
+    </aside>
 
-  <div class="auth-card">
-
-<!-- BRAND -->
-
-<div class="auth-brand">
-
-  <div class="brand-mark">
-    S
-  </div>
-
-  <h1>
-    SyncUp
-  </h1>
-
-  <p>
-    Welcome back. Plan your next meeting.
-  </p>
-
-</div>
-
-
-<!-- ERROR MESSAGE -->
-
-<div
-  *ngIf="errorMessage"
-  class="error-message">
-
-  {{ errorMessage }}
-
-</div>
-
-
-<!-- LOGIN FORM -->
-
-<form
-  #loginForm="ngForm"
-  (ngSubmit)="login(loginForm)">
-
-
-  <!-- EMAIL -->
-
-  <div class="form-group">
-
-    <label for="email">
-      Email address
-    </label>
-
-    <input
-      id="email"
-      type="email"
-      name="email"
-      [(ngModel)]="credentials.email"
-      required
-      placeholder="you@example.com">
-
-  </div>
-
-
-  <!-- PASSWORD -->
-
-  <div class="form-group">
-
-    <label for="password">
-      Password
-    </label>
-
-    <div class="password-field">
-      <input
-        id="password"
-        [type]="showPassword ? 'text' : 'password'"
-        name="password"
-        [(ngModel)]="credentials.password"
-        required
-        placeholder="Enter your password">
-      <button
-        type="button"
-        class="password-visibility"
-        [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
-        [attr.aria-pressed]="showPassword"
-        (click)="showPassword = !showPassword">
-        <span aria-hidden="true">&#128065;</span>
-      </button>
-    </div>
-
-  </div>
-
-
-  <!-- LOGIN BUTTON -->
-
-  <button
-    type="submit"
-    class="primary-button"
-    [disabled]="isSubmitting">
-
-    {{ isSubmitting ? 'Logging in...' : 'Log in' }}
-
-  </button>
-
-</form>
-
-
-<!-- FORGOT PASSWORD -->
-
-<div class="forgot-password">
-
-  <a routerLink="/forgot-password">
-    Forgot password?
-  </a>
-
-</div>
-
-
-<!-- SIGN UP -->
-
-<div class="signup-link">
-
-  <span>
-    Don't have an account?
-  </span>
-
-  <a routerLink="/sign-up">
-    Sign up
-  </a>
-
-</div>
-
-
-  </div>
-
+    <section class="form-panel">
+      <div class="form-wrap">
+        <div class="mobile-brand"><span class="brand-mark">S</span> SyncUp</div>
+        <div class="form-heading"><span class="welcome-icon">✦</span><h2>Welcome Back! 👋</h2><p>Sign in to pick up where your team left off.</p></div>
+        <div *ngIf="errorMessage" class="error-message" role="alert">{{ errorMessage }}</div>
+        <form #loginForm="ngForm" (ngSubmit)="login(loginForm)" novalidate>
+          <div class="form-group"><label for="email">Email Address</label><input id="email" type="email" name="email" [(ngModel)]="credentials.email" #email="ngModel" required email autocomplete="email" placeholder="you@example.com"><small class="validation-error" *ngIf="email.invalid && email.touched">Enter a valid email address.</small></div>
+          <div class="form-group"><div class="label-row"><label for="password">Password</label><a routerLink="/forgot-password">Forgot password?</a></div><div class="password-field"><input id="password" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="credentials.password" #password="ngModel" required autocomplete="current-password" placeholder="Enter your password"><button type="button" class="password-visibility" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'" [attr.aria-pressed]="showPassword" (click)="showPassword = !showPassword">{{ showPassword ? 'Hide' : 'Show' }}</button></div><small class="validation-error" *ngIf="password.invalid && password.touched">Password is required.</small></div>
+          <button type="submit" class="primary-button" [disabled]="isSubmitting || loginForm.invalid">{{ isSubmitting ? 'Signing in…' : 'Sign in' }}<span aria-hidden="true">→</span></button>
+        </form>
+        <div class="signup-prompt"><span>New to SyncUp?</span><a routerLink="/sign-up">Create an account</a></div>
+        <p class="form-foot">By continuing, you agree to make meetings a little easier.</p>
+      </div>
+    </section>
+  </section>
 </main>

@@ -24,6 +24,8 @@ export class MyMeetings implements OnInit {
 
   myMeetings: any[] = [];
 
+  private meetingParticipantCounts = new Map<number, number>();
+
   submittedMeetingIds: Set<number> = new Set();
 
   notifications: any[] = [];
@@ -65,6 +67,17 @@ export class MyMeetings implements OnInit {
       .subscribe({
 
         next: (participants: any[]) => {
+
+          this.meetingParticipantCounts.clear();
+          (participants || []).forEach((participant: any) => {
+            const meetingId = Number(participant.meetingId);
+            if (Number.isFinite(meetingId)) {
+              this.meetingParticipantCounts.set(
+                meetingId,
+                (this.meetingParticipantCounts.get(meetingId) || 0) + 1
+              );
+            }
+          });
 
           const myParticipantEntries =
             (participants || []).filter(
@@ -524,6 +537,22 @@ export class MyMeetings implements OnInit {
     }
 
     return 'Past';
+  }
+
+  getParticipantCount(meetingId: number): number {
+    return this.meetingParticipantCounts.get(Number(meetingId)) || 0;
+  }
+
+  getMeetingDuration(meeting: any): string {
+    if (meeting.durationMinutes) {
+      const hours = Math.floor(meeting.durationMinutes / 60);
+      const minutes = meeting.durationMinutes % 60;
+      return hours && minutes ? `${hours} hr ${minutes} min` : hours ? `${hours} hr` : `${minutes} min`;
+    }
+    if (meeting.meetingTime && meeting.meetingEndTime) {
+      return `${meeting.meetingTime} – ${meeting.meetingEndTime}`;
+    }
+    return 'Duration not set';
   }
 
   private getMeetingTimestamp(meeting: any): number {

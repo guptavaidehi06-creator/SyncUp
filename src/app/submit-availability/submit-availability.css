@@ -329,3 +329,4 @@
     padding: 18px;
   }
 }
+.go-back{flex:none;padding:10px 14px;border:1px solid #e3e4f0;border-radius:10px;background:#fff;color:#5144b8;font-size:13px;font-weight:700;cursor:pointer;transition:background .18s,border-color .18s}.go-back:hover{background:#f5f3ff;border-color:#cfc8ff}

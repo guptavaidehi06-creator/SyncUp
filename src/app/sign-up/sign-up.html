@@ -1,281 +1,31 @@
 <main class="auth-page">
-
-  <div class="auth-card">
-
-<!-- BRAND -->
-
-<div class="auth-brand">
-
-  <div class="brand-mark">S</div>
-
-  <h1>SyncUp</h1>
-
-  <p *ngIf="step === 'form'">
-    Create your account and start scheduling smarter.
-  </p>
-
-  <p *ngIf="step === 'verify'">
-    Verify your email to complete your account.
-  </p>
-
-</div>
-
-
-<!-- ERROR MESSAGE -->
-
-<div *ngIf="errorMessage" class="error-message">
-
-  {{ errorMessage }}
-
-</div>
-
-<div *ngIf="successMessage" class="success-message">
-
-  {{ successMessage }}
-
-</div>
-
-
-<!-- ================= SIGN UP FORM ================= -->
-
-<div *ngIf="step === 'form'">
-
-  <form
-    #signUpForm="ngForm"
-    (ngSubmit)="register(signUpForm)">
-
-
-    <!-- NAME -->
-
-    <div class="form-group">
-
-      <label for="name">
-        Full name
-      </label>
-
-      <input
-        id="name"
-        type="text"
-        name="name"
-        [(ngModel)]="newUser.name"
-        #name="ngModel"
-        required
-        minlength="3"
-        pattern="^[A-Za-z ]+$"
-        placeholder="Enter your full name">
-
-      <div
-        *ngIf="name.invalid && name.touched"
-        class="validation-error">
-
-        <span *ngIf="name.errors?.['required']">
-          Name is required.
-        </span>
-
-        <span *ngIf="name.errors?.['minlength']">
-          Name must be at least 3 characters.
-        </span>
-
-        <span *ngIf="name.errors?.['pattern']">
-          Name can contain only letters and spaces.
-        </span>
-
+  <section class="auth-shell" aria-label="Create a SyncUp account">
+    <aside class="brand-panel">
+      <a class="brand-lockup" href="/login" aria-label="SyncUp home"><span class="brand-mark">S</span><span>SyncUp</span></a>
+      <div class="brand-copy"><span class="brand-kicker">GOOD MEETINGS START HERE</span><h1>Make plans.<br><span>Make progress.</span></h1><p>Get your team on the same page with thoughtful scheduling that gives everyone time to do their best work.</p></div>
+      <div class="visual-card signup-visual" aria-hidden="true"><div class="visual-top"><span>AVAILABILITY MATCHED</span><span class="live-dot"></span></div><div class="signup-quote">“The right people,<br>at the right time.”</div><div class="signup-people"><span>V</span><span>A</span><span>M</span><span>J</span><b>All in sync</b></div><div class="signup-progress"><i></i></div></div>
+      <div class="brand-foot"><span>✦</span> Less back-and-forth. More getting together.</div>
+    </aside>
+    <section class="form-panel"><div class="form-wrap">
+      <div class="mobile-brand"><span class="brand-mark">S</span> SyncUp</div>
+      <div class="form-heading"><span class="welcome-icon">✦</span><h2>{{ step === 'form' ? 'Create your account' : 'Verify your email' }}</h2><p>{{ step === 'form' ? 'A better way to bring your team together.' : 'One quick step and you’ll be ready to sync up.' }}</p></div>
+      <div *ngIf="errorMessage" class="error-message" role="alert">{{ errorMessage }}</div>
+      <div *ngIf="successMessage" class="success-message" role="status">{{ successMessage }}</div>
+      <div *ngIf="step === 'form'">
+        <form #signUpForm="ngForm" (ngSubmit)="register(signUpForm)" novalidate>
+          <div class="form-group"><label for="name">Full name</label><input id="name" type="text" name="name" [(ngModel)]="newUser.name" #name="ngModel" required minlength="3" pattern="^[A-Za-z ]+$" autocomplete="name" placeholder="Enter your full name"><small class="validation-error" *ngIf="name.invalid && name.touched"><span *ngIf="name.errors?.['required']">Name is required.</span><span *ngIf="name.errors?.['minlength']">Name must be at least 3 characters.</span><span *ngIf="name.errors?.['pattern']">Name can contain only letters and spaces.</span></small></div>
+          <div class="form-group"><label for="email">Email Address</label><input id="email" type="email" name="email" [(ngModel)]="newUser.email" #email="ngModel" required email autocomplete="email" placeholder="you@example.com"><small class="validation-error" *ngIf="email.invalid && email.touched">Enter a valid email address.</small></div>
+          <div class="form-group"><label for="password">Password</label><div class="password-field"><input id="password" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="newUser.password" #password="ngModel" required minlength="8" pattern="^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&amp;*()_+\-=[\]{};':&quot;\\|,.&lt;&gt;/?]).+$" autocomplete="new-password" placeholder="Create a secure password"><button type="button" class="password-visibility" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'" [attr.aria-pressed]="showPassword" (click)="showPassword = !showPassword">{{ showPassword ? 'Hide' : 'Show' }}</button></div><small class="validation-error" *ngIf="password.invalid && password.touched"><span *ngIf="password.errors?.['required']">Password is required.</span><span *ngIf="password.errors?.['minlength']">Use at least 8 characters.</span><span *ngIf="password.errors?.['pattern']">Include an uppercase letter, number and special character.</span></small></div>
+          <button type="submit" class="primary-button" [disabled]="isSubmitting || signUpForm.invalid">{{ isSubmitting ? 'Creating account…' : 'Create account' }}<span aria-hidden="true">→</span></button>
+        </form>
+        <div class="signup-prompt"><span>Already have an account?</span><a href="/login">Sign in</a></div>
       </div>
-
-    </div>
-
-
-    <!-- EMAIL -->
-
-    <div class="form-group">
-
-      <label for="email">
-        Email address
-      </label>
-
-      <input
-        id="email"
-        type="email"
-        name="email"
-        [(ngModel)]="newUser.email"
-        #email="ngModel"
-        required
-        email
-        placeholder="you@example.com">
-
-      <div
-        *ngIf="email.invalid && email.touched"
-        class="validation-error">
-
-        <span *ngIf="email.errors?.['required']">
-          Email is required.
-        </span>
-
-        <span
-          *ngIf="
-            email.errors?.['email']
-          ">
-
-          Enter a valid email address.
-
-        </span>
-
+      <div *ngIf="step === 'verify'" class="verify-section">
+        <div class="verify-icon">✓</div><p class="verify-text">We sent a 6-digit verification code to <strong>{{ newUser.email }}</strong></p>
+        <form #verifyForm="ngForm" (ngSubmit)="verify(verifyForm)" novalidate><div class="form-group"><label for="code">Verification code</label><input id="code" type="text" class="verification-input" name="code" [(ngModel)]="verificationCode" #code="ngModel" required minlength="6" maxlength="6" pattern="^[0-9]{6}$" inputmode="numeric" autocomplete="one-time-code" placeholder="123456"><small class="validation-error" *ngIf="code.invalid && code.touched">Enter the 6-digit code from your email.</small></div><button type="submit" class="primary-button" [disabled]="isVerifying || verifyForm.invalid">{{ isVerifying ? 'Verifying…' : 'Verify account' }}<span aria-hidden="true">→</span></button></form>
+        <div class="resend-section"><span>Didn't receive the code?</span><button type="button" class="resend-button" (click)="resendVerification()" [disabled]="isResending">{{ isResending ? 'Sending…' : 'Resend code' }}</button></div><p *ngIf="resendMessage" class="success-message" role="status">{{ resendMessage }}</p>
       </div>
-
-    </div>
-
-
-    <!-- PASSWORD -->
-
-    <div class="form-group">
-
-      <label for="password">
-        Password
-      </label>
-
-      <div class="password-field">
-        <input
-          id="password"
-          [type]="showPassword ? 'text' : 'password'"
-          name="password"
-          [(ngModel)]="newUser.password"
-          #password="ngModel"
-          required
-          minlength="8"
-          pattern="^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&amp;*()_+\-=[]{};':&quot;\\|,.&lt;&gt;/?]).+$"
-          placeholder="Create a secure password">
-        <button
-          type="button"
-          class="password-visibility"
-          [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
-          [attr.aria-pressed]="showPassword"
-          (click)="showPassword = !showPassword">
-          <span aria-hidden="true">&#128065;</span>
-        </button>
-      </div>
-
-      <div
-        *ngIf="password.invalid && password.touched"
-        class="validation-error">
-
-        <span *ngIf="password.errors?.['required']">
-          Password is required.
-        </span>
-
-        <span *ngIf="password.errors?.['minlength']">
-          Password must contain at least 8 characters.
-        </span>
-
-        <span *ngIf="password.errors?.['pattern']">
-          Include an uppercase letter, number and special character.
-        </span>
-
-      </div>
-
-    </div>
-
-
-    <!-- SUBMIT -->
-
-    <button
-      type="submit"
-      class="primary-button"
-      [disabled]="isSubmitting">
-
-      {{ isSubmitting ? 'Creating account...' : 'Create account' }}
-
-    </button>
-
-  </form>
-
-</div>
-
-
-<!-- ================= VERIFY EMAIL ================= -->
-
-<div *ngIf="step === 'verify'" class="verify-section">
-
-  <div class="verify-icon">
-    ✓
-  </div>
-
-  <p class="verify-text">
-
-    We sent a 6-digit verification code to
-
-    <strong>
-      {{ newUser.email }}
-    </strong>
-
-  </p>
-
-
-  <form
-    #verifyForm="ngForm"
-    (ngSubmit)="verify(verifyForm)">
-
-
-    <div class="form-group">
-
-      <label for="code">
-        Verification code
-      </label>
-
-      <input
-        id="code"
-        type="text"
-        class="verification-input"
-        name="code"
-        [(ngModel)]="verificationCode"
-        required
-        minlength="6"
-        maxlength="6"
-        placeholder="123456">
-
-    </div>
-
-
-    <button
-      type="submit"
-      class="primary-button"
-      [disabled]="isVerifying">
-
-      {{ isVerifying ? 'Verifying...' : 'Verify account' }}
-
-    </button>
-
-  </form>
-
-
-  <div class="resend-section">
-
-    <p>
-      Didn't receive the code?
-    </p>
-
-    <button
-      type="button"
-      class="resend-button"
-      (click)="resendVerification()"
-      [disabled]="isResending">
-
-      {{ isResending ? 'Sending...' : 'Resend code' }}
-
-    </button>
-
-  </div>
-
-
-  <p
-    *ngIf="resendMessage"
-    class="success-message">
-
-    {{ resendMessage }}
-
-  </p>
-
-</div>
-
-  </div>
-
+      <p class="form-foot" *ngIf="step === 'verify'">Your account is protected with email verification.</p>
+    </div></section>
+  </section>
 </main>

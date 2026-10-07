@@ -2,10 +2,10 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { Location } from '@angular/common';
 import { AuthService } from '../services/auth';
 import { MeetingService } from '../services/meeting';
 import { AvailabilityService } from '../services/availability';
-import { NotificationService } from '../services/notification';
 
 @Component({
   selector: 'app-submit-availability',
@@ -26,8 +26,6 @@ export class SubmitAvailability implements OnInit {
 
   submitting: boolean = false;
   timeValidationMessage: string | null = null;
-  notifications: any[] = [];
-  showNotifications = false;
 
   timeWindows: { startTime: string; endTime: string }[] = [
     {
@@ -41,7 +39,7 @@ export class SubmitAvailability implements OnInit {
     private authService: AuthService,
     private meetingService: MeetingService,
     private availabilityService: AvailabilityService,
-    private notificationService: NotificationService,
+    private location: Location,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -52,10 +50,6 @@ export class SubmitAvailability implements OnInit {
     );
 
     this.currentUser = this.authService.getUser();
-
-    if (this.currentUser) {
-      this.loadNotifications();
-    }
 
     if (!this.meetingId) {
       console.error('Invalid meeting ID');
@@ -87,32 +81,8 @@ export class SubmitAvailability implements OnInit {
 
   }
 
-  get unreadNotificationCount(): number {
-    return this.notifications.filter(notification => !notification.isRead).length;
-  }
-
-  toggleNotifications(): void {
-    this.showNotifications = !this.showNotifications;
-  }
-
-  loadNotifications(): void {
-    this.notificationService.getNotificationsByUser(this.currentUser.id).subscribe({
-      next: (notifications: any[]) => {
-        this.notifications = notifications || [];
-        this.cdr.detectChanges();
-      },
-      error: (err: any) => console.error('Error loading notifications:', err)
-    });
-  }
-
-  markNotificationsAsRead(): void {
-    this.notificationService.markAllAsRead(this.currentUser.id).subscribe({
-      next: () => {
-        this.notifications.forEach(notification => notification.isRead = true);
-        this.cdr.detectChanges();
-      },
-      error: (err: any) => console.error('Error marking notifications as read:', err)
-    });
+  goBack(): void {
+    this.location.back();
   }
 
 

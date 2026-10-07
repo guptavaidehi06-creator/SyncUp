@@ -172,6 +172,9 @@
 
             <p>
               {{ meeting.meetingTime || 'Time to be scheduled' }}
+              <ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
+              · {{ getMeetingDuration(meeting) }}
+              · {{ getMeetingParticipantCount(meeting.id) }} participants
               · {{ meeting.priority }} priority
             </p>
           </div>
@@ -266,6 +269,9 @@
 
             <p>
               {{ meeting.meetingTime || 'Time to be scheduled' }}
+              <ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
+              · {{ getMeetingDuration(meeting) }}
+              · {{ getMeetingParticipantCount(meeting.id) }} participants
               · {{ meeting.priority }} priority
             </p>
 
@@ -689,9 +695,9 @@
 
           <ng-container *ngIf="suggestResult.success !== false">
 
-            <div class="slot-icon">✓</div>
+            <div class="slot-icon">✦</div>
 
-            <h3>Best Available Slot</h3>
+            <h3>✨ Best Available Slot</h3>
 
             <p>
               SyncUp found a suitable time based on submitted availability.
@@ -703,6 +709,7 @@
               {{ formatTime(suggestResult.suggestedStartTime) }} – {{ formatTime(suggestResult.suggestedEndTime) }}
             </p>
             <p><b>Duration:</b> {{ formatDuration(suggestResult.durationMinutes) }}</p>
+            <p><b>Participant availability:</b> {{ getBestSlotAvailabilityCount() }} participant(s) submitted availability</p>
 
             <button class="primary" (click)="confirmBestSlot()" [disabled]="isConfirmingSlot">
               {{ isConfirmingSlot ? 'Confirming...' : 'Confirm Best Slot' }}

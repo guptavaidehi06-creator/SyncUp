@@ -216,6 +216,9 @@
             {{ meeting.meetingDate | date:'mediumDate' }}
             ·
             {{ meeting.meetingTime || 'Time to be scheduled' }}
+            <ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
+            · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants
+            · {{ meeting.priority }} priority
           </p>
         </div>
 
@@ -245,7 +248,8 @@
           </div>
           <p class="meeting-date">
             {{ meeting.meetingDate | date:'mediumDate' }}
-            · {{ meeting.meetingTime || 'Time to be scheduled' }}
+            · {{ meeting.meetingTime || 'Time to be scheduled' }}<ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
+            · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants · {{ meeting.priority }} priority
           </p>
         </div>
         <button *ngIf="needsAvailability(meeting)" class="primary-btn" (click)="goToSubmitAvailability(meeting.id)">
@@ -304,6 +308,9 @@
             {{ meeting.meetingDate | date:'mediumDate' }}
             ·
             {{ meeting.meetingTime || 'Time to be scheduled' }}
+            <ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
+            · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants
+            · {{ meeting.priority }} priority
           </p>
         </div>
 
@@ -360,6 +367,9 @@
             {{ meeting.meetingDate | date:'mediumDate' }}
             ·
             {{ meeting.meetingTime || 'Time to be scheduled' }}
+            <ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
+            · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants
+            · {{ meeting.priority }} priority
           </p>
         </div>
       </div>
@@ -402,7 +412,8 @@
             </div>
             <p class="meeting-date">
               {{ meeting.meetingDate | date:'mediumDate' }}
-              · {{ meeting.meetingTime || 'Time to be scheduled' }}
+              · {{ meeting.meetingTime || 'Time to be scheduled' }}<ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
+              · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants · {{ meeting.priority }} priority
             </p>
           </div>
           <button *ngIf="needsAvailability(meeting)" class="primary-btn" (click)="goToSubmitAvailability(meeting.id)">
