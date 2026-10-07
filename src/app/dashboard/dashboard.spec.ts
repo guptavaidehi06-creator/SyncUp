@@ -11,10 +11,12 @@ describe('Dashboard', () => {
   let component: Dashboard;
   let fixture: ComponentFixture<Dashboard>;
   let navigateSpy: ReturnType<typeof vi.fn>;
+  let logoutAndRedirectSpy: ReturnType<typeof vi.fn>;
   let httpMock: HttpTestingController;
 
   beforeEach(async () => {
     navigateSpy = vi.fn();
+    logoutAndRedirectSpy = vi.fn();
     await TestBed.configureTestingModule({
       imports: [Dashboard],
       providers: [
@@ -22,7 +24,7 @@ describe('Dashboard', () => {
         { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ view: 'home' })) } },
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: AuthService, useValue: { getUser: () => null } }
+        { provide: AuthService, useValue: { getUser: () => null, logoutAndRedirect: logoutAndRedirectSpy } }
       ]
     }).compileComponents();
 
@@ -89,6 +91,106 @@ describe('Dashboard', () => {
     expect(component.notificationsOpen).toBe(false);
   });
 
+  it('routes every admin sidebar navigation button to its matching view', () => {
+    fixture.detectChanges();
+    const expectedViews: Array<[string, string]> = [
+      ['Home', 'home'],
+      ['My Meetings', 'meetings'],
+      ['Create Meeting', 'create'],
+      ['Participants', 'participants'],
+      ['Availability', 'availability'],
+      ['Find Best Slot', 'slot']
+    ];
+
+    for (const [label, view] of expectedViews) {
+      const button = [...fixture.nativeElement.querySelectorAll('nav button')]
+        .find((candidate: HTMLButtonElement) => candidate.textContent?.includes(label)) as HTMLButtonElement;
+      button.click();
+      fixture.detectChanges();
+      expect(component.activeView).toBe(view);
+      expect(navigateSpy).toHaveBeenLastCalledWith(['/admin', view]);
+    }
+  });
+
+  it('adds a selected participant from the Participants action', () => {
+    fixture.detectChanges();
+    component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
+    component.activeView = 'participants';
+    component.participantMeetingId = 12;
+    component.users = [{ id: 8, name: 'Avery Example', email: 'avery@example.com' }];
+    component.selectedUserIds = new Set([8]);
+    fixture.detectChanges();
+    expect(component.activeView).toBe('participants');
+    expect(component.participantMeetingId).toBe(12);
+
+    component.addSelectedParticipants();
+    const request = httpMock.expectOne(request => request.method === 'POST' && request.url.endsWith('/api/meetingparticipants'));
+    expect(request.request.body).toEqual({ meetingId: 12, userId: 8, isMandatory: false });
+    request.flush({ id: 34, meetingId: 12, userId: 8, isMandatory: false });
+    httpMock.expectOne(request => request.method === 'GET' && request.url.endsWith('/api/notification/user/7')).flush([]);
+    expect(component.isAddingParticipants).toBe(false);
+  });
+
+  it('opens the existing meeting form with selected meeting values for Reschedule', () => {
+    const meeting = {
+      id: 22,
+      title: 'Planning review',
+      meetingDate: component.getTomorrowDate(),
+      priority: 'High',
+      status: 'Scheduled',
+      createdBy: 7
+    };
+
+    component.rescheduleMeeting(meeting);
+
+    expect(component.reschedulingMeeting).toBe(meeting);
+    expect(component.newMeeting).toEqual({
+      title: 'Planning review',
+      meetingDate: meeting.meetingDate,
+      priority: 'High'
+    });
+    expect(component.activeView).toBe('create');
+    expect(navigateSpy).toHaveBeenLastCalledWith(['/admin', 'create']);
+  });
+
+  it('keeps the empty Today section compact and before Upcoming Meetings', () => {
+    component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
+    component.meetings = [];
+    component.participants = [];
+    fixture.detectChanges();
+
+    const headings = [...fixture.nativeElement.querySelectorAll('.home-view h2')]
+      .map((heading: Element) => heading.textContent?.trim());
+    const today = fixture.nativeElement.querySelector('.today-meetings-section');
+
+    expect(headings.indexOf("Today's Meetings")).toBeLessThan(headings.indexOf('Upcoming Meetings'));
+    expect(today.classList.contains('is-empty')).toBe(true);
+    expect(today.textContent).toContain('No meetings today');
+    expect(today.textContent).toContain('Meetings scheduled for today will appear here.');
+  });
+
+  it('cancels logout without clearing the session and uses the shared flow when confirmed', () => {
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.logout') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('.logout-modal') as HTMLElement;
+    expect(dialog.textContent).toContain('Are you sure you want to logout?');
+    expect(dialog.textContent).toContain('Cancel');
+    expect(dialog.textContent).toContain('Logout');
+
+    (dialog.querySelector('.quiet') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.logout-modal')).toBeNull();
+    expect(logoutAndRedirectSpy).not.toHaveBeenCalled();
+
+    (fixture.nativeElement.querySelector('.logout') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.logout-confirm') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(logoutAndRedirectSpy).toHaveBeenCalledOnce();
+  });
+
   it('shows availability only for the current admin participant and counts today meetings', () => {
     component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
     const tomorrow = component.getTomorrowDate();
@@ -112,6 +214,7 @@ describe('Dashboard', () => {
     expect(component.getPendingAdminAvailabilityMeetings().map(meeting => meeting.id)).toEqual([1]);
     expect(component.hasAdminSubmittedAvailability(2)).toBe(true);
     expect(component.getAdminTodayMeetingCount()).toBe(1);
+    expect(component.getAdminTodayMeetings().map(meeting => meeting.id)).toEqual([4]);
   });
 
   it('stops loading and prevents a blind retry when meeting creation times out', async () => {

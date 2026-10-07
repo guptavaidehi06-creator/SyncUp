@@ -152,11 +152,10 @@
         </button>
       </div>
 
-      <section class="today-meetings-section" aria-labelledby="today-meetings-title">
+      <section class="today-meetings-section" [class.is-empty]="getAdminTodayMeetings().length === 0" aria-labelledby="today-meetings-title">
         <div class="section-title today-section-title">
           <div>
             <h2 id="today-meetings-title">Today's Meetings</h2>
-            <p>Meetings happening in your workspace today.</p>
           </div>
         </div>
 
@@ -175,7 +174,7 @@
         </div>
 
         <ng-template #emptyTodayMeetings>
-          <div class="empty today-empty"><h3>No meetings today</h3><p>Meetings scheduled for today will appear here.</p></div>
+          <div class="today-empty-state"><b>No meetings today</b><p>Meetings scheduled for today will appear here.</p></div>
         </ng-template>
       </section>
 
@@ -808,11 +807,11 @@
   <!-- LOGOUT MODAL -->
   <div class="logout-overlay" *ngIf="showLogoutConfirmation">
 
-    <div class="logout-modal">
+    <div class="logout-modal" role="dialog" aria-modal="true" aria-labelledby="admin-logout-title">
 
-      <h2>Log out?</h2>
+      <h2 id="admin-logout-title">Log out?</h2>
 
-      <p>Are you sure you want to log out of SyncUp?</p>
+      <p>Are you sure you want to logout?</p>
 
       <div class="logout-actions">
 
@@ -828,7 +827,7 @@
           class="logout-confirm"
           (click)="confirmLogout()">
 
-          Yes, log out
+          Logout
 
         </button>
 

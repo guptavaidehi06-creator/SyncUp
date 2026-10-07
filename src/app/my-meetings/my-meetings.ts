@@ -668,11 +668,7 @@ export class MyMeetings implements OnInit {
 
   logout(): void {
 
-    this.authService.logout();
-
-    this.router.navigate([
-      '/login'
-    ]);
+    this.authService.logoutAndRedirect(this.router);
 
   }
 

@@ -88,6 +88,38 @@
       </div>
     </div>
 
+    <!-- Today's Meetings -->
+    <section class="meeting-section today-meetings-section" [class.is-empty]="todayMeetings.length === 0" aria-labelledby="participant-today-title">
+      <div class="section-heading">
+        <div><h2 id="participant-today-title">Today's Meetings</h2></div>
+      </div>
+      <div class="today-empty-state" *ngIf="todayMeetings.length === 0">
+        <b>No meetings today</b>
+        <p>Meetings scheduled for today will appear here.</p>
+      </div>
+      <div class="meeting-card" *ngFor="let meeting of todayMeetings">
+        <div class="meeting-details">
+          <div class="meeting-title-row">
+            <h3>{{ meeting.title }}</h3>
+            <span class="status meeting-status"
+              [class.confirmed]="meeting.status?.toLowerCase() === 'confirmed'"
+              [class.cancelled]="meeting.status?.toLowerCase() === 'cancelled'"
+              [class.completed]="meeting.status?.toLowerCase() === 'completed'"
+              [class.scheduled]="meeting.status?.toLowerCase() === 'scheduled' || meeting.status?.toLowerCase() === 'rescheduled'">
+              {{ meeting.status || 'Scheduled' }}
+            </span>
+            <span class="status pending" *ngIf="needsAvailability(meeting)">Pending</span>
+            <span class="status submitted" *ngIf="hasSubmittedAvailability(meeting.id)">Availability Submitted</span>
+          </div>
+          <p class="meeting-date">
+            {{ meeting.meetingDate | date:'mediumDate' }} · {{ meeting.meetingTime || 'Time to be scheduled' }}<ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
+            · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants · <span class="priority-chip">{{ meeting.priority }} priority</span>
+          </p>
+        </div>
+        <button *ngIf="needsAvailability(meeting)" class="primary-btn" (click)="goToSubmitAvailability(meeting.id)">Fill Availability</button>
+      </div>
+    </section>
+
     <!-- Pending Availability -->
     <section
       class="meeting-section"
@@ -142,40 +174,6 @@
           class="primary-btn"
           (click)="goToSubmitAvailability(meeting.id)">
 
-          Fill Availability
-        </button>
-      </div>
-    </section>
-
-    <!-- Today's Meetings -->
-    <section class="meeting-section" *ngIf="todayMeetings.length > 0">
-      <div class="section-heading">
-        <div>
-          <h2>Today</h2>
-          <p>Meetings scheduled for today.</p>
-        </div>
-      </div>
-      <div class="meeting-card" *ngFor="let meeting of todayMeetings">
-        <div class="meeting-details">
-          <div class="meeting-title-row">
-            <h3>{{ meeting.title }}</h3>
-            <span class="status meeting-status"
-              [class.confirmed]="meeting.status?.toLowerCase() === 'confirmed'"
-              [class.cancelled]="meeting.status?.toLowerCase() === 'cancelled'"
-              [class.completed]="meeting.status?.toLowerCase() === 'completed'"
-              [class.scheduled]="meeting.status?.toLowerCase() === 'scheduled' || meeting.status?.toLowerCase() === 'rescheduled'">
-              {{ meeting.status || 'Scheduled' }}
-            </span>
-            <span class="status pending" *ngIf="needsAvailability(meeting)">Pending</span>
-            <span class="status submitted" *ngIf="hasSubmittedAvailability(meeting.id)">Availability Submitted</span>
-          </div>
-          <p class="meeting-date">
-            {{ meeting.meetingDate | date:'mediumDate' }}
-            · {{ meeting.meetingTime || 'Time to be scheduled' }}<ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
-            · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants · <span class="priority-chip">{{ meeting.priority }} priority</span>
-          </p>
-        </div>
-        <button *ngIf="needsAvailability(meeting)" class="primary-btn" (click)="goToSubmitAvailability(meeting.id)">
           Fill Availability
         </button>
       </div>

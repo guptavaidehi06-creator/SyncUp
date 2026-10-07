@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { Router } from '@angular/router';
 import { AuthService } from './auth';
 
 describe('AuthService', () => {
@@ -52,5 +53,17 @@ describe('AuthService', () => {
 
     expect(storedItems.get('token')).toBe('jwt');
     expect(service.getUser()).toEqual({ id: 7, isAdmin: false });
+  });
+
+  it('clears the session and redirects to Login through the shared logout flow', () => {
+    storedItems.set('token', 'jwt');
+    storedItems.set('user', JSON.stringify({ id: 7, isAdmin: true }));
+    const router = { navigate: vi.fn().mockResolvedValue(true) } as unknown as Router;
+
+    service.logoutAndRedirect(router);
+
+    expect(storedItems.has('token')).toBe(false);
+    expect(storedItems.has('user')).toBe(false);
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
   });
 });

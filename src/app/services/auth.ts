@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 
 @Injectable({
@@ -54,6 +55,11 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+  }
+
+  logoutAndRedirect(router: Router): void {
+    this.logout();
+    void router.navigate(['/login']);
   }
 
 

@@ -1676,10 +1676,6 @@ export class Dashboard implements OnInit, OnDestroy {
     this.showLogoutConfirmation =
       false;
 
-    this.authService.logout();
-
-    this.router.navigate(
-      ['/login']
-    );
+    this.authService.logoutAndRedirect(this.router);
   }
 }

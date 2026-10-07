@@ -11,11 +11,11 @@ describe('MyMeetings', () => {
   let component: MyMeetings;
   let fixture: ComponentFixture<MyMeetings>;
   let navigateSpy: ReturnType<typeof vi.fn>;
-  let logoutSpy: ReturnType<typeof vi.fn>;
+  let logoutAndRedirectSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     navigateSpy = vi.fn();
-    logoutSpy = vi.fn();
+    logoutAndRedirectSpy = vi.fn((router: Router) => { void router.navigate(['/login']); });
     await TestBed.configureTestingModule({
       imports: [MyMeetings],
       providers: [
@@ -23,7 +23,10 @@ describe('MyMeetings', () => {
         { provide: ActivatedRoute, useValue: { queryParamMap: of(convertToParamMap({})) } },
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: AuthService, useValue: { getUser: () => null, logout: logoutSpy } }
+        { provide: AuthService, useValue: {
+          getUser: () => null,
+          logoutAndRedirect: logoutAndRedirectSpy
+        } }
       ]
     }).compileComponents();
 
@@ -91,14 +94,49 @@ describe('MyMeetings', () => {
     expect(fixture.nativeElement.querySelector('[role="dialog"]')?.textContent).toContain(
       'Are you sure you want to logout?'
     );
-    expect(logoutSpy).not.toHaveBeenCalled();
+    expect(logoutAndRedirectSpy).not.toHaveBeenCalled();
 
     (fixture.nativeElement.querySelector('.participant-logout-cancel') as HTMLButtonElement).click();
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
-    expect(logoutSpy).not.toHaveBeenCalled();
+    expect(logoutAndRedirectSpy).not.toHaveBeenCalled();
     expect(navigateSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the empty Today section compact and before Upcoming Meetings', () => {
+    component.myMeetings = [];
+    fixture.detectChanges();
+
+    const headings = [...fixture.nativeElement.querySelectorAll('.meeting-section h2')]
+      .map((heading: Element) => heading.textContent?.trim());
+    const today = fixture.nativeElement.querySelector('.today-meetings-section');
+
+    expect(headings.indexOf("Today's Meetings")).toBeLessThan(headings.indexOf('Upcoming Meetings'));
+    expect(today.classList.contains('is-empty')).toBe(true);
+    expect(today.textContent).toContain('No meetings today');
+    expect(today.textContent).toContain('Meetings scheduled for today will appear here.');
+  });
+
+  it('highlights real meetings in Today before the future meeting list', () => {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    vi.spyOn(component as any, 'getLocalDateString').mockReturnValue(today);
+    component.myMeetings = [{ id: 7, title: 'Standup', meetingDate: today, status: 'Scheduled', priority: 'Medium' }];
+    expect(component.todayMeetings.map(meeting => meeting.title)).toEqual(['Standup']);
+  });
+
+  it('opens the meeting-specific Submit Availability route from the pending meeting CTA', () => {
+    fixture.detectChanges();
+    component.myMeetings = [{ id: 42, title: 'Planning', meetingDate: '2099-01-15', status: 'Upcoming', priority: 'High' }];
+    fixture.detectChanges();
+    expect(component.pendingMeetings).toHaveLength(1);
+
+    component.goToSubmitAvailability(42);
+
+    expect(navigateSpy).toHaveBeenLastCalledWith(['/submit-availability', 42], {
+      state: { returnUrl: undefined }
+    });
   });
 
   it('runs the existing logout flow only after logout is confirmed', () => {
@@ -110,7 +148,7 @@ describe('MyMeetings', () => {
     (fixture.nativeElement.querySelector('.participant-logout-confirm') as HTMLButtonElement).click();
     fixture.detectChanges();
 
-    expect(logoutSpy).toHaveBeenCalledOnce();
+    expect(logoutAndRedirectSpy).toHaveBeenCalledOnce();
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 });
