@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, DestroyRef, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, DestroyRef, ElementRef, HostListener, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { finalize, timeout, map, distinctUntilChanged } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
@@ -64,6 +64,8 @@ interface Notification {
   styleUrl: './dashboard.css'
 })
 export class Dashboard implements OnInit, OnDestroy {
+
+  @ViewChild('notificationMenu') notificationMenu?: ElementRef<HTMLElement>;
 
   sidebarOpen = typeof window === 'undefined' || window.innerWidth > 850;
   activeView: View = 'home';
@@ -1493,6 +1495,15 @@ export class Dashboard implements OnInit, OnDestroy {
     ) {
 
       this.loadNotifications();
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  closeNotificationsOnOutsideClick(event: MouseEvent): void {
+    if (!this.notificationsOpen) return;
+    const target = event.target;
+    if (target instanceof Node && !this.notificationMenu?.nativeElement.contains(target)) {
+      this.notificationsOpen = false;
     }
   }
 

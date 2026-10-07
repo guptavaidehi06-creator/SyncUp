@@ -1,143 +1,56 @@
-<div class="user-dashboard" [class.sidebar-collapsed]="!sidebarOpen">
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-top">
-      <div class="logo">
-        <b>S</b>
-        <span *ngIf="sidebarOpen">SyncUp</span>
-      </div>
-      <button
-        class="sidebar-toggle"
-        type="button"
-        (click)="toggleSidebar()"
-        [attr.aria-label]="sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'">
-        {{ sidebarOpen ? '‹' : '›' }}
-      </button>
-    </div>
-
-    <nav class="sidebar-menu">
-      <button class="menu-item" [class.active]="activePage === 'meetings'" [attr.aria-label]="sidebarOpen ? null : 'My Meetings'" [attr.aria-current]="activePage === 'meetings' ? 'page' : null" (click)="setPage('meetings')">
-        <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 10h16M8 14h3m-3 3h3m3-3h2"/></svg>
-        <span *ngIf="sidebarOpen">My Meetings</span>
-      </button>
-      <button class="menu-item" [class.active]="activePage === 'availability'" [attr.aria-label]="sidebarOpen ? null : 'Availability'" [attr.aria-current]="activePage === 'availability' ? 'page' : null" (click)="setPage('availability')">
-        <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
-        <span *ngIf="sidebarOpen">Availability</span>
-      </button>
-    </nav>
-
-    <div class="sidebar-bottom">
-      <div class="user-info" *ngIf="sidebarOpen">
-        <div class="user-avatar">
-          {{ currentUser?.name?.charAt(0) }}
-        </div>
-
-        <div>
-          <p class="user-name">
-            {{ currentUser?.name }}
-          </p>
-
-          <p class="user-role">
-            Participant
-          </p>
+<div class="user-dashboard participant-dashboard">
+  <header class="participant-topbar">
+    <a class="participant-brand" routerLink="/my-meetings" aria-label="SyncUp My Meetings">
+      <b>S</b><span>SyncUp</span>
+    </a>
+    <div class="participant-header-actions">
+      <div class="notification-wrapper" #notificationMenu>
+        <button class="notification-btn" type="button" aria-label="Notifications"
+          [attr.aria-expanded]="showNotifications" aria-controls="participant-notifications"
+          (click)="toggleNotifications()">
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+          <span class="notification-dot" *ngIf="unreadNotificationCount > 0"></span>
+        </button>
+        <div id="participant-notifications" class="notification-panel" *ngIf="showNotifications">
+          <div class="notification-header">
+            <h3>Notifications</h3>
+            <button type="button" *ngIf="unreadNotificationCount > 0" (click)="markNotificationsAsRead()">Mark all as read</button>
+          </div>
+          <div *ngIf="notifications.length === 0" class="empty-notifications">No notifications yet.</div>
+          <div *ngFor="let notification of notifications" class="notification-item"
+            [class.unread]="!notification.isRead" (click)="openNotification(notification)">
+            <div class="notification-icon" aria-hidden="true">
+              <svg *ngIf="notification.type === 'Availability'; else generalNotice" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 10h16"/></svg>
+              <ng-template #generalNotice><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></ng-template>
+            </div>
+            <div class="notification-content">
+              <p class="notification-title">{{ notification.title }}</p>
+              <p class="notification-message">{{ notification.message }}</p>
+            </div>
+          </div>
         </div>
       </div>
-
-      <button
-        class="logout-btn"
-        [attr.aria-label]="sidebarOpen ? null : 'Log out'"
-        (click)="logout()">
-        <span>↪</span>
-        <span *ngIf="sidebarOpen">Logout</span>
-      </button>
+      <div class="participant-profile">
+        <span class="participant-avatar">{{ currentUser?.name?.charAt(0) || 'U' }}</span>
+        <span class="participant-name">{{ currentUser?.name }}</span>
+      </div>
+      <button class="topbar-logout" type="button" (click)="logout()" aria-label="Log out">Log out</button>
     </div>
-  </aside>
+  </header>
 
   <!-- Main Content -->
   <main class="main-content">
     <!-- Header -->
     <div class="page-header">
       <div>
-        <h1>{{ activePage === 'meetings' ? 'My Meetings' : 'Availability' }}</h1>
-        <p>{{ activePage === 'meetings' ? 'Welcome, ' + currentUser?.name + '. Your upcoming schedule and availability actions.' : 'Track pending submissions and review upcoming meeting availability.' }}</p>
+        <h1>My Meetings</h1>
+        <p>Your upcoming schedule and meeting history.</p>
       </div>
 
-      <!-- Notification Bell -->
-      <div class="notification-wrapper">
-        <button
-          class="notification-btn"
-          type="button"
-          aria-label="Notifications"
-          [attr.aria-expanded]="showNotifications"
-          (click)="toggleNotifications()">
-
-          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
-
-          <span
-            class="notification-dot"
-            *ngIf="unreadNotificationCount > 0">
-          </span>
-        </button>
-
-        <!-- Notification Dropdown -->
-        <div
-          class="notification-panel"
-          *ngIf="showNotifications">
-
-          <div class="notification-header">
-            <h3>Notifications</h3>
-
-            <button
-              *ngIf="notifications.length > 0"
-              (click)="markNotificationsAsRead()">
-
-              Mark all as read
-            </button>
-          </div>
-
-          <div
-            *ngIf="notifications.length === 0"
-            class="empty-notifications">
-
-            No notifications yet.
-          </div>
-
-          <div
-            *ngFor="let notification of notifications"
-            class="notification-item"
-            [class.unread]="!notification.isRead"
-            (click)="openNotification(notification)">
-
-            <div class="notification-icon">
-              <span
-                *ngIf="notification.type === 'Availability'">
-
-                <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 10h16"/></svg>
-              </span>
-
-              <span
-                *ngIf="notification.type !== 'Availability'">
-
-                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
-              </span>
-            </div>
-
-            <div class="notification-content">
-              <p class="notification-title">
-                {{ notification.title }}
-              </p>
-
-              <p class="notification-message">
-                {{ notification.message }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Stats -->
-    <div class="stats-grid" *ngIf="activePage === 'meetings'">
+    <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 10h16"/></svg></div>
 
@@ -178,7 +91,7 @@
     <!-- Pending Availability -->
     <section
       class="meeting-section"
-      *ngIf="activePage === 'meetings' && pendingMeetings.length > 0">
+      *ngIf="pendingMeetings.length > 0">
 
       <div class="section-heading">
         <div>
@@ -235,7 +148,7 @@
     </section>
 
     <!-- Today's Meetings -->
-    <section class="meeting-section" *ngIf="activePage === 'meetings' && todayMeetings.length > 0">
+    <section class="meeting-section" *ngIf="todayMeetings.length > 0">
       <div class="section-heading">
         <div>
           <h2>Today</h2>
@@ -269,7 +182,7 @@
     </section>
 
     <!-- Upcoming Meetings -->
-    <section class="meeting-section" *ngIf="activePage === 'meetings'">
+    <section class="meeting-section">
       <div class="section-heading">
         <div>
           <h2>
@@ -352,7 +265,7 @@
     <!-- Past Meetings -->
     <section
       class="meeting-section"
-      *ngIf="activePage === 'meetings' && pastMeetings.length > 0">
+      *ngIf="pastMeetings.length > 0">
 
       <div class="section-heading">
         <div>
@@ -393,52 +306,5 @@
       </div>
     </section>
 
-    <section class="availability-page" *ngIf="activePage === 'availability'">
-      <div class="stats-grid availability-stats">
-        <div class="stat-card">
-          <div class="stat-icon">!</div>
-          <div>
-            <p>Pending</p>
-            <h2>{{ pendingAvailabilityCount }}</h2>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">✓</div>
-          <div>
-            <p>Availability Submitted</p>
-            <h2>{{ submittedAvailabilityCount }}</h2>
-          </div>
-        </div>
-      </div>
-
-      <section class="meeting-section">
-        <div class="section-heading">
-          <div>
-            <h2>Upcoming meeting availability</h2>
-            <p>Submit availability for meetings where your response is pending.</p>
-          </div>
-        </div>
-        <div class="empty-state" *ngIf="upcomingMeetings.length === 0">
-          No upcoming meetings require availability.
-        </div>
-        <div class="meeting-card" *ngFor="let meeting of upcomingMeetings">
-          <div class="meeting-details">
-            <div class="meeting-title-row">
-              <h3>{{ meeting.title }}</h3>
-              <span class="status pending" *ngIf="needsAvailability(meeting)">Pending</span>
-              <span class="status submitted" *ngIf="hasSubmittedAvailability(meeting.id)">Availability Submitted</span>
-            </div>
-            <p class="meeting-date">
-              {{ meeting.meetingDate | date:'mediumDate' }}
-              · {{ meeting.meetingTime || 'Time to be scheduled' }}<ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
-              · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants · <span class="priority-chip">{{ meeting.priority }} priority</span>
-            </p>
-          </div>
-          <button *ngIf="needsAvailability(meeting)" class="primary-btn" (click)="goToSubmitAvailability(meeting.id)">
-            Fill Availability
-          </button>
-        </div>
-      </section>
-    </section>
   </main>
 </div>

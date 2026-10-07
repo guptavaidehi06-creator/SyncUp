@@ -69,7 +69,7 @@
       <div class="head-actions">
 
         <!-- NOTIFICATIONS -->
-        <div class="notification-wrapper">
+        <div class="notification-wrapper" #notificationMenu>
 
           <button
             class="notification-button"
@@ -122,6 +122,11 @@
 
           </div>
 
+        </div>
+
+        <div class="header-profile" *ngIf="currentUser">
+          <span class="header-avatar">{{ getCurrentUserName().charAt(0) || 'U' }}</span>
+          <span class="header-user-name">{{ getCurrentUserName() }}</span>
         </div>
 
       </div>

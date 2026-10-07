@@ -203,6 +203,51 @@ app-my-meetings .notification-icon { color: #5749c5; background: #f0efff; }
 app-my-meetings .notification-icon svg { width: 14px; height: 14px; }
 app-my-meetings .notification-panel { backdrop-filter: blur(14px); }
 
+/* The admin dashboard uses a distinct indigo management rail. */
+app-dashboard .sidebar {
+  color: #eef0ff;
+  background: linear-gradient(180deg, #252a72 0%, #171d55 100%);
+  border-color: rgba(255, 255, 255, .1);
+  box-shadow: 8px 0 28px rgba(26, 29, 82, .14);
+}
+app-dashboard .brand,
+app-dashboard .brand span { color: #fff; }
+app-dashboard .brand b { color: #fff; }
+app-dashboard .profile {
+  color: #eef0ff;
+  background: rgba(255, 255, 255, .08);
+  border-color: rgba(255, 255, 255, .12);
+}
+app-dashboard .profile > span { color: #fff; background: rgba(145, 133, 255, .42); }
+app-dashboard nav button,
+app-dashboard .logout { color: #c9cbea; }
+app-dashboard nav button:hover,
+app-dashboard .logout:hover { color: #fff; background: rgba(255, 255, 255, .09); }
+app-dashboard nav button.active {
+  color: #fff;
+  background: linear-gradient(100deg, rgba(128, 111, 255, .34), rgba(128, 111, 255, .16));
+  box-shadow: inset 3px 0 #a99dff;
+}
+app-dashboard .best-slot { border-color: rgba(255, 255, 255, .14) !important; }
+app-dashboard .sidebar-toggle { color: #eef0ff; background: rgba(255, 255, 255, .1); }
+app-dashboard .sidebar-toggle:hover { background: rgba(255, 255, 255, .18); }
+app-dashboard .logout { color: #ffb9c0; }
+
+/* Keep notification menus above the scrollable page content and anchor them to the bell. */
+app-dashboard .notification-wrapper,
+app-my-meetings .notification-wrapper { position: relative; z-index: 120; }
+app-dashboard .notification-dropdown,
+app-my-meetings .notification-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 1200;
+  max-height: min(70vh, 560px);
+}
+app-dashboard .header-profile { display: flex; align-items: center; gap: 9px; color: #41425d; font-size: 13px; font-weight: 650; }
+app-dashboard .header-avatar { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; color: #5142bd; background: #eeecff; }
+@media (max-width: 600px) { app-dashboard .header-user-name { display: none; } }
+
 @media(max-width: 600px) {
   app-dashboard .stats > div,
   app-dashboard .stats > button { gap: 10px; }

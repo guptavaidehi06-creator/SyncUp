@@ -54,4 +54,29 @@ describe('MyMeetings', () => {
       Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth });
     }
   });
+
+  it('renders a sidebar-free participant header and toggles notifications with outside-click dismissal', () => {
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('aside.sidebar')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.participant-topbar')).not.toBeNull();
+
+    const bell = fixture.nativeElement.querySelector('.notification-btn') as HTMLButtonElement;
+    bell.click();
+    fixture.detectChanges();
+    expect(component.showNotifications).toBe(true);
+    expect(fixture.nativeElement.querySelector('.notification-panel')).not.toBeNull();
+    (fixture.nativeElement.querySelector('.notification-panel') as HTMLElement).click();
+    fixture.detectChanges();
+    expect(component.showNotifications).toBe(true);
+
+    bell.click();
+    fixture.detectChanges();
+    expect(component.showNotifications).toBe(false);
+
+    bell.click();
+    fixture.detectChanges();
+    document.body.click();
+    fixture.detectChanges();
+    expect(component.showNotifications).toBe(false);
+  });
 });

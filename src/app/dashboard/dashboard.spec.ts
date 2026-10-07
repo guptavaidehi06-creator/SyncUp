@@ -67,6 +67,28 @@ describe('Dashboard', () => {
     }
   });
 
+  it('toggles the notification dropdown and closes it on an outside click', () => {
+    fixture.detectChanges();
+    const bell = fixture.nativeElement.querySelector('.notification-button') as HTMLButtonElement;
+    bell.click();
+    fixture.detectChanges();
+    expect(component.notificationsOpen).toBe(true);
+    expect(fixture.nativeElement.querySelector('.notification-dropdown')).not.toBeNull();
+    (fixture.nativeElement.querySelector('.notification-dropdown') as HTMLElement).click();
+    fixture.detectChanges();
+    expect(component.notificationsOpen).toBe(true);
+
+    bell.click();
+    fixture.detectChanges();
+    expect(component.notificationsOpen).toBe(false);
+
+    bell.click();
+    fixture.detectChanges();
+    document.body.click();
+    fixture.detectChanges();
+    expect(component.notificationsOpen).toBe(false);
+  });
+
   it('shows availability only for the current admin participant and counts today meetings', () => {
     component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
     const tomorrow = component.getTomorrowDate();

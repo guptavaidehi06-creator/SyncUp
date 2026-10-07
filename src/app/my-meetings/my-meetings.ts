@@ -1,5 +1,6 @@
-import { Component, OnInit, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, DestroyRef, ElementRef, HostListener, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../services/auth';
@@ -13,13 +14,15 @@ import { distinctUntilChanged, map } from 'rxjs';
 @Component({
   selector: 'app-my-meetings',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './my-meetings.html',
   styleUrl: './my-meetings.css'
 })
 export class MyMeetings implements OnInit {
 
+  // Retained for compatibility with existing responsive-state consumers; this page has no sidebar.
   sidebarOpen = typeof window === 'undefined' || window.innerWidth > 850;
+  @ViewChild('notificationMenu') notificationMenu?: ElementRef<HTMLElement>;
   activePage: 'meetings' | 'availability' = 'meetings';
 
   currentUser: any = null;
@@ -54,6 +57,11 @@ export class MyMeetings implements OnInit {
 
     if (!this.currentUser) {
       this.router.navigate(['/login']);
+      return;
+    }
+
+    if (this.authService.isAdmin()) {
+      void this.router.navigate(['/admin/home'], { replaceUrl: true });
       return;
     }
 
@@ -272,6 +280,15 @@ export class MyMeetings implements OnInit {
     this.showNotifications =
       !this.showNotifications;
 
+  }
+
+  @HostListener('document:click', ['$event'])
+  closeNotificationsOnOutsideClick(event: MouseEvent): void {
+    if (!this.showNotifications) return;
+    const target = event.target;
+    if (target instanceof Node && !this.notificationMenu?.nativeElement.contains(target)) {
+      this.showNotifications = false;
+    }
   }
 
   markNotificationsAsRead(): void {
@@ -544,10 +561,6 @@ export class MyMeetings implements OnInit {
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
-  }
-
-  toggleSidebar(): void {
-    this.sidebarOpen = !this.sidebarOpen;
   }
 
   setPage(page: 'meetings' | 'availability'): void {

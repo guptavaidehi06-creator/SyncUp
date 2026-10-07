@@ -290,6 +290,7 @@ button {
 
 .notification-wrapper {
   position: relative;
+  z-index: 120;
 }
 
 .notification-button {
@@ -312,9 +313,9 @@ button {
 }
 
 .notification-dropdown {
-  position: fixed;
-  right: 45px;
-  top: 84px;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
   width: min(340px, calc(100vw - 30px));
   max-height: calc(100vh - 100px);
   background: white;
@@ -323,7 +324,7 @@ button {
   box-shadow: 0 15px 35px rgba(31, 35, 50, 0.12);
   overflow-x: hidden;
   overflow-y: auto;
-  z-index: 100;
+  z-index: 1200;
 }
 
 .notification-header {
@@ -934,9 +935,7 @@ button {
   }
 
   .notification-dropdown {
-    right: 20px;
-    top: 76px;
-    max-height: calc(100vh - 92px);
+    max-height: min(70vh, 560px);
     width: min(340px, calc(100vw - 40px));
   }
 }
@@ -960,9 +959,7 @@ button {
   }
 
   .notification-dropdown {
-    right: 15px;
-    top: 72px;
-    max-height: calc(100vh - 88px);
+    max-height: min(70vh, 560px);
     width: min(340px, calc(100vw - 30px));
   }
 
