@@ -1,10 +1,45 @@
 <main class="auth-page">
   <section class="auth-shell" aria-label="Create a SyncUp account">
     <aside class="brand-panel">
-      <a class="brand-lockup" routerLink="/login" aria-label="SyncUp home"><span class="brand-mark">S</span><span>SyncUp</span></a>
-      <div class="brand-copy"><span class="brand-kicker">GOOD MEETINGS START HERE</span><h1>Make plans.<br><span>Make progress.</span></h1><p>Get your team on the same page with thoughtful scheduling that gives everyone time to do their best work.</p></div>
-      <div class="visual-card signup-visual" aria-hidden="true"><div class="visual-top"><span>AVAILABILITY MATCHED</span><span class="live-dot"></span></div><div class="signup-quote">“The right people,<br>at the right time.”</div><div class="signup-people"><span></span><span></span><span></span><span></span><b>Bring everyone together</b></div><div class="signup-progress"><i></i></div></div>
-      <div class="brand-foot"><span>✦</span> Less back-and-forth. More getting together.</div>
+      <span class="shape shape-top" aria-hidden="true"></span>
+      <span class="shape shape-bottom" aria-hidden="true"></span>
+      <span class="shape shape-corner" aria-hidden="true"></span>
+      <a class="brand-lockup" routerLink="/login" aria-label="SyncUp home">
+        <span class="brand-mark" aria-hidden="true"><span>S</span></span>
+        <span class="brand-name">Sync<span>Up</span></span>
+      </a>
+      <p class="brand-tagline">Smarter Meetings. Better Connections.</p>
+      <div class="hero-illustration" aria-hidden="true">
+        <svg class="meeting-art" viewBox="0 0 520 390" role="presentation">
+          <path class="orbit" d="M91 177C104 96 185 61 263 84c67 20 126 62 137 131 12 75-44 137-123 151-86 15-191-17-201-96" />
+          <path class="orbit orbit-inner" d="M124 116c40-46 111-59 168-37" />
+          <path class="spark" d="m65 181-18-3m19 17-16 8m24 5-10 13m302-166 5-19m13 24 12-15m-1 30 20-4" />
+          <g class="calendar" transform="rotate(-13 260 218)">
+            <rect x="132" y="112" width="265" height="226" rx="24" fill="#e5e3ff" />
+            <path d="M132 136a24 24 0 0 1 24-24h217a24 24 0 0 1 24 24v38H132z" fill="url(#calendarTop)" />
+            <rect x="132" y="160" width="265" height="178" fill="#fafaff" />
+            <path d="M132 314v0a24 24 0 0 0 24 24h217a24 24 0 0 0 24-24v-9H132z" fill="#e7e5ff" />
+            <g class="rings"><path d="M169 128v-25m48 25v-25m48 25v-25m48 25v-25m48 25v-25" /></g>
+            <g class="calendar-days">
+              <rect x="153" y="180" width="38" height="31" rx="7"/><rect x="207" y="180" width="38" height="31" rx="7"/><rect x="261" y="180" width="38" height="31" rx="7"/><rect x="315" y="180" width="38" height="31" rx="7"/>
+              <rect x="153" y="224" width="38" height="31" rx="7"/><rect x="207" y="224" width="38" height="31" rx="7"/><rect x="261" y="224" width="38" height="31" rx="7"/><rect x="315" y="224" width="38" height="31" rx="7"/>
+              <rect x="153" y="268" width="38" height="31" rx="7"/><rect x="207" y="268" width="38" height="31" rx="7"/><rect x="261" y="268" width="38" height="31" rx="7"/><rect x="315" y="268" width="38" height="31" rx="7"/>
+            </g>
+            <rect x="252" y="216" width="54" height="49" rx="12" fill="#5148db" class="check-tile" />
+            <path d="m266 239 10 10 18-23" fill="none" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+          </g>
+          <g class="avatar avatar-one" transform="translate(95 99)"><circle r="42" fill="#c8d5ff"/><circle r="34" fill="#eff3ff"/><path d="M-22 25c4-16 14-22 22-22s18 6 22 22" fill="#4a74df"/><path d="M-13-2c0-17 7-25 16-25 12 0 18 10 16 26l-5 11H-9z" fill="#17234f"/><ellipse cy="-6" rx="13" ry="17" fill="#f4ae91"/><path d="M-14-12q14 2 22-10l7 11q-2-20-17-20-15 1-17 19z" fill="#17234f"/></g>
+          <g class="avatar avatar-two" transform="translate(429 190)"><circle r="39" fill="#d4d2ff"/><circle r="31" fill="#f6f5ff"/><path d="M-21 24c4-14 13-19 21-19s17 5 21 19" fill="#3667cf"/><path d="M-13-8c0-15 7-21 15-21 11 0 17 9 15 22l-5 10h-20z" fill="#22234b"/><ellipse cy="-8" rx="12" ry="15" fill="#f3b39a"/><path d="M-12-14q12 4 21-8l5 10q-1-18-16-18-13 0-16 16z" fill="#22234b"/></g>
+          <g class="avatar avatar-three" transform="translate(98 306)"><circle r="40" fill="#b9e4f4"/><circle r="32" fill="#f2fcff"/><path d="M-22 23c4-14 14-20 22-20s18 6 22 20" fill="#f2c83c"/><path d="M-15-6c0-15 7-23 16-23 12 0 18 10 15 25l-5 8h-21z" fill="#37241e"/><ellipse cy="-7" rx="12" ry="15" fill="#f2b194"/><path d="M-13-13q13 2 21-10l5 10q0-18-16-18-14 1-17 17z" fill="#37241e"/></g>
+          <g class="bell" transform="translate(370 55)"><path d="M-29 18q7-7 7-23v-7a22 22 0 0 1 44 0v7q0 16 7 23l-5 8h-48z" fill="#ffbf36"/><path d="M-25 17q9-7 9-24v-6a14 14 0 0 1 28 0v6q0 17 9 24" fill="none" stroke="#ffd969" stroke-width="4"/><path d="M-12 30q2 12 12 12t12-12" fill="#f29f2d"/><circle cx="0" cy="-39" r="4" fill="#f49a35"/></g>
+          <defs><linearGradient id="calendarTop" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#7667ff"/><stop offset="1" stop-color="#4f49d6"/></linearGradient></defs>
+        </svg>
+      </div>
+      <div class="hero-copy">
+        <span class="hero-kicker">AVAILABILITY MATCHED</span>
+        <h1>The right people,<br>at the <span>right time.</span></h1>
+        <p>Bring everyone together.</p>
+      </div>
     </aside>
     <section class="form-panel"><div class="form-wrap">
       <div class="mobile-brand"><span class="brand-mark">S</span> SyncUp</div>
