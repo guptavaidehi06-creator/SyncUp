@@ -34,7 +34,7 @@
         <span class="participant-avatar">{{ currentUser?.name?.charAt(0) || 'U' }}</span>
         <span class="participant-name">{{ currentUser?.name }}</span>
       </div>
-      <button class="topbar-logout" type="button" (click)="logout()" aria-label="Log out">Log out</button>
+      <button class="topbar-logout" type="button" (click)="openLogoutConfirmation()" aria-label="Log out">Log out</button>
     </div>
   </header>
 
@@ -307,4 +307,15 @@
     </section>
 
   </main>
+
+  <div class="participant-logout-overlay" *ngIf="showLogoutConfirmation">
+    <section class="participant-logout-dialog" role="dialog" aria-modal="true" aria-labelledby="participant-logout-title">
+      <h2 id="participant-logout-title">Log out?</h2>
+      <p>Are you sure you want to logout?</p>
+      <div class="participant-logout-actions">
+        <button class="participant-logout-cancel" type="button" (click)="closeLogoutConfirmation()">Cancel</button>
+        <button class="participant-logout-confirm" type="button" (click)="logout()">Logout</button>
+      </div>
+    </section>
+  </div>
 </div>

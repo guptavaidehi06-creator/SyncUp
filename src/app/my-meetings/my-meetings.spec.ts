@@ -11,9 +11,11 @@ describe('MyMeetings', () => {
   let component: MyMeetings;
   let fixture: ComponentFixture<MyMeetings>;
   let navigateSpy: ReturnType<typeof vi.fn>;
+  let logoutSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     navigateSpy = vi.fn();
+    logoutSpy = vi.fn();
     await TestBed.configureTestingModule({
       imports: [MyMeetings],
       providers: [
@@ -21,7 +23,7 @@ describe('MyMeetings', () => {
         { provide: ActivatedRoute, useValue: { queryParamMap: of(convertToParamMap({})) } },
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: AuthService, useValue: { getUser: () => null } }
+        { provide: AuthService, useValue: { getUser: () => null, logout: logoutSpy } }
       ]
     }).compileComponents();
 
@@ -78,5 +80,37 @@ describe('MyMeetings', () => {
     document.body.click();
     fixture.detectChanges();
     expect(component.showNotifications).toBe(false);
+  });
+
+  it('keeps the participant logged in when logout confirmation is cancelled', () => {
+    fixture.detectChanges();
+    const logoutButton = fixture.nativeElement.querySelector('.topbar-logout') as HTMLButtonElement;
+    logoutButton.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')?.textContent).toContain(
+      'Are you sure you want to logout?'
+    );
+    expect(logoutSpy).not.toHaveBeenCalled();
+
+    (fixture.nativeElement.querySelector('.participant-logout-cancel') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+    expect(logoutSpy).not.toHaveBeenCalled();
+    expect(navigateSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs the existing logout flow only after logout is confirmed', () => {
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.topbar-logout') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    navigateSpy.mockClear();
+
+    (fixture.nativeElement.querySelector('.participant-logout-confirm') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(logoutSpy).toHaveBeenCalledOnce();
+    expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 });

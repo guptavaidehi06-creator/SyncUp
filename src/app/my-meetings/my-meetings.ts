@@ -39,6 +39,7 @@ export class MyMeetings implements OnInit {
   notifications: any[] = [];
 
   showNotifications = false;
+  showLogoutConfirmation = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -651,6 +652,14 @@ export class MyMeetings implements OnInit {
       meetingId
     ], { state: { returnUrl: this.router.url } });
 
+  }
+
+  openLogoutConfirmation(): void {
+    this.showLogoutConfirmation = true;
+  }
+
+  closeLogoutConfirmation(): void {
+    this.showLogoutConfirmation = false;
   }
 
   // =========================

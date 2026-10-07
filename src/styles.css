@@ -562,3 +562,67 @@ app-my-meetings:not(:root) .participant-dashboard .primary-btn:focus-visible { o
   app-my-meetings:not(:root) .notification-btn,
   app-my-meetings:not(:root) .primary-btn { transition: none; }
 }
+
+app-my-meetings:not(:root) .participant-logout-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(29, 30, 76, .48);
+  backdrop-filter: blur(4px);
+}
+app-my-meetings:not(:root) .participant-logout-dialog {
+  width: min(100%, 400px);
+  padding: 26px;
+  border: 1px solid #e5e3f2;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 64px rgba(28, 29, 78, .24);
+}
+app-my-meetings:not(:root) .participant-logout-dialog h2 {
+  margin: 0 0 10px;
+  color: #29294f;
+  font-size: 20px;
+}
+app-my-meetings:not(:root) .participant-logout-dialog p {
+  margin: 0;
+  color: #676b84;
+  font-size: 14px;
+  line-height: 1.55;
+}
+app-my-meetings:not(:root) .participant-logout-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+app-my-meetings:not(:root) .participant-logout-actions button {
+  min-height: 40px;
+  padding: 9px 15px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+app-my-meetings:not(:root) .participant-logout-cancel {
+  color: #514d79;
+  border-color: #e4e2ef !important;
+  background: #fff;
+}
+app-my-meetings:not(:root) .participant-logout-cancel:hover { background: #f7f6ff; }
+app-my-meetings:not(:root) .participant-logout-confirm {
+  color: #fff;
+  background: linear-gradient(105deg, #5547c6, #7567df);
+  box-shadow: 0 6px 14px rgba(83, 69, 194, .2);
+}
+app-my-meetings:not(:root) .participant-logout-confirm:hover { background: linear-gradient(105deg, #4739b4, #6556ce); }
+app-my-meetings:not(:root) .participant-logout-actions button:focus-visible {
+  outline: 3px solid #b9b0ff;
+  outline-offset: 3px;
+}
