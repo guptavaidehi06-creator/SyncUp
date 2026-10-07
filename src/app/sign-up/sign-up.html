@@ -1,7 +1,7 @@
 <main class="auth-page">
   <section class="auth-shell" aria-label="Create a SyncUp account">
     <aside class="brand-panel">
-      <a class="brand-lockup" href="/login" aria-label="SyncUp home"><span class="brand-mark">S</span><span>SyncUp</span></a>
+      <a class="brand-lockup" routerLink="/login" aria-label="SyncUp home"><span class="brand-mark">S</span><span>SyncUp</span></a>
       <div class="brand-copy"><span class="brand-kicker">GOOD MEETINGS START HERE</span><h1>Make plans.<br><span>Make progress.</span></h1><p>Get your team on the same page with thoughtful scheduling that gives everyone time to do their best work.</p></div>
       <div class="visual-card signup-visual" aria-hidden="true"><div class="visual-top"><span>AVAILABILITY MATCHED</span><span class="live-dot"></span></div><div class="signup-quote">“The right people,<br>at the right time.”</div><div class="signup-people"><span></span><span></span><span></span><span></span><b>Bring everyone together</b></div><div class="signup-progress"><i></i></div></div>
       <div class="brand-foot"><span>✦</span> Less back-and-forth. More getting together.</div>
@@ -18,7 +18,7 @@
           <div class="form-group"><label for="password">Password</label><div class="password-field"><input id="password" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="newUser.password" #password="ngModel" required minlength="8" pattern="^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&amp;*()_+\-=[\]{};':&quot;\\|,.&lt;&gt;/?]).+$" autocomplete="new-password" placeholder="Create a secure password"><button type="button" class="password-visibility" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'" [attr.aria-pressed]="showPassword" (click)="showPassword = !showPassword">{{ showPassword ? 'Hide' : 'Show' }}</button></div><small class="validation-error" *ngIf="password.invalid && password.touched"><span *ngIf="password.errors?.['required']">Password is required.</span><span *ngIf="password.errors?.['minlength']">Use at least 8 characters.</span><span *ngIf="password.errors?.['pattern']">Include an uppercase letter, number and special character.</span></small></div>
           <button type="submit" class="primary-button" [disabled]="isSubmitting || signUpForm.invalid">{{ isSubmitting ? 'Creating account…' : 'Create account' }}<span aria-hidden="true">→</span></button>
         </form>
-        <div class="signup-prompt"><span>Already have an account?</span><a href="/login">Sign in</a></div>
+        <div class="signup-prompt"><span>Already have an account?</span><a routerLink="/login">Sign in</a></div>
       </div>
       <div *ngIf="step === 'verify'" class="verify-section">
         <div class="verify-icon">✓</div><p class="verify-text">We sent a 6-digit verification code to <strong>{{ newUser.email }}</strong></p>

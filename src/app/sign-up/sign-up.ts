@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 
 import { FormsModule, NgForm } from '@angular/forms';
 
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../services/auth';
@@ -15,7 +15,7 @@ import { AuthService } from '../services/auth';
 
   standalone: true,
 
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
 
   templateUrl: './sign-up.html',
 

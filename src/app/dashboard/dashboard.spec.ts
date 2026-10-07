@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
+import { of } from 'rxjs';
 import { AuthService } from '../services/auth';
 
 import { Dashboard } from './dashboard';
@@ -18,6 +19,7 @@ describe('Dashboard', () => {
       imports: [Dashboard],
       providers: [
         { provide: Router, useValue: { navigate: navigateSpy } },
+        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ view: 'home' })) } },
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: AuthService, useValue: { getUser: () => null } }
@@ -138,10 +140,9 @@ describe('Dashboard', () => {
     expect(component.meetingToastType).toBe('success');
     expect(component.activeView).toBe('meetings');
 
-    httpMock.expectOne(request => request.method === 'GET' && request.url.endsWith('/api/meetings'))
-      .flush([meeting]);
     httpMock.expectOne(request => request.method === 'GET' && request.url.endsWith('/api/notification/user/7'))
       .flush([]);
+    httpMock.expectNone(request => request.method === 'GET' && request.url.endsWith('/api/meetings'));
     vi.runOnlyPendingTimers();
   });
 
@@ -211,10 +212,9 @@ describe('Dashboard', () => {
     expect(component.meetingToastType).toBe('success');
     expect(component.suggestResult).toBeNull();
 
-    httpMock.expectOne(request => request.method === 'GET' && request.url.endsWith('/api/meetings'))
-      .flush(component.meetings);
     httpMock.expectOne(request => request.method === 'GET' && request.url.endsWith('/api/notification/user/7'))
       .flush([]);
+    httpMock.expectNone(request => request.method === 'GET' && request.url.endsWith('/api/meetings'));
   });
 
   it('stops confirmation loading and shows an error toast when the API rejects confirmation', () => {

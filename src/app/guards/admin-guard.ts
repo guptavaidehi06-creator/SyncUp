@@ -11,10 +11,8 @@ export const adminGuard: CanActivateFn = (route, state) => {
   }
 
   if (authService.isLoggedIn()) {
-    router.navigate(['/my-meetings']);
-  } else {
-    router.navigate(['/login']);
+    return router.createUrlTree(['/my-meetings']);
   }
 
-  return false;
+  return router.createUrlTree(['/login']);
 };

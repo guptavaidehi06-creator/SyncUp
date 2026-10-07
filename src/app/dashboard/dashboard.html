@@ -516,9 +516,9 @@
           <button
             class="primary"
             (click)="addSelectedParticipants()"
-            [disabled]="!participantMeetingId || !selectedUserIds.size">
+            [disabled]="!participantMeetingId || !selectedUserIds.size || isAddingParticipants">
 
-            Add participants
+            {{ isAddingParticipants ? 'Adding participants…' : 'Add participants' }}
 
           </button>
 
@@ -685,9 +685,9 @@
         <button
           class="primary"
           (click)="findBestSlot()"
-          [disabled]="!suggestRequest.meetingId">
+          [disabled]="!suggestRequest.meetingId || isFindingSlot">
 
-          Find best slot
+          {{ isFindingSlot ? 'Finding best slot…' : 'Find best slot' }}
 
         </button>
 

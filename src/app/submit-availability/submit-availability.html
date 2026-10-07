@@ -6,11 +6,13 @@
       <h1>{{ submitted ? 'Thank you' : (meeting?.title || 'Loading meeting details') }}</h1>
       <p *ngIf="submitted">Your availability has been submitted successfully.</p>
       <p *ngIf="meeting && !submitted">Hi {{ currentUser?.name }}, let us know when you are free.</p>
-      <p *ngIf="!meeting && !submitted">Please wait while SyncUp loads this meeting.</p>
+      <p *ngIf="!meeting && !submitted">{{ isLoadingMeeting ? 'Please wait while SyncUp loads this meeting.' : 'Meeting details are unavailable.' }}</p>
     </div>
 
     <button class="go-back" type="button" (click)="goBack()">← Go Back</button>
   </header>
+
+  <p class="time-validation" *ngIf="submissionError" role="alert">{{ submissionError }}</p>
 
   <section class="avail-card" *ngIf="meeting">
 

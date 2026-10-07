@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { finalize, timeout } from 'rxjs';
+import { ChangeDetectorRef, Component, DestroyRef, OnDestroy, OnInit, inject } from '@angular/core';
+import { finalize, timeout, map, distinctUntilChanged } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../services/auth';
 import {
@@ -62,7 +63,7 @@ interface Notification {
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
-export class Dashboard implements OnInit {
+export class Dashboard implements OnInit, OnDestroy {
 
   sidebarOpen = typeof window === 'undefined' || window.innerWidth > 850;
   activeView: View = 'home';
@@ -102,6 +103,8 @@ export class Dashboard implements OnInit {
 
   isSavingMeeting = false;
   isConfirmingSlot = false;
+  isAddingParticipants = false;
+  isFindingSlot = false;
   meetingSaveError: string | null = null;
   isMeetingSaveOutcomeUnknown = false;
   isCheckingMeetingStatus = false;
@@ -117,9 +120,16 @@ export class Dashboard implements OnInit {
 
   private meetingSuccessTimer?: ReturnType<typeof setTimeout>;
   private participantSuccessTimer?: ReturnType<typeof setTimeout>;
+  private readonly destroyRef = inject(DestroyRef);
+  private hasLoadedUsers = false;
+  private hasLoadedMeetings = false;
+  private hasLoadedParticipants = false;
+  private hasLoadedAvailabilities = false;
 
   constructor(
+    private route: ActivatedRoute,
     private router: Router,
+    private cdr: ChangeDetectorRef,
     private authService: AuthService,
     private meetingService: MeetingService,
     private participantService: ParticipantService,
@@ -147,11 +157,22 @@ export class Dashboard implements OnInit {
       this.currentUser
     );
 
-    this.loadUsers();
-    this.loadMeetings();
-    this.loadParticipants();
-    this.loadAvailabilities();
-    this.loadNotifications();
+    this.meetingService.meetings$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(meetings => this.meetings = meetings);
+    this.participantService.participants$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(participants => this.participants = participants);
+    this.availabilityService.availabilities$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(availabilities => this.availability = availabilities);
+
+    this.route.paramMap.pipe(
+      map(params => params.get('view')),
+      map(view => this.isView(view) ? view : 'home'),
+      distinctUntilChanged(),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(view => this.activateView(view));
   }
 
   // =========================
@@ -160,12 +181,15 @@ export class Dashboard implements OnInit {
 
   loadUsers(): void {
 
+    if (this.hasLoadedUsers) return;
+
     this.userService
       .getAllUsers()
       .subscribe({
 
         next: (data: any) => {
           this.users = data || [];
+          this.hasLoadedUsers = true;
         },
 
         error: (err) => {
@@ -184,12 +208,15 @@ export class Dashboard implements OnInit {
 
   loadMeetings(): void {
 
+    if (this.hasLoadedMeetings) return;
+
     this.meetingService
       .getMeetings()
       .subscribe({
 
         next: (data: Meeting[]) => {
           this.meetings = data || [];
+          this.hasLoadedMeetings = true;
         },
 
         error: (err) => {
@@ -208,12 +235,15 @@ export class Dashboard implements OnInit {
 
   loadParticipants(): void {
 
+    if (this.hasLoadedParticipants) return;
+
     this.participantService
       .getAllParticipants()
       .subscribe({
 
         next: (data: any) => {
           this.participants = data || [];
+          this.hasLoadedParticipants = true;
         },
 
         error: (err) => {
@@ -232,12 +262,15 @@ export class Dashboard implements OnInit {
 
   loadAvailabilities(): void {
 
+    if (this.hasLoadedAvailabilities) return;
+
     this.availabilityService
       .getAllAvailabilities()
       .subscribe({
 
         next: (data: any) => {
           this.availability = data || [];
+          this.hasLoadedAvailabilities = true;
         },
 
         error: (err) => {
@@ -301,54 +334,52 @@ export class Dashboard implements OnInit {
   }
 
   setView(view: View): void {
-
     this.activeView = view;
+    this.notificationsOpen = false;
+    if (view !== 'create') this.reschedulingMeeting = null;
+    void this.router.navigate(['/admin', view]);
+  }
 
+  ngOnDestroy(): void {
+    if (this.meetingSuccessTimer) clearTimeout(this.meetingSuccessTimer);
+    if (this.participantSuccessTimer) clearTimeout(this.participantSuccessTimer);
+  }
+
+  private isView(view: string | null): view is View {
+    return view === 'home' || view === 'meetings' || view === 'create' ||
+      view === 'participants' || view === 'availability' || view === 'slot';
+  }
+
+  private activateView(view: View): void {
+    this.activeView = view;
     this.notificationsOpen = false;
 
-    if (view !== 'create') {
-      this.reschedulingMeeting = null;
-    }
+    if (view !== 'create') this.reschedulingMeeting = null;
 
     if (view === 'home') {
-
+      this.loadUsers();
       this.loadMeetings();
       this.loadParticipants();
       this.loadAvailabilities();
       this.loadNotifications();
-
-    }
-
-    if (view === 'meetings') {
-
+    } else if (view === 'meetings') {
       this.loadMeetings();
-
-    }
-
-    if (view === 'participants') {
-
+      this.loadParticipants();
+    } else if (view === 'participants') {
       this.selectedUserIds.clear();
-
       this.loadUsers();
       this.loadMeetings();
       this.loadParticipants();
-
-    }
-
-    if (view === 'availability') {
-
+    } else if (view === 'availability') {
       this.loadParticipants();
       this.loadAvailabilities();
-
-    }
-
-    if (view === 'slot') {
-
+    } else if (view === 'slot') {
       this.suggestResult = null;
-
+      this.loadMeetings();
       this.loadAvailabilities();
-
     }
+
+    this.cdr.detectChanges();
   }
 
   // =========================
@@ -678,6 +709,8 @@ export class Dashboard implements OnInit {
           this.newMeeting.meetingDate,
 
         meetingTime: null,
+        meetingEndTime: null,
+        durationMinutes: null,
 
         priority:
           this.newMeeting.priority,
@@ -696,7 +729,8 @@ export class Dashboard implements OnInit {
         )
         .pipe(finalize(() => {
           this.isSavingMeeting = false;
-        }))
+          this.cdr.detectChanges();
+        }), takeUntilDestroyed(this.destroyRef))
         .subscribe({
 
           next: (updated: Meeting) => {
@@ -712,13 +746,18 @@ export class Dashboard implements OnInit {
                 updated;
             }
 
+            this.meetingService.upsertMeeting(updated);
+            this.suggestResult = null;
+
             this.resetMeetingForm();
 
             this.reschedulingMeeting = null;
 
-            this.activeView = 'meetings';
+            this.showMeetingToast('Meeting rescheduled successfully! 🎉');
+            void this.router.navigate(['/admin', 'meetings']);
 
             this.loadNotifications();
+            this.cdr.detectChanges();
           },
 
           error: (err) => {
@@ -728,9 +767,10 @@ export class Dashboard implements OnInit {
               err
             );
 
-            alert(
-              'Unable to reschedule meeting.'
-            );
+            const message = typeof err?.error === 'string'
+              ? err.error
+              : err?.error?.message || 'Unable to reschedule meeting.';
+            this.showMeetingToast(message, 'error');
           }
 
         });
@@ -766,18 +806,20 @@ export class Dashboard implements OnInit {
 
     this.meetingService
       .addMeeting(meeting)
-      .pipe(timeout({ first: 30_000 }))
-      .pipe(finalize(() => {
+      .pipe(
+        timeout({ first: 30_000 }),
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => {
         this.isSavingMeeting = false;
-      }))
+        this.cdr.detectChanges();
+        })
+      )
       .subscribe({
 
         next: (createdMeeting: Meeting) => {
 
           this.pendingMeetingSave = null;
           this.isMeetingSaveOutcomeUnknown = false;
-
-          this.showMeetingToast('Meeting created successfully! 🎉');
 
           const alreadyExists =
             this.meetings.some(
@@ -796,9 +838,11 @@ export class Dashboard implements OnInit {
           this.resetMeetingForm();
 
           this.activeView = 'meetings';
+          this.showMeetingToast('Meeting created successfully! 🎉');
+          void this.router.navigate(['/admin', 'meetings']);
 
-          this.loadMeetings();
           this.loadNotifications();
+          this.cdr.detectChanges();
         },
 
         error: (err) => {
@@ -810,8 +854,9 @@ export class Dashboard implements OnInit {
 
           this.isMeetingSaveOutcomeUnknown =
             err?.name === 'TimeoutError' || err?.status === 0 || err?.status >= 500;
-          this.meetingSaveError = this.getMeetingSaveError(err);
-          this.showMeetingToast(this.meetingSaveError, 'error');
+      this.meetingSaveError = this.getMeetingSaveError(err);
+      this.showMeetingToast(this.meetingSaveError, 'error');
+      this.cdr.detectChanges();
         }
 
       });
@@ -863,7 +908,9 @@ export class Dashboard implements OnInit {
         meeting.priority
     };
 
-    this.activeView = 'create';
+    this.suggestResult = null;
+    this.suggestRequest.meetingId = null;
+    this.setView('create');
   }
 
   private getMeetingSaveError(err: any): string {
@@ -903,6 +950,7 @@ export class Dashboard implements OnInit {
 
     this.meetingToastMessage = message;
     this.meetingToastType = type;
+    this.cdr.detectChanges();
 
     if (this.meetingSuccessTimer) {
       clearTimeout(this.meetingSuccessTimer);
@@ -910,6 +958,7 @@ export class Dashboard implements OnInit {
 
     this.meetingSuccessTimer = setTimeout(() => {
       this.meetingToastMessage = null;
+      this.cdr.detectChanges();
     }, 3500);
   }
 
@@ -928,6 +977,7 @@ export class Dashboard implements OnInit {
     ).subscribe({
       next: meetings => {
         this.meetings = meetings || [];
+        this.hasLoadedMeetings = true;
         const savedMeeting = this.meetings.find(meeting =>
           meeting.id !== undefined &&
           !pendingSave.existingMeetingIds.has(Number(meeting.id)) &&
@@ -947,8 +997,9 @@ export class Dashboard implements OnInit {
         this.meetingSaveError = null;
         this.showMeetingToast('Meeting created successfully! 🎉');
         this.resetMeetingForm();
-        this.activeView = 'meetings';
+        void this.router.navigate(['/admin', 'meetings']);
         this.loadNotifications();
+        this.cdr.detectChanges();
       },
       error: () => {
         this.meetingSaveError = 'Could not verify whether the meeting was saved. Check again before retrying.';
@@ -958,7 +1009,9 @@ export class Dashboard implements OnInit {
   }
 
   goToSubmitAvailability(meetingId: number): void {
-    this.router.navigate(['/submit-availability', meetingId]);
+    void this.router.navigate(['/submit-availability', meetingId], {
+      state: { returnUrl: this.router.url }
+    });
   }
 
   // =========================
@@ -1125,7 +1178,7 @@ export class Dashboard implements OnInit {
 
   addSelectedParticipants(): void {
 
-    if (
+    if (this.isAddingParticipants ||
       this.participantMeetingId === null ||
       this.selectedUserIds.size === 0
     ) {
@@ -1135,12 +1188,29 @@ export class Dashboard implements OnInit {
     const meetingId =
       this.participantMeetingId;
 
-    const selectedUsers =
-      Array.from(
-        this.selectedUserIds
-      );
+    const selectedUsers = Array.from(this.selectedUserIds)
+      .filter(userId => !this.isUserAlreadyParticipant(userId));
+    if (!selectedUsers.length) return;
 
-    let completed = 0;
+    this.isAddingParticipants = true;
+    let remaining = selectedUsers.length;
+    let hasError = false;
+    let errorMessage = 'Unable to add participants.';
+
+    const finishRequest = (): void => {
+      remaining -= 1;
+      if (remaining !== 0) return;
+      this.isAddingParticipants = false;
+      if (hasError) {
+        this.showMeetingToast(errorMessage, 'error');
+      } else {
+        this.selectedUserIds.clear();
+        this.bulkIsMandatory = false;
+        this.showParticipantSuccess();
+        this.loadNotifications();
+      }
+      this.cdr.detectChanges();
+    };
 
     selectedUsers.forEach(
       userId => {
@@ -1159,32 +1229,18 @@ export class Dashboard implements OnInit {
 
         this.participantService
           .addParticipant(participant)
+          .pipe(
+            takeUntilDestroyed(this.destroyRef),
+            finalize(finishRequest)
+          )
           .subscribe({
 
-            next: (
-              created: Participant
-            ) => {
-
-              this.participants.push(
-                created
+            next: (created: Participant) => {
+              const exists = this.participants.some(item =>
+                Number(item.meetingId) === meetingId && Number(item.userId) === userId
               );
-
-              completed++;
-
-              if (
-                completed ===
-                selectedUsers.length
-              ) {
-
-                this.selectedUserIds.clear();
-
-                this.bulkIsMandatory = false;
-
-                this.loadParticipants();
-                this.loadNotifications();
-
-                this.showParticipantSuccess();
-              }
+              if (!exists) this.participants.push(created);
+              this.cdr.detectChanges();
             },
 
             error: (err) => {
@@ -1194,9 +1250,10 @@ export class Dashboard implements OnInit {
                 err
               );
 
-              console.error(
-                err?.error || 'Unable to add participant.'
-              );
+              hasError = true;
+              errorMessage = typeof err?.error === 'string'
+                ? err.error
+                : err?.error?.message || 'Unable to add participants.';
             }
 
           });
@@ -1355,6 +1412,8 @@ export class Dashboard implements OnInit {
 
   findBestSlot(): void {
 
+    if (this.isFindingSlot) return;
+
     const meetingId =
       this.suggestRequest.meetingId;
 
@@ -1372,15 +1431,24 @@ export class Dashboard implements OnInit {
       return;
     }
 
+    this.isFindingSlot = true;
     this.schedulingService
       .suggestSlot({
         meetingId,
         durationMinutes: this.suggestRequest.durationMinutes
       })
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => {
+          this.isFindingSlot = false;
+          this.cdr.detectChanges();
+        })
+      )
       .subscribe({
 
         next: (data: any) => {
           this.suggestResult = data;
+          this.cdr.detectChanges();
         },
 
         error: (err) => {
@@ -1397,6 +1465,7 @@ export class Dashboard implements OnInit {
             message:
               err?.error || 'Unable to find a best slot.'
           };
+          this.cdr.detectChanges();
         }
 
       });
@@ -1484,24 +1553,29 @@ export class Dashboard implements OnInit {
       endTime: this.suggestResult.suggestedEndTime,
       durationMinutes: this.suggestResult.durationMinutes
     }).pipe(
+      takeUntilDestroyed(this.destroyRef),
       finalize(() => {
         this.isConfirmingSlot = false;
+        this.cdr.detectChanges();
       })
     ).subscribe({
       next: (meeting: Meeting) => {
+        this.meetingService.upsertMeeting(meeting);
         const index = this.meetings.findIndex(item => item.id === meeting.id);
         if (index !== -1) this.meetings[index] = meeting;
-        this.showMeetingToast('Meeting confirmed successfully! 🎉');
+        else this.meetings.push(meeting);
         this.suggestResult = null;
         this.suggestRequest.meetingId = null;
-        this.loadMeetings();
+        this.showMeetingToast('Meeting confirmed successfully! 🎉');
         this.loadNotifications();
+        this.cdr.detectChanges();
       },
       error: (err) => {
         const message = typeof err?.error === 'string'
           ? err.error
           : err?.error?.message || 'Unable to confirm the best slot.';
         this.showMeetingToast(message, 'error');
+        this.cdr.detectChanges();
       }
     });
   }
@@ -1529,7 +1603,9 @@ export class Dashboard implements OnInit {
 
     this.participantSuccessTimer = setTimeout(() => {
       this.participantSuccessMessage = null;
+      this.cdr.detectChanges();
     }, 3500);
+    this.cdr.detectChanges();
   }
 
   markNotificationRead(notification: Notification): void {

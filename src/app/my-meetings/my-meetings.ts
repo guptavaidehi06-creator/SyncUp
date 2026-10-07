@@ -1,12 +1,14 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthService } from '../services/auth';
 import { MeetingService } from '../services/meeting';
 import { ParticipantService } from '../services/participant';
 import { AvailabilityService } from '../services/availability';
 import { NotificationService } from '../services/notification';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { distinctUntilChanged, map } from 'rxjs';
 
 @Component({
   selector: 'app-my-meetings',
@@ -25,6 +27,9 @@ export class MyMeetings implements OnInit {
   myMeetings: any[] = [];
 
   private meetingParticipantCounts = new Map<number, number>();
+  private allMeetings: any[] = [];
+  private allParticipants: any[] = [];
+  private readonly destroyRef = inject(DestroyRef);
 
   submittedMeetingIds: Set<number> = new Set();
 
@@ -33,6 +38,7 @@ export class MyMeetings implements OnInit {
   showNotifications = false;
 
   constructor(
+    private route: ActivatedRoute,
     private authService: AuthService,
     private meetingService: MeetingService,
     private participantService: ParticipantService,
@@ -51,6 +57,38 @@ export class MyMeetings implements OnInit {
       return;
     }
 
+    this.meetingService.meetings$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(meetings => {
+        this.allMeetings = meetings;
+        this.syncMyMeetings();
+      });
+    this.participantService.participants$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(participants => {
+        this.allParticipants = participants;
+        this.updateParticipantCounts(participants);
+        this.syncMyMeetings();
+      });
+    this.availabilityService.availabilities$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(availabilities => {
+        this.submittedMeetingIds = new Set((availabilities || [])
+          .filter(item => Number(item.userId) === Number(this.currentUser?.id))
+          .map(item => Number(item.meetingId)));
+        this.cdr.detectChanges();
+      });
+
+    this.route.queryParamMap.pipe(
+      map(params => params.get('view') === 'availability' ? 'availability' : 'meetings'),
+      distinctUntilChanged(),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(page => {
+      this.activePage = page;
+      this.showNotifications = false;
+      this.cdr.detectChanges();
+    });
+
     this.loadNotifications();
 
     this.loadMyMeetings();
@@ -68,21 +106,13 @@ export class MyMeetings implements OnInit {
 
         next: (participants: any[]) => {
 
-          this.meetingParticipantCounts.clear();
-          (participants || []).forEach((participant: any) => {
-            const meetingId = Number(participant.meetingId);
-            if (Number.isFinite(meetingId)) {
-              this.meetingParticipantCounts.set(
-                meetingId,
-                (this.meetingParticipantCounts.get(meetingId) || 0) + 1
-              );
-            }
-          });
+          this.allParticipants = participants || [];
+          this.updateParticipantCounts(this.allParticipants);
 
           const myParticipantEntries =
             (participants || []).filter(
-              (p: any) =>
-                p.userId === this.currentUser.id
+                (p: any) =>
+                Number(p.userId) === Number(this.currentUser.id)
             );
 
           const myMeetingIds =
@@ -109,8 +139,9 @@ export class MyMeetings implements OnInit {
                 this.myMeetings =
                   (meetings || []).filter(
                     (m: any) =>
-                      myMeetingIds.includes(m.id)
+                      myMeetingIds.some(id => Number(id) === Number(m.id))
                   );
+                this.allMeetings = meetings || [];
 
                 this.loadMyAvailability();
 
@@ -520,8 +551,11 @@ export class MyMeetings implements OnInit {
   }
 
   setPage(page: 'meetings' | 'availability'): void {
-    this.activePage = page;
-    this.showNotifications = false;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { view: page === 'meetings' ? null : page },
+      queryParamsHandling: 'merge'
+    });
   }
 
   getPastStatus(meeting: any): string {
@@ -541,6 +575,28 @@ export class MyMeetings implements OnInit {
 
   getParticipantCount(meetingId: number): number {
     return this.meetingParticipantCounts.get(Number(meetingId)) || 0;
+  }
+
+  private updateParticipantCounts(participants: any[]): void {
+    this.meetingParticipantCounts.clear();
+    (participants || []).forEach(participant => {
+      const meetingId = Number(participant.meetingId);
+      if (Number.isFinite(meetingId)) {
+        this.meetingParticipantCounts.set(
+          meetingId,
+          (this.meetingParticipantCounts.get(meetingId) || 0) + 1
+        );
+      }
+    });
+  }
+
+  private syncMyMeetings(): void {
+    if (!this.currentUser) return;
+    const myMeetingIds = new Set(this.allParticipants
+      .filter(participant => Number(participant.userId) === Number(this.currentUser.id))
+      .map(participant => Number(participant.meetingId)));
+    this.myMeetings = this.allMeetings.filter(meeting => myMeetingIds.has(Number(meeting.id)));
+    this.cdr.detectChanges();
   }
 
   getMeetingDuration(meeting: any): string {
@@ -577,10 +633,10 @@ export class MyMeetings implements OnInit {
     meetingId: number
   ): void {
 
-    this.router.navigate([
+    void this.router.navigate([
       '/submit-availability',
       meetingId
-    ]);
+    ], { state: { returnUrl: this.router.url } });
 
   }
 
