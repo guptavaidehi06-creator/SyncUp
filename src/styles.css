@@ -259,3 +259,306 @@ app-dashboard .header-avatar { width: 36px; height: 36px; display: grid; place-i
   app-my-meetings .meeting-title-row { align-items: flex-start; }
   app-my-meetings .meeting-meta { gap: 4px 9px; }
 }
+
+/* Admin workspace visual theme */
+app-dashboard:not(:root) .shell.shell {
+  color: #292a4b;
+  background: radial-gradient(ellipse at 82% 0, #e5e2ff 0, transparent 35%), linear-gradient(135deg, #f5f5ff, #f2f7ff);
+}
+app-dashboard:not(:root) .shell .sidebar.sidebar {
+  color: #f5f4ff;
+  background: linear-gradient(170deg, #26266f, #303586 55%, #3b48a2);
+  border-color: rgba(224, 225, 255, .16);
+  box-shadow: 10px 0 34px rgba(32, 35, 92, .16);
+}
+app-dashboard:not(:root) .shell .sidebar .brand { color: #fff; letter-spacing: -.03em; }
+app-dashboard:not(:root) .shell .sidebar .brand b,
+app-dashboard:not(:root) .shell .sidebar .profile > span {
+  color: #342f83;
+  background: linear-gradient(145deg, #d9d2ff, #b9d9ff);
+  border-radius: 12px;
+}
+app-dashboard:not(:root) .shell .sidebar .profile {
+  width: 100%;
+  min-width: 0;
+  color: #fff;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+  background: rgba(255, 255, 255, .11);
+  border-color: rgba(230, 231, 255, .18);
+  border-radius: 13px;
+}
+app-dashboard:not(:root) .shell .sidebar nav button,
+app-dashboard:not(:root) .shell .sidebar .logout {
+  color: #e1e2ff;
+  border-radius: 11px;
+}
+app-dashboard:not(:root) .shell .sidebar nav button svg,
+app-dashboard:not(:root) .head-actions .notification-button svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+app-dashboard:not(:root) .shell .sidebar nav button:hover { color: #fff; background: rgba(255, 255, 255, .12); }
+app-dashboard:not(:root) .shell .sidebar nav button.active {
+  color: #fff;
+  background: linear-gradient(100deg, rgba(190, 183, 255, .28), rgba(169, 199, 255, .2));
+  box-shadow: inset 3px 0 #c4bdff;
+}
+app-dashboard:not(:root) .shell .sidebar .best-slot { border-color: rgba(229, 229, 255, .2) !important; }
+app-dashboard:not(:root) .shell .sidebar .logout { color: #ffd7e0; }
+app-dashboard:not(:root) .shell .sidebar .logout:hover { color: #fff; background: rgba(255, 174, 193, .16); }
+app-dashboard:not(:root) main .page-head { align-items: center; padding-bottom: 22px; border-bottom: 1px solid rgba(110, 111, 168, .14); }
+app-dashboard:not(:root) main .page-head h1 { color: #25264b; font-size: 28px; letter-spacing: -.035em; }
+app-dashboard:not(:root) main .page-subtitle,
+app-dashboard:not(:root) main .section-title p { color: #686d88; line-height: 1.5; }
+app-dashboard:not(:root) .head-actions,
+app-dashboard:not(:root) .header-profile { display: flex; align-items: center; gap: 10px; }
+app-dashboard:not(:root) .header-profile {
+  max-width: 220px;
+  min-width: 0;
+  padding: 5px 11px 5px 6px;
+  border: 1px solid #e6e5f4;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, .82);
+}
+app-dashboard:not(:root) .header-avatar { flex: 0 0 34px; width: 34px; height: 34px; }
+app-dashboard:not(:root) .header-user-name { min-width: 0; color: #37385d; line-height: 1.35; overflow-wrap: anywhere; }
+app-dashboard:not(:root) .head-actions .notification-button {
+  color: #55517f;
+  border-color: #e6e5f1;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 5px 16px rgba(49, 47, 112, .07);
+}
+app-dashboard:not(:root) .head-actions .notification-button:hover { color: #5142bd; background: #f8f7ff; }
+app-dashboard:not(:root) .notification-dropdown { border-color: #e8e6f5; border-radius: 16px; box-shadow: 0 20px 48px rgba(37, 38, 91, .16); }
+app-dashboard:not(:root) .stats > div,
+app-dashboard:not(:root) .stats > button {
+  color: #36375d;
+  border: 1px solid #e2e0f2;
+  background: linear-gradient(145deg, #fff, #fbfaff);
+  box-shadow: 0 10px 26px rgba(42, 43, 98, .06);
+  transition: transform .18s, box-shadow .18s, border-color .18s;
+}
+app-dashboard:not(:root) .stats > button:hover { transform: translateY(-2px); border-color: #c9c3f5 !important; box-shadow: 0 14px 30px rgba(63, 55, 142, .11); }
+app-dashboard:not(:root) .dashboard-stat-icon { color: #594dc4; background: #efedff; }
+app-dashboard:not(:root) .dashboard-stat-icon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+app-dashboard:not(:root) .stats b,
+app-dashboard:not(:root) .availability-summary b { color: #343075; }
+app-dashboard:not(:root) .stats span,
+app-dashboard:not(:root) .availability-summary span { color: #6c718b; }
+app-dashboard:not(:root) .section-title h2 { color: #2b2c50; font-size: 19px; letter-spacing: -.02em; }
+app-dashboard:not(:root) .meeting-list article {
+  min-width: 0;
+  border-color: #e7e6f2;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 7px 22px rgba(42, 43, 98, .045);
+  transition: transform .18s, border-color .18s, box-shadow .18s;
+}
+app-dashboard:not(:root) .meeting-list article:hover { transform: translateY(-1px); border-color: #d1ccf5; box-shadow: 0 11px 28px rgba(42, 43, 98, .09); }
+app-dashboard:not(:root) .meeting-list article.cancelled,
+app-dashboard:not(:root) .meeting-list article.past:not(.cancelled) { opacity: 1; }
+app-dashboard:not(:root) .meeting-list article.cancelled { background: #f7f6fb; }
+app-dashboard:not(:root) .meeting-list article.past:not(.cancelled) { background: #faf9fd; }
+app-dashboard:not(:root) .meeting-list .date { color: #5145b5; background: linear-gradient(145deg, #f0edff, #eaf1ff); border-radius: 12px; }
+app-dashboard:not(:root) .meeting-list .date b { color: #40388e; }
+app-dashboard:not(:root) .meeting-list .date small { color: #675cd0; }
+app-dashboard:not(:root) .meeting-info { min-width: 0; }
+app-dashboard:not(:root) .meeting-info h3 { color: #2c2d50; overflow-wrap: anywhere; }
+app-dashboard:not(:root) .meeting-info p { color: #70758e; line-height: 1.55; overflow-wrap: anywhere; }
+app-dashboard:not(:root) .meeting-list em { color: #4e42b2; background: #f0eeff; border-radius: 20px; font-weight: 650; }
+app-dashboard:not(:root) .meeting-list em.status-confirmed,
+app-dashboard:not(:root) .meeting-list em.availability-submitted { color: #16764f; background: #eaf8f1; }
+app-dashboard:not(:root) .meeting-list em.status-scheduled,
+app-dashboard:not(:root) .meeting-list em.status-rescheduled { color: #5142bd; background: #efedff; }
+app-dashboard:not(:root) .meeting-list em.status-cancelled,
+app-dashboard:not(:root) .meeting-list em.status-past { color: #696d83; background: #efeff5; }
+app-dashboard:not(:root) .empty { color: #71758d; border-color: #d8d6ed; border-radius: 15px; background: rgba(255, 255, 255, .82); }
+app-dashboard:not(:root) .empty h3 { color: #303154; }
+app-dashboard:not(:root) .empty p { color: #72768e; }
+app-dashboard:not(:root) .primary {
+  border-radius: 11px;
+  background: linear-gradient(105deg, #5547c6, #7567df);
+  box-shadow: 0 8px 18px rgba(83, 69, 194, .2);
+}
+app-dashboard:not(:root) .primary:hover:not(:disabled) { background: linear-gradient(105deg, #4739b4, #6556ce); }
+app-dashboard:not(:root) .quiet { color: #555677; border-color: #e3e2ef; border-radius: 10px; }
+app-dashboard:not(:root) .quiet:hover:not(:disabled) { color: #4840a1; border-color: #d2cdf2; background: #f7f6ff; }
+app-dashboard:not(:root) .link,
+app-dashboard:not(:root) .notification-header button,
+app-dashboard:not(:root) .mark-read { color: #5649bf; }
+app-dashboard:not(:root) .form,
+app-dashboard:not(:root) .slot-result { border-color: #e6e4f1; border-radius: 16px; box-shadow: 0 10px 28px rgba(42, 43, 98, .06); }
+app-dashboard:not(:root) .form { background: rgba(255, 255, 255, .96); }
+app-dashboard:not(:root) .form label { color: #454664; }
+app-dashboard:not(:root) .form input,
+app-dashboard:not(:root) .form select { color: #30314f; border-color: #dfdeed; border-radius: 10px; }
+app-dashboard:not(:root) .form input:focus,
+app-dashboard:not(:root) .form select:focus { border-color: #796ce0; box-shadow: 0 0 0 3px rgba(99, 82, 213, .14); }
+app-dashboard:not(:root) .person-card,
+app-dashboard:not(:root) .availability-card { border-color: #e6e5f0; border-radius: 12px; background: #fff; }
+app-dashboard:not(:root) .person-avatar,
+app-dashboard:not(:root) .availability-card .avatar,
+app-dashboard:not(:root) .slot-icon { color: #5142bd; background: #efedff; }
+app-dashboard:not(:root) .availability-card small { color: #747990; }
+app-dashboard:not(:root) .availability-card strong { color: #494b6b; background: #f6f5fc; white-space: normal; overflow-wrap: anywhere; }
+app-dashboard:not(:root) .submitted-status { color: #16764f !important; background: #eaf8f1 !important; }
+app-dashboard:not(:root) .pending-status { color: #965e0e !important; background: #fff5e5 !important; }
+app-dashboard:not(:root) .slot-result { background: linear-gradient(145deg, #f4f1ff, #fff); border-color: #d8d2fa; }
+app-dashboard:not(:root) .slot-result h3 { color: #3c347e; }
+app-dashboard:not(:root) .sidebar-toggle:focus-visible,
+app-dashboard:not(:root) .sidebar nav button:focus-visible,
+app-dashboard:not(:root) .sidebar .logout:focus-visible,
+app-dashboard:not(:root) .notification-button:focus-visible,
+app-dashboard:not(:root) .primary:focus-visible,
+app-dashboard:not(:root) .quiet:focus-visible,
+app-dashboard:not(:root) .link:focus-visible,
+app-dashboard:not(:root) .workspace-stat:focus-visible { outline: 3px solid #b9b0ff; outline-offset: 3px; }
+
+/* Personal meetings visual theme */
+app-my-meetings:not(:root) .participant-dashboard {
+  color: #292a4b;
+  background: radial-gradient(ellipse at 82% 0, #e5e2ff 0, transparent 35%), linear-gradient(135deg, #f5f5ff, #f2f7ff);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+}
+app-my-meetings:not(:root) .participant-dashboard .participant-topbar {
+  background: rgba(255, 255, 255, .9);
+  border-bottom-color: rgba(110, 111, 168, .14);
+  box-shadow: 0 7px 24px rgba(42, 43, 98, .055);
+  backdrop-filter: blur(14px);
+}
+app-my-meetings:not(:root) .participant-dashboard .participant-brand { color: #292851; letter-spacing: -.035em; }
+app-my-meetings:not(:root) .participant-dashboard .participant-brand b { background: linear-gradient(145deg, #8172ed, #5146c7); border-radius: 13px; box-shadow: 0 8px 19px rgba(82, 70, 195, .24); }
+app-my-meetings:not(:root) .participant-dashboard .participant-header-actions { gap: 12px; }
+app-my-meetings:not(:root) .participant-dashboard .participant-profile { min-width: 0; gap: 8px; }
+app-my-meetings:not(:root) .participant-dashboard .participant-avatar { flex: 0 0 38px; color: #5142bd; background: linear-gradient(145deg, #f0edff, #e8f1ff); }
+app-my-meetings:not(:root) .participant-dashboard .participant-name { color: #393a5d; line-height: 1.35; }
+app-my-meetings:not(:root) .participant-dashboard .topbar-logout {
+  color: #5142bd;
+  border-color: #e3e1f1;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .92);
+  transition: background .18s, border-color .18s, box-shadow .18s;
+}
+app-my-meetings:not(:root) .participant-dashboard .topbar-logout:hover { border-color: #d3cef4; background: #f4f2ff; box-shadow: 0 5px 14px rgba(72, 65, 160, .08); }
+app-my-meetings:not(:root) .participant-dashboard .main-content .page-header { padding-bottom: 22px; border-bottom: 1px solid rgba(110, 111, 168, .14); }
+app-my-meetings:not(:root) .participant-dashboard .main-content .page-header h1 { color: #25264b; letter-spacing: -.035em; }
+app-my-meetings:not(:root) .participant-dashboard .main-content .page-header p { color: #686d88; line-height: 1.55; }
+app-my-meetings:not(:root) .participant-dashboard .notification-btn {
+  color: #55517f;
+  border: 1px solid #e6e5f1;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 5px 16px rgba(49, 47, 112, .07);
+  transition: color .18s, background .18s, border-color .18s, box-shadow .18s;
+}
+app-my-meetings:not(:root) .participant-dashboard .notification-btn:hover { color: #5142bd; border-color: #d7d2f4; background: #f8f7ff; }
+app-my-meetings:not(:root) .participant-dashboard .notification-btn svg,
+app-my-meetings:not(:root) .participant-dashboard .notification-icon svg,
+app-my-meetings:not(:root) .participant-dashboard .stat-icon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+app-my-meetings:not(:root) .participant-dashboard .notification-dot,
+app-my-meetings:not(:root) .participant-dashboard .notification-icon { background: #8979ed; }
+app-my-meetings:not(:root) .participant-dashboard .notification-panel { border-color: #e8e6f5; border-radius: 16px; box-shadow: 0 20px 48px rgba(37, 38, 91, .16); }
+app-my-meetings:not(:root) .participant-dashboard .notification-header { border-bottom-color: #eeedf6; }
+app-my-meetings:not(:root) .participant-dashboard .notification-header h3,
+app-my-meetings:not(:root) .participant-dashboard .notification-title { color: #303154; }
+app-my-meetings:not(:root) .participant-dashboard .notification-header button { color: #5649bf; }
+app-my-meetings:not(:root) .participant-dashboard .notification-item { border-bottom-color: #f0eff7; }
+app-my-meetings:not(:root) .participant-dashboard .notification-item:hover,
+app-my-meetings:not(:root) .participant-dashboard .notification-item.unread { background: #f8f7ff; }
+app-my-meetings:not(:root) .participant-dashboard .notification-message { color: #626780; overflow-wrap: anywhere; }
+app-my-meetings:not(:root) .participant-dashboard .main-content .stats-grid { gap: 16px; }
+app-my-meetings:not(:root) .participant-dashboard .main-content .stat-card {
+  min-width: 0;
+  border-color: #e5e4f1;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fff, #fbfaff);
+  box-shadow: 0 10px 26px rgba(42, 43, 98, .06);
+  transition: transform .18s, border-color .18s, box-shadow .18s;
+}
+app-my-meetings:not(:root) .participant-dashboard .main-content .stat-card:hover { transform: translateY(-2px); border-color: #d1ccf5; box-shadow: 0 14px 30px rgba(63, 55, 142, .1); }
+app-my-meetings:not(:root) .participant-dashboard .stat-icon { color: #594dc4; background: linear-gradient(145deg, #efedff, #eaf1ff); border-radius: 13px; }
+app-my-meetings:not(:root) .participant-dashboard .stat-card p { color: #70748d; }
+app-my-meetings:not(:root) .participant-dashboard .stat-card h2 { color: #373078; }
+app-my-meetings:not(:root) .participant-dashboard .section-heading h2 { color: #2b2c50; letter-spacing: -.025em; }
+app-my-meetings:not(:root) .participant-dashboard .section-heading p { color: #737791; line-height: 1.5; }
+app-my-meetings:not(:root) .participant-dashboard .main-content .meeting-card {
+  min-width: 0;
+  border-color: #e6e5f1;
+  border-radius: 15px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 7px 22px rgba(42, 43, 98, .05);
+  transition: transform .18s, border-color .18s, box-shadow .18s;
+}
+app-my-meetings:not(:root) .participant-dashboard .meeting-card:hover { transform: translateY(-1px); border-color: #d1ccf5; box-shadow: 0 11px 28px rgba(42, 43, 98, .09); }
+app-my-meetings:not(:root) .participant-dashboard .meeting-card.pending-card { border-color: #d8d2fa; background: linear-gradient(110deg, #f7f5ff, #fff); }
+app-my-meetings:not(:root) .participant-dashboard .meeting-card.past-card,
+app-my-meetings:not(:root) .participant-dashboard .meeting-card.cancelled-card { opacity: 1; background: rgba(250, 249, 253, .94); }
+app-my-meetings:not(:root) .participant-dashboard .meeting-details,
+app-my-meetings:not(:root) .participant-dashboard .meeting-title-row { min-width: 0; }
+app-my-meetings:not(:root) .participant-dashboard .meeting-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+app-my-meetings:not(:root) .participant-dashboard .meeting-title-row h3 { color: #2c2d50; overflow-wrap: anywhere; }
+app-my-meetings:not(:root) .participant-dashboard .meeting-date { color: #70758e; line-height: 1.6; overflow-wrap: anywhere; }
+app-my-meetings:not(:root) .participant-dashboard .status,
+app-my-meetings:not(:root) .participant-dashboard .priority-chip { border-radius: 20px; font-weight: 650; }
+app-my-meetings:not(:root) .participant-dashboard .status.pending { color: #965e0e; background: #fff5e5; }
+app-my-meetings:not(:root) .participant-dashboard .status.submitted,
+app-my-meetings:not(:root) .participant-dashboard .status.confirmed { color: #16764f; background: #eaf8f1; }
+app-my-meetings:not(:root) .participant-dashboard .status.scheduled { color: #5142bd; background: #efedff; }
+app-my-meetings:not(:root) .participant-dashboard .status.cancelled { color: #a33745; background: #fff0f0; }
+app-my-meetings:not(:root) .participant-dashboard .status.completed,
+app-my-meetings:not(:root) .participant-dashboard .status.past { color: #696d83; background: #efeff5; }
+app-my-meetings:not(:root) .participant-dashboard .priority-chip { display: inline-block; padding: 2px 8px; color: #574cae; background: #f0eeff; font-size: 11px; white-space: normal; }
+app-my-meetings:not(:root) .participant-dashboard .primary-btn {
+  color: #fff;
+  border-radius: 11px;
+  background: linear-gradient(105deg, #5547c6, #7567df);
+  box-shadow: 0 8px 18px rgba(83, 69, 194, .2);
+  transition: transform .18s, box-shadow .18s, background .18s;
+}
+app-my-meetings:not(:root) .participant-dashboard .primary-btn:hover { transform: translateY(-1px); background: linear-gradient(105deg, #4739b4, #6556ce); box-shadow: 0 10px 22px rgba(83, 69, 194, .26); }
+app-my-meetings:not(:root) .participant-dashboard .submitted-text { color: #16764f; font-weight: 650; }
+app-my-meetings:not(:root) .participant-dashboard .empty-state { color: #71758d; border-color: #d8d6ed; border-radius: 15px; background: rgba(255, 255, 255, .82); }
+app-my-meetings:not(:root) .participant-dashboard .notification-btn:focus-visible,
+app-my-meetings:not(:root) .participant-dashboard .notification-header button:focus-visible,
+app-my-meetings:not(:root) .participant-dashboard .topbar-logout:focus-visible,
+app-my-meetings:not(:root) .participant-dashboard .primary-btn:focus-visible { outline: 3px solid #b9b0ff; outline-offset: 3px; }
+@media (max-width: 600px) {
+  app-dashboard:not(:root) .shell .page-head { flex-wrap: wrap; gap: 12px; }
+  app-dashboard:not(:root) .head-actions { max-width: 100%; gap: 8px; }
+  app-dashboard:not(:root) .header-profile { max-width: min(180px, 52vw); }
+  app-dashboard:not(:root) .header-user-name { display: block; font-size: 12px; }
+  app-dashboard:not(:root) .meeting-info { min-width: 0; flex: 1 1 calc(100% - 70px); }
+  app-dashboard:not(:root) .meeting-list article em { margin-left: 0; white-space: normal; overflow-wrap: anywhere; }
+  app-my-meetings:not(:root) .participant-dashboard .participant-topbar { flex-wrap: wrap; align-content: center; }
+  app-my-meetings:not(:root) .participant-dashboard .participant-header-actions { min-width: 0; max-width: 100%; margin-left: auto; gap: 8px; }
+  app-my-meetings:not(:root) .participant-dashboard .participant-profile { max-width: min(150px, 42vw); }
+  app-my-meetings:not(:root) .participant-dashboard .participant-avatar { flex-basis: 32px; width: 32px; height: 32px; }
+  app-my-meetings:not(:root) .participant-dashboard .participant-name { display: inline; max-width: min(92px, 24vw); white-space: normal; overflow-wrap: anywhere; text-overflow: clip; font-size: 11px; }
+  app-my-meetings:not(:root) .participant-dashboard .topbar-logout { padding: 8px 9px; }
+  app-my-meetings:not(:root) .participant-dashboard .main-content { padding: 22px 16px; }
+  app-my-meetings:not(:root) .participant-dashboard .page-header { gap: 8px; }
+  app-my-meetings:not(:root) .participant-dashboard .meeting-card { gap: 12px; }
+  app-my-meetings:not(:root) .participant-dashboard .meeting-details { width: 100%; }
+  app-my-meetings:not(:root) .participant-dashboard .meeting-title-row { gap: 6px; }
+  app-my-meetings:not(:root) .participant-dashboard .meeting-title-row h3 { flex: 1 1 100%; }
+  app-my-meetings:not(:root) .participant-dashboard .meeting-date { font-size: 12px; }
+  app-my-meetings:not(:root) .participant-dashboard .primary-btn { max-width: 100%; white-space: normal; }
+}
+@media (prefers-reduced-motion: reduce) {
+  app-dashboard:not(:root) .stats > div,
+  app-dashboard:not(:root) .stats > button,
+  app-dashboard:not(:root) .meeting-list article,
+  app-my-meetings:not(:root) .stat-card,
+  app-my-meetings:not(:root) .meeting-card,
+  app-my-meetings:not(:root) .topbar-logout,
+  app-my-meetings:not(:root) .notification-btn,
+  app-my-meetings:not(:root) .primary-btn { transition: none; }
+}
