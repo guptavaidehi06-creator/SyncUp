@@ -153,6 +153,43 @@ describe('Dashboard', () => {
     expect(navigateSpy).toHaveBeenLastCalledWith(['/admin', 'create']);
   });
 
+  it('keeps a cancelled meeting unchanged on No and confirms it in the in-app dialog on Yes', () => {
+    const meeting = {
+      id: 22,
+      title: 'Planning review',
+      meetingDate: component.getTomorrowDate(),
+      priority: 'High',
+      status: 'Scheduled',
+      createdBy: 7
+    };
+    component.meetings = [meeting];
+    fixture.detectChanges();
+
+    component.cancelMeeting(meeting);
+    (component as any).cdr.detectChanges();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.cancel-meeting-overlay')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('.cancel-meeting-modal')?.textContent).toContain('Yes, Cancel');
+
+    (fixture.nativeElement.querySelector('.cancel-meeting-actions .quiet') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(component.meetings[0].status).toBe('Scheduled');
+    expect(httpMock.match(request => request.url.endsWith('/api/meetings/22'))).toHaveLength(0);
+
+    component.cancelMeeting(meeting);
+    (component as any).cdr.detectChanges();
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('.cancel-meeting-confirm') as HTMLButtonElement).click();
+    const update = httpMock.expectOne(request => request.method === 'PUT' && request.url.endsWith('/api/meetings/22'));
+    expect(update.request.body.status).toBe('Cancelled');
+    update.flush({ ...meeting, status: 'Cancelled' });
+
+    fixture.detectChanges();
+    expect(component.meetings[0].status).toBe('Cancelled');
+    expect(fixture.nativeElement.querySelector('.cancel-meeting-overlay')).toBeNull();
+    expect(component.meetingToastMessage).toBe('Meeting cancelled successfully! 🎉');
+  });
+
   it('keeps the empty Today section compact and before Upcoming Meetings', () => {
     component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
     component.meetings = [];

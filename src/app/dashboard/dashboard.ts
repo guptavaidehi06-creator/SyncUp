@@ -72,6 +72,8 @@ export class Dashboard implements OnInit, OnDestroy {
 
   notificationsOpen = false;
   showLogoutConfirmation = false;
+  meetingToCancel: Meeting | null = null;
+  isCancellingMeeting = false;
 
   currentUser: User | null = null;
 
@@ -1029,20 +1031,28 @@ export class Dashboard implements OnInit, OnDestroy {
   ): void {
 
     if (
+      this.isCancellingMeeting ||
       meeting.status === 'Cancelled' ||
       this.isMeetingPast(meeting)
     ) {
       return;
     }
 
-    const confirmed =
-      confirm(
-        `Cancel "${meeting.title}"?`
-      );
+    this.meetingToCancel = meeting;
+  }
 
-    if (!confirmed) {
+  closeCancelMeetingConfirmation(): void {
+    if (this.isCancellingMeeting) return;
+    this.meetingToCancel = null;
+  }
+
+  confirmCancelMeeting(): void {
+    const meeting = this.meetingToCancel;
+    if (!meeting || this.isCancellingMeeting || meeting.status === 'Cancelled' || this.isMeetingPast(meeting)) {
       return;
     }
+
+    this.isCancellingMeeting = true;
 
     const updatedMeeting: Meeting = {
 
@@ -1075,7 +1085,11 @@ export class Dashboard implements OnInit, OnDestroy {
               updated;
           }
 
+          this.meetingToCancel = null;
+          this.isCancellingMeeting = false;
+          this.showMeetingToast('Meeting cancelled successfully! 🎉');
           this.loadNotifications();
+          this.cdr.detectChanges();
         },
 
         error: (err) => {
@@ -1085,9 +1099,11 @@ export class Dashboard implements OnInit, OnDestroy {
             err
           );
 
-          alert(
-            'Unable to cancel meeting.'
-          );
+          this.isCancellingMeeting = false;
+          const message = typeof err?.error === 'string'
+            ? err.error
+            : err?.error?.message || 'Unable to cancel meeting.';
+          this.showMeetingToast(message, 'error');
         }
 
       });

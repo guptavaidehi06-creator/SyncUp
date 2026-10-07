@@ -804,6 +804,19 @@
     {{ participantSuccessMessage }}
   </div>
 
+  <div class="cancel-meeting-overlay" *ngIf="meetingToCancel">
+    <section class="cancel-meeting-modal" role="dialog" aria-modal="true" aria-labelledby="cancel-meeting-title">
+      <h2 id="cancel-meeting-title">Cancel meeting?</h2>
+      <p>Are you sure you want to cancel <strong>{{ meetingToCancel.title }}</strong>?</p>
+      <div class="cancel-meeting-actions">
+        <button class="quiet" type="button" (click)="closeCancelMeetingConfirmation()" [disabled]="isCancellingMeeting">No</button>
+        <button class="cancel-meeting-confirm" type="button" (click)="confirmCancelMeeting()" [disabled]="isCancellingMeeting">
+          {{ isCancellingMeeting ? 'Cancelling…' : 'Yes, Cancel' }}
+        </button>
+      </div>
+    </section>
+  </div>
+
   <!-- LOGOUT MODAL -->
   <div class="logout-overlay" *ngIf="showLogoutConfirmation">
 
