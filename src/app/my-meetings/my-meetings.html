@@ -16,12 +16,12 @@
     </div>
 
     <nav class="sidebar-menu">
-      <button class="menu-item" [class.active]="activePage === 'meetings'" (click)="setPage('meetings')">
-        <span>📅</span>
+      <button class="menu-item" [class.active]="activePage === 'meetings'" [attr.aria-label]="sidebarOpen ? null : 'My Meetings'" [attr.aria-current]="activePage === 'meetings' ? 'page' : null" (click)="setPage('meetings')">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 10h16M8 14h3m-3 3h3m3-3h2"/></svg>
         <span *ngIf="sidebarOpen">My Meetings</span>
       </button>
-      <button class="menu-item" [class.active]="activePage === 'availability'" (click)="setPage('availability')">
-        <span>◷</span>
+      <button class="menu-item" [class.active]="activePage === 'availability'" [attr.aria-label]="sidebarOpen ? null : 'Availability'" [attr.aria-current]="activePage === 'availability' ? 'page' : null" (click)="setPage('availability')">
+        <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
         <span *ngIf="sidebarOpen">Availability</span>
       </button>
     </nav>
@@ -45,6 +45,7 @@
 
       <button
         class="logout-btn"
+        [attr.aria-label]="sidebarOpen ? null : 'Log out'"
         (click)="logout()">
         <span>↪</span>
         <span *ngIf="sidebarOpen">Logout</span>
@@ -57,8 +58,8 @@
     <!-- Header -->
     <div class="page-header">
       <div>
-        <h1>{{ activePage === 'meetings' ? 'Welcome, ' + currentUser?.name : 'Availability' }}</h1>
-        <p>{{ activePage === 'meetings' ? 'Your upcoming schedule and availability actions.' : 'Track pending submissions and review upcoming meeting availability.' }}</p>
+        <h1>{{ activePage === 'meetings' ? 'My Meetings' : 'Availability' }}</h1>
+        <p>{{ activePage === 'meetings' ? 'Welcome, ' + currentUser?.name + '. Your upcoming schedule and availability actions.' : 'Track pending submissions and review upcoming meeting availability.' }}</p>
       </div>
 
       <!-- Notification Bell -->
@@ -70,7 +71,7 @@
           [attr.aria-expanded]="showNotifications"
           (click)="toggleNotifications()">
 
-          🔔
+          <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
 
           <span
             class="notification-dot"
@@ -111,13 +112,13 @@
               <span
                 *ngIf="notification.type === 'Availability'">
 
-                📅
+                <svg aria-hidden="true" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 10h16"/></svg>
               </span>
 
               <span
                 *ngIf="notification.type !== 'Availability'">
 
-                🔔
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
               </span>
             </div>
 
@@ -138,9 +139,7 @@
     <!-- Stats -->
     <div class="stats-grid" *ngIf="activePage === 'meetings'">
       <div class="stat-card">
-        <div class="stat-icon">
-          📅
-        </div>
+        <div class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 10h16"/></svg></div>
 
         <div>
           <p>Upcoming</p>
@@ -152,9 +151,7 @@
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon">
-          ◷
-        </div>
+        <div class="stat-icon today-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
 
         <div>
           <p>Today</p>
@@ -166,9 +163,7 @@
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon">
-          !
-        </div>
+        <div class="stat-icon pending-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 2.8 20h18.4z"/><path d="M12 9v5m0 3h.01"/></svg></div>
 
         <div>
           <p>Availability Pending</p>
@@ -207,6 +202,14 @@
               {{ meeting.title }}
             </h3>
 
+            <span class="status meeting-status"
+              [class.confirmed]="meeting.status?.toLowerCase() === 'confirmed'"
+              [class.cancelled]="meeting.status?.toLowerCase() === 'cancelled'"
+              [class.completed]="meeting.status?.toLowerCase() === 'completed'"
+              [class.scheduled]="meeting.status?.toLowerCase() === 'scheduled' || meeting.status?.toLowerCase() === 'rescheduled'">
+              {{ meeting.status || 'Scheduled' }}
+            </span>
+
             <span class="status pending">
               Availability Pending
             </span>
@@ -218,7 +221,7 @@
             {{ meeting.meetingTime || 'Time to be scheduled' }}
             <ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
             · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants
-            · {{ meeting.priority }} priority
+            · <span class="priority-chip">{{ meeting.priority }} priority</span>
           </p>
         </div>
 
@@ -243,13 +246,20 @@
         <div class="meeting-details">
           <div class="meeting-title-row">
             <h3>{{ meeting.title }}</h3>
+            <span class="status meeting-status"
+              [class.confirmed]="meeting.status?.toLowerCase() === 'confirmed'"
+              [class.cancelled]="meeting.status?.toLowerCase() === 'cancelled'"
+              [class.completed]="meeting.status?.toLowerCase() === 'completed'"
+              [class.scheduled]="meeting.status?.toLowerCase() === 'scheduled' || meeting.status?.toLowerCase() === 'rescheduled'">
+              {{ meeting.status || 'Scheduled' }}
+            </span>
             <span class="status pending" *ngIf="needsAvailability(meeting)">Pending</span>
             <span class="status submitted" *ngIf="hasSubmittedAvailability(meeting.id)">Availability Submitted</span>
           </div>
           <p class="meeting-date">
             {{ meeting.meetingDate | date:'mediumDate' }}
             · {{ meeting.meetingTime || 'Time to be scheduled' }}<ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
-            · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants · {{ meeting.priority }} priority
+            · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants · <span class="priority-chip">{{ meeting.priority }} priority</span>
           </p>
         </div>
         <button *ngIf="needsAvailability(meeting)" class="primary-btn" (click)="goToSubmitAvailability(meeting.id)">
@@ -289,6 +299,14 @@
               {{ meeting.title }}
             </h3>
 
+            <span class="status meeting-status"
+              [class.confirmed]="meeting.status?.toLowerCase() === 'confirmed'"
+              [class.cancelled]="meeting.status?.toLowerCase() === 'cancelled'"
+              [class.completed]="meeting.status?.toLowerCase() === 'completed'"
+              [class.scheduled]="meeting.status?.toLowerCase() === 'scheduled' || meeting.status?.toLowerCase() === 'rescheduled'">
+              {{ meeting.status || 'Scheduled' }}
+            </span>
+
             <span
               class="status submitted"
               *ngIf="hasSubmittedAvailability(meeting.id)">
@@ -310,7 +328,7 @@
             {{ meeting.meetingTime || 'Time to be scheduled' }}
             <ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
             · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants
-            · {{ meeting.priority }} priority
+            · <span class="priority-chip">{{ meeting.priority }} priority</span>
           </p>
         </div>
 
@@ -369,7 +387,7 @@
             {{ meeting.meetingTime || 'Time to be scheduled' }}
             <ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
             · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants
-            · {{ meeting.priority }} priority
+            · <span class="priority-chip">{{ meeting.priority }} priority</span>
           </p>
         </div>
       </div>
@@ -413,7 +431,7 @@
             <p class="meeting-date">
               {{ meeting.meetingDate | date:'mediumDate' }}
               · {{ meeting.meetingTime || 'Time to be scheduled' }}<ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container>
-              · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants · {{ meeting.priority }} priority
+              · {{ getMeetingDuration(meeting) }} · {{ getParticipantCount(meeting.id) }} participants · <span class="priority-chip">{{ meeting.priority }} priority</span>
             </p>
           </div>
           <button *ngIf="needsAvailability(meeting)" class="primary-btn" (click)="goToSubmitAvailability(meeting.id)">

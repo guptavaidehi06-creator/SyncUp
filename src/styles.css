@@ -44,3 +44,173 @@ app-dashboard .shell{background:radial-gradient(ellipse at 82% 0,#efedff 0,trans
 /* Preserve dashboard layout and dynamic state treatments */
 app-dashboard .workspace-stat{font:inherit;cursor:pointer}app-dashboard .workspace-stat:hover{border-color:#c7c2f4!important;background:#faf9ff!important}app-dashboard .availability-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}app-dashboard .availability-summary>div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border:1px solid #e7e9ef;border-radius:11px;background:#fff}app-dashboard .availability-summary span{color:#737987;font-size:12px}app-dashboard .availability-summary b{color:#373078;font-size:18px}app-dashboard .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:24px}app-dashboard .stats>div,app-dashboard .stats>button{display:flex;flex-direction:column;justify-content:center;min-width:0;text-align:left}app-dashboard .stats span{color:#7b8290;font-size:12px;line-height:1.3}app-dashboard .home-action-required{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:28px 0;padding:18px 20px;border:1px solid #f2dfb9;border-radius:14px;background:#fffbf2}app-dashboard .home-action-required h2{margin:0;font-size:17px}app-dashboard .home-action-required p{margin:6px 0 0;color:#737987;font-size:13px}app-dashboard .home-availability-status{margin-top:32px}app-dashboard .meeting-save-error{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border:1px solid #f2caca;border-radius:11px;background:#fff4f4;color:#b93440;font-size:13px}app-dashboard .meeting-save-error p{margin:0}
 @media(max-width:600px){app-dashboard .home-action-required,app-dashboard .meeting-save-error{align-items:flex-start;flex-direction:column}app-dashboard .availability-summary{grid-template-columns:1fr}}
+
+/* Shared SyncUp workspace refinements (kept off the branded auth screens). */
+app-dashboard nav button,
+app-dashboard .logout,
+app-my-meetings .menu-item,
+app-my-meetings .logout-btn {
+  min-height: 44px;
+}
+
+app-dashboard nav button > svg,
+app-dashboard .notification-button > svg,
+app-my-meetings .menu-item > svg,
+app-my-meetings .notification-btn > svg,
+app-my-meetings .notification-icon svg,
+app-my-meetings .stat-icon svg {
+  width: 19px;
+  height: 19px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+app-dashboard nav button > svg { margin: 0 2px; }
+app-dashboard nav button:focus-visible,
+app-dashboard .sidebar-toggle:focus-visible,
+app-dashboard .notification-button:focus-visible,
+app-dashboard .primary:focus-visible,
+app-dashboard .quiet:focus-visible,
+app-my-meetings .menu-item:focus-visible,
+app-my-meetings .sidebar-toggle:focus-visible,
+app-my-meetings .notification-btn:focus-visible,
+app-my-meetings .primary-btn:focus-visible {
+  outline: 3px solid rgba(101, 87, 218, .3);
+  outline-offset: 2px;
+}
+
+app-dashboard .stats > div,
+app-dashboard .stats > button {
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: flex-start !important;
+  gap: 14px;
+}
+
+app-dashboard .dashboard-stat-icon {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: #f0efff;
+  color: #5749c5;
+}
+
+app-dashboard .dashboard-stat-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+app-dashboard .dashboard-stat-icon.today-icon { background: #eef5ff; color: #4468c8; }
+app-dashboard .dashboard-stat-icon.people-icon { background: #f5efff; color: #7250bc; }
+app-dashboard .dashboard-stat-copy { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+app-dashboard .dashboard-stat-copy b { font-size: 25px; line-height: 1; }
+app-dashboard .stats .dashboard-stat-copy > span { font-size: 12px; }
+
+app-dashboard .meeting-list article em.status-confirmed,
+app-my-meetings .meeting-status.confirmed { background: #eaf8f1; color: #16764f; }
+app-dashboard .meeting-list article em.status-scheduled,
+app-dashboard .meeting-list article em.status-rescheduled,
+app-my-meetings .meeting-status.scheduled { background: #f0efff; color: #5142bd; }
+app-dashboard .meeting-list article em.status-cancelled,
+app-my-meetings .meeting-status.cancelled { background: #fff0f0; color: #b93440; }
+app-dashboard .meeting-list article em.status-completed,
+app-my-meetings .meeting-status.completed { background: #f0eff5; color: #686b7d; }
+
+app-dashboard .narrow { width: min(100%, 760px); }
+app-dashboard .form {
+  padding: clamp(22px, 3vw, 34px);
+  border-color: #e5e5f0;
+  background: linear-gradient(155deg, #fff 65%, #fbfaff);
+}
+app-dashboard .form > label { color: #242744; font-size: 14px; }
+app-dashboard .form .form-label-text { display: inline-flex; align-items: center; gap: 4px; }
+app-dashboard .form .required-mark { color: #6b5bd5; font-weight: 800; }
+app-dashboard .form .field-help { color: #85899d; font-size: 11px; font-weight: 450; }
+app-dashboard .form .field-error { color: #b93440; font-size: 12px; font-weight: 550; }
+app-dashboard .form input[aria-invalid="true"] { border-color: #d76b74; }
+app-dashboard .form > .primary { min-height: 48px; margin-top: 4px; }
+
+app-dashboard .mandatory-toggle {
+  min-height: 70px;
+  margin: 0;
+  padding: 13px 15px;
+  border: 1px solid #e8e5f8;
+  border-radius: 13px;
+  background: #fbfaff;
+  cursor: pointer;
+}
+app-dashboard .mandatory-toggle > input { width: 18px !important; height: 18px !important; accent-color: #5c4dcc; }
+app-dashboard .mandatory-toggle .toggle-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 3px; }
+app-dashboard .mandatory-toggle .toggle-copy strong { color: #29264f; font-size: 13px; }
+app-dashboard .mandatory-toggle .toggle-copy small { color: #777b90; font-size: 11px; font-weight: 450; }
+app-dashboard .participant-kind,
+app-dashboard .selected-attendee-label {
+  width: max-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f0efff;
+  color: #5142bd !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+}
+app-dashboard .participant-kind.mandatory-kind { background: #fff5e5; color: #9a6109 !important; }
+app-dashboard .added-label { width: max-content; padding: 4px 8px; border-radius: 999px; background: #f1f2f7; }
+
+app-dashboard .slot-result {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(24px, 4vw, 38px);
+  text-align: left;
+}
+app-dashboard .slot-result:before {
+  content: "";
+  position: absolute;
+  top: -110px;
+  right: -80px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: rgba(119, 104, 235, .08);
+  pointer-events: none;
+}
+app-dashboard .slot-result .slot-icon { margin: 0 0 14px; background: #e9e6ff; color: #5749c5; }
+app-dashboard .slot-result h3 { font-size: 22px; }
+app-dashboard .slot-result p { margin: 10px 0; }
+app-dashboard .slot-result button.primary { width: 100%; min-height: 48px; margin-top: 16px; }
+
+app-my-meetings .meeting-title-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+app-my-meetings .meeting-title-row h3 { margin-right: 4px; }
+app-my-meetings .meeting-status { background: #f0efff; color: #5142bd; }
+app-my-meetings .meeting-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 12px; margin-top: 6px; color: #777b90; font-size: 12px; }
+app-my-meetings .meeting-meta .meeting-date { margin: 0; color: #626b85; font-size: 12px; }
+app-my-meetings .priority-chip { width: max-content; padding: 3px 8px; border-radius: 999px; background: #f7f4ed; color: #8a6727; font-size: 10px; font-weight: 700; }
+app-my-meetings .meeting-card { min-width: 0; border-color: #e7e7f0; background: rgba(255,255,255,.94); }
+app-my-meetings .meeting-details { min-width: 0; }
+app-my-meetings .meeting-date { line-height: 1.55; }
+app-my-meetings .notification-icon { color: #5749c5; background: #f0efff; }
+app-my-meetings .notification-icon svg { width: 14px; height: 14px; }
+app-my-meetings .notification-panel { backdrop-filter: blur(14px); }
+
+@media(max-width: 600px) {
+  app-dashboard .stats > div,
+  app-dashboard .stats > button { gap: 10px; }
+  app-dashboard .dashboard-stat-icon { width: 38px; height: 38px; flex-basis: 38px; }
+  app-dashboard .dashboard-stat-copy b { font-size: 22px; }
+  app-dashboard .mandatory-toggle { align-items: flex-start; flex-wrap: wrap; }
+  app-dashboard .mandatory-toggle .toggle-copy { flex-basis: calc(100% - 42px); }
+  app-dashboard .participant-kind { margin-left: 30px; }
+  app-my-meetings .meeting-title-row { align-items: flex-start; }
+  app-my-meetings .meeting-meta { gap: 4px 9px; }
+}

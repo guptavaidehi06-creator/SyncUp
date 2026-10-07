@@ -1172,6 +1172,14 @@ export class Dashboard implements OnInit, OnDestroy {
     );
   }
 
+  getExistingParticipantType(userId: number): 'Mandatory' | 'Optional' {
+    const participant = this.participants.find(item =>
+      Number(item.meetingId) === Number(this.participantMeetingId) &&
+      Number(item.userId) === Number(userId)
+    );
+    return participant?.isMandatory ? 'Mandatory' : 'Optional';
+  }
+
   // =========================
   // ADD PARTICIPANTS
   // =========================
