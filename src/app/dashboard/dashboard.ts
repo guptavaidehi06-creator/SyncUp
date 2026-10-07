@@ -483,6 +483,10 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   getAdminTodayMeetingCount(): number {
+    return this.getAdminTodayMeetings().length;
+  }
+
+  getAdminTodayMeetings(): Meeting[] {
     const today = this.getTodayDate();
     const userId = this.getCurrentUserId();
     const participantMeetingIds = new Set(
@@ -496,7 +500,7 @@ export class Dashboard implements OnInit, OnDestroy {
       return String(meeting.meetingDate).slice(0, 10) === today &&
         status !== 'cancelled' && status !== 'completed' &&
         (Number(meeting.createdBy) === userId || participantMeetingIds.has(Number(meeting.id)));
-    }).length;
+    }).sort((a, b) => this.getMeetingTimestamp(a) - this.getMeetingTimestamp(b));
   }
 
   getMeetingParticipantCount(meetingId: number | undefined): number {

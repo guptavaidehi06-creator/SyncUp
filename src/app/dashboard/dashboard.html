@@ -152,9 +152,36 @@
         </button>
       </div>
 
-      <div class="section-title">
+      <section class="today-meetings-section" aria-labelledby="today-meetings-title">
+        <div class="section-title today-section-title">
+          <div>
+            <h2 id="today-meetings-title">Today's Meetings</h2>
+            <p>Meetings happening in your workspace today.</p>
+          </div>
+        </div>
+
+        <div class="meeting-list today-meeting-list" *ngIf="getAdminTodayMeetings().length; else emptyTodayMeetings">
+          <article *ngFor="let meeting of getAdminTodayMeetings()">
+            <div class="date">
+              <b>{{ meeting.meetingDate | date:'dd' }}</b>
+              <small>{{ meeting.meetingDate | date:'MMM' }}</small>
+            </div>
+            <div class="meeting-info">
+              <h3>{{ meeting.title }}</h3>
+              <p>{{ meeting.meetingTime || 'Time to be scheduled' }}<ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container> · {{ getMeetingDuration(meeting) }} · {{ getMeetingParticipantCount(meeting.id) }} participants · {{ meeting.priority }} priority</p>
+            </div>
+            <em>{{ meeting.status }}</em>
+          </article>
+        </div>
+
+        <ng-template #emptyTodayMeetings>
+          <div class="empty today-empty"><h3>No meetings today</h3><p>Meetings scheduled for today will appear here.</p></div>
+        </ng-template>
+      </section>
+
+      <div class="section-title upcoming-section-title">
         <div>
-          <h2>Upcoming meetings</h2>
+          <h2>Upcoming Meetings</h2>
           <p>Keep track of your upcoming schedule.</p>
         </div>
 

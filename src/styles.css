@@ -626,3 +626,83 @@ app-my-meetings:not(:root) .participant-logout-actions button:focus-visible {
   outline: 3px solid #b9b0ff;
   outline-offset: 3px;
 }
+
+/* Compact phone layouts across auth and workspace screens. */
+@media (max-width: 600px) {
+  app-login .auth-page, app-sign-up .auth-page { min-width: 0; padding: 10px; }
+  app-login .auth-shell, app-sign-up .auth-shell { width: 100%; min-width: 0; border-radius: 20px; }
+  app-login .brand-panel, app-sign-up .brand-panel { min-width: 0; padding: 17px 18px 15px; }
+  app-login .brand-lockup, app-sign-up .brand-lockup { max-width: 100%; }
+  app-login .hero-illustration, app-sign-up .hero-illustration { width: min(220px, 100%); height: clamp(84px, 25vw, 108px); min-height: 0; }
+  app-login .meeting-art, app-sign-up .meeting-art { max-height: 100%; }
+  app-login .hero-copy h1, app-sign-up .hero-copy h1 { font-size: clamp(23px, 6vw, 28px); line-height: 1.12; }
+  app-login .hero-copy p, app-sign-up .hero-copy p { overflow-wrap: anywhere; }
+  app-login .form-panel, app-sign-up .form-panel { min-width: 0; padding: 22px 18px 24px; }
+  app-login .form-wrap, app-login form, app-login .form-group, app-login .input-wrap,
+  app-sign-up .form-wrap, app-sign-up form, app-sign-up .form-group, app-sign-up .password-field { width: 100%; min-width: 0; }
+  app-login .input-wrap input, app-sign-up .form-group input { min-width: 0; height: 49px; }
+  app-login .input-wrap input { padding-left: 48px; }
+  app-login .input-wrap > svg { left: 14px; width: 19px; }
+  app-login .form-options, app-sign-up .signup-prompt, app-sign-up .resend-section { gap: 10px; flex-wrap: wrap; }
+  app-login .primary-button, app-login .signup-button, app-sign-up .primary-button { max-width: 100%; height: 52px; }
+
+  app-dashboard .shell { min-width: 0; }
+  app-dashboard .shell > main { min-width: 0; padding: 18px 12px; }
+  app-dashboard .page-head { gap: 8px; }
+  app-dashboard .page-head > div:first-child { min-width: 0; }
+  app-dashboard .page-head h1 { font-size: 21px; overflow-wrap: anywhere; }
+  app-dashboard .page-subtitle { max-width: 100%; overflow-wrap: anywhere; }
+  app-dashboard .head-actions { flex: 0 0 auto; gap: 7px; }
+  app-dashboard .header-profile { min-width: 0; }
+  app-dashboard .header-user-name { display: none; }
+  app-dashboard .notification-dropdown { right: -4px; width: min(320px, calc(100vw - 96px)); }
+  app-dashboard .stats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  app-dashboard .stats > div, app-dashboard .stats > button { min-width: 0; }
+  app-dashboard .dashboard-stat-copy, app-dashboard .dashboard-stat-copy span { min-width: 0; overflow-wrap: anywhere; }
+  app-dashboard .section-title { gap: 8px; align-items: flex-start; }
+  app-dashboard .section-title > div { min-width: 0; }
+  app-dashboard .section-title h2, app-dashboard .section-title p { overflow-wrap: anywhere; }
+  app-dashboard .today-meetings-section { padding: 13px; margin-bottom: 20px; }
+  app-dashboard .meeting-list article { min-width: 0; gap: 10px; padding: 13px; }
+  app-dashboard .meeting-info { flex: 1 1 calc(100% - 56px); }
+  app-dashboard .meeting-info h3, app-dashboard .meeting-info p { overflow-wrap: anywhere; }
+  app-dashboard .meeting-list em { max-width: 100%; overflow-wrap: anywhere; }
+  app-dashboard .home-action-required { min-width: 0; }
+  app-dashboard .home-action-required button { max-width: 100%; white-space: normal; }
+  app-dashboard .form, app-dashboard .form input, app-dashboard .form select, app-dashboard .primary, app-dashboard .quiet { max-width: 100%; min-width: 0; }
+
+  app-my-meetings .user-dashboard, app-my-meetings .main-content, app-my-meetings .participant-topbar { min-width: 0; }
+  app-my-meetings .main-content { padding: 18px 12px; }
+  app-my-meetings .page-header > div:first-child { min-width: 0; }
+  app-my-meetings .page-header h1, app-my-meetings .page-header p { overflow-wrap: anywhere; }
+  app-my-meetings .page-header h1 { font-size: 21px; }
+  app-my-meetings .header-profile, app-my-meetings .notification-wrapper { min-width: 0; }
+  app-my-meetings .header-user-name { display: none; }
+  app-my-meetings .notification-panel { right: -4px; width: min(320px, calc(100vw - 96px)); }
+  app-my-meetings .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  app-my-meetings .stat-card { min-width: 0; overflow-wrap: anywhere; }
+  app-my-meetings .meeting-card { min-width: 0; gap: 10px; }
+  app-my-meetings .meeting-card h3, app-my-meetings .meeting-card p, app-my-meetings .meeting-card span { min-width: 0; overflow-wrap: anywhere; }
+  app-my-meetings .primary-btn, app-my-meetings .meeting-card button { max-width: 100%; white-space: normal; }
+  app-my-meetings .availability-stats { grid-template-columns: 1fr; }
+}
+app-dashboard .today-meetings-section { margin: 0 0 26px; padding: 18px; border: 1px solid #dcd7ff; border-radius: 16px; background: linear-gradient(135deg, #f7f5ff, #fff 72%); box-shadow: 0 8px 24px rgba(82, 67, 186, .07); }
+app-dashboard .today-section-title { margin: 0 0 14px; }
+app-dashboard .today-section-title h2 { font-weight: 750; }
+app-dashboard .today-meeting-list article { background: rgba(255,255,255,.9); }
+app-dashboard .today-empty { margin: 0; }
+@media (max-width: 600px) {
+  app-login .auth-page.auth-page, app-sign-up .auth-page.auth-page { padding: 10px; }
+  app-login .auth-shell.auth-shell, app-sign-up .auth-shell.auth-shell { width: 100%; border-radius: 20px; }
+  app-login .brand-panel.brand-panel, app-sign-up .brand-panel.brand-panel { padding: 17px 18px 15px; }
+  app-login .hero-illustration.hero-illustration, app-sign-up .hero-illustration.hero-illustration { width: min(220px, 100%); height: clamp(84px, 25vw, 108px); min-height: 0 !important; }
+  app-login .meeting-art.meeting-art, app-sign-up .meeting-art.meeting-art { width: 120px !important; height: 90px !important; max-width: 100% !important; object-fit: contain; }
+  app-login .form-panel.form-panel, app-sign-up .form-panel.form-panel { padding: 22px 18px 24px; }
+  app-login .input-wrap.input-wrap input { height: 49px; padding-left: 48px; }
+  app-sign-up .form-group.form-group input { height: 49px; }
+  app-dashboard .shell.shell > main { padding: 18px 12px; }
+  app-dashboard .page-head.page-head h1, app-my-meetings .page-header.page-header h1 { font-size: 21px; }
+  app-dashboard .today-meetings-section.today-meetings-section { padding: 13px; margin-bottom: 20px; }
+  app-dashboard .meeting-list.meeting-list article { gap: 10px; padding: 13px; }
+  app-my-meetings .main-content.main-content { padding: 18px 12px; }
+}
