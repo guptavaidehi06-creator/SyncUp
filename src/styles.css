@@ -330,8 +330,8 @@ app-dashboard:not(:root) .shell .sidebar nav button.active {
   box-shadow: inset 3px 0 #c4bdff;
 }
 app-dashboard:not(:root) .shell .sidebar .best-slot { border-color: rgba(229, 229, 255, .2) !important; }
-app-dashboard:not(:root) .shell .sidebar .logout { color: #5142bd; background: #fff; border: 1px solid #e5e4ef; border-radius: 10px; font-size: 13px; font-weight: 650; }
-app-dashboard:not(:root) .shell .sidebar .logout:hover { color: #5142bd; background: #f5f3ff; }
+app-dashboard:not(:root) .shell .sidebar .logout { color: #e1e2ff; background: rgba(255, 255, 255, .06); border: 0; font-size: 13px; font-weight: 650; }
+app-dashboard:not(:root) .shell .sidebar .logout:hover { color: #fff; background: rgba(145, 133, 255, .2); }
 app-dashboard:not(:root) main .page-head { align-items: center; padding-bottom: 22px; border-bottom: 1px solid rgba(110, 111, 168, .14); }
 app-dashboard:not(:root) main .page-head h1 { color: #25264b; font-size: 28px; letter-spacing: -.035em; }
 app-dashboard:not(:root) main .page-subtitle,
