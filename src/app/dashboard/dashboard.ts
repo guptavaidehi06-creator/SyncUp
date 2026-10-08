@@ -510,6 +510,7 @@ export class Dashboard implements OnInit, OnDestroy {
       const status = meeting.status?.toLowerCase();
       return String(meeting.meetingDate).slice(0, 10) === today &&
         status !== 'cancelled' && status !== 'completed' &&
+        !this.isMeetingPast(meeting) &&
         (Number(meeting.createdBy) === userId || participantMeetingIds.has(Number(meeting.id)));
     }).sort((a, b) => this.getMeetingTimestamp(a) - this.getMeetingTimestamp(b));
   }
@@ -628,11 +629,12 @@ export class Dashboard implements OnInit, OnDestroy {
       return false;
     }
 
-    if (!meeting.meetingTime) {
+    const endTime = meeting.meetingEndTime || meeting.meetingTime;
+    if (!endTime) {
       return String(meeting.meetingDate).slice(0, 10) < this.getTodayDate();
     }
 
-    return this.getMeetingDateTime(meeting) < new Date();
+    return this.getMeetingDateTime(meeting, endTime) <= new Date();
   }
 
   getMeetingHistoryStatus(meeting: Meeting): string {
@@ -650,10 +652,10 @@ export class Dashboard implements OnInit, OnDestroy {
     return 'Past';
   }
 
-  private getMeetingDateTime(meeting: Meeting): Date {
+  private getMeetingDateTime(meeting: Meeting, time = meeting.meetingTime): Date {
     const date = new Date(`${String(meeting.meetingDate).slice(0, 10)}T00:00:00`);
-    if (meeting.meetingTime) {
-      const [hours, minutes] = meeting.meetingTime.split(':').map(Number);
+    if (time) {
+      const [hours, minutes] = time.split(':').map(Number);
       date.setHours(hours, minutes, 0, 0);
     }
     return date;
@@ -1541,22 +1543,6 @@ export class Dashboard implements OnInit, OnDestroy {
       this.notificationsOpen = false;
       this.cdr.detectChanges();
     }
-  }
-
-  getAdminNotificationCategory(notification: Notification): string {
-    const title = String(notification.title || '').toLowerCase();
-    const message = String(notification.message || '').toLowerCase();
-    const context = `${title} ${message}`;
-
-    if (context.includes('availability')) return 'Availability';
-    if (context.includes('participant') || context.includes('added to meeting')) return 'Participant update';
-    if (context.includes('created') || context.includes('new meeting')) return 'Meeting created';
-    if (context.includes('confirm')) return 'Meeting confirmed';
-    if (context.includes('reschedul')) return 'Meeting rescheduled';
-    if (context.includes('cancel')) return 'Meeting cancelled';
-    if (context.includes('action required') || context.includes('reminder')) return 'Action required';
-
-    return notification.type || 'Workspace update';
   }
 
   get unreadNotificationCount(): number {

@@ -102,16 +102,18 @@
 
             <div
               class="notification-item"
-              [class.read]="notification.isRead"
+              [class.unread]="!notification.isRead"
               *ngFor="let notification of notifications"
               (click)="markNotificationRead(notification)">
 
-              <span class="notification-dot" *ngIf="!notification.isRead" aria-hidden="true"></span>
+              <div class="notification-icon" aria-hidden="true">
+                <svg *ngIf="notification.type === 'AvailabilitySubmitted'; else adminGeneralNotice" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="16" rx="2.5"/><path d="M7.5 3v4M16.5 3v4M4 10h16"/></svg>
+                <ng-template #adminGeneralNotice><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></ng-template>
+              </div>
 
-              <div class="admin-notification-content">
-                <span class="admin-notification-category">{{ getAdminNotificationCategory(notification) }}</span>
-                <h4>{{ notification.title || getAdminNotificationCategory(notification) }}</h4>
-                <p>{{ notification.message }}</p>
+              <div class="notification-content">
+                <p class="notification-title">{{ notification.title || 'Workspace update' }}</p>
+                <p class="notification-message">{{ notification.message }}</p>
               </div>
 
             </div>
@@ -169,13 +171,13 @@
         </div>
 
         <div class="meeting-list today-meeting-list" *ngIf="getAdminTodayMeetings().length; else emptyTodayMeetings">
-          <article *ngFor="let meeting of getAdminTodayMeetings()">
+          <article class="today-meeting-card" *ngFor="let meeting of getAdminTodayMeetings()">
             <div class="date">
               <b>{{ meeting.meetingDate | date:'dd' }}</b>
               <small>{{ meeting.meetingDate | date:'MMM' }}</small>
             </div>
             <div class="meeting-info">
-              <h3>{{ meeting.title }}</h3>
+              <h3>{{ meeting.title }} <span class="today-badge">Today</span></h3>
               <p>{{ meeting.meetingTime || 'Time to be scheduled' }}<ng-container *ngIf="meeting.meetingEndTime">– {{ meeting.meetingEndTime }}</ng-container> · {{ getMeetingDuration(meeting) }} · {{ getMeetingParticipantCount(meeting.id) }} participants · {{ meeting.priority }} priority</p>
             </div>
             <em>{{ meeting.status }}</em>

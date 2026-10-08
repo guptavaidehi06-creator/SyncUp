@@ -97,10 +97,11 @@
         <b>No meetings today</b>
         <p>Meetings scheduled for today will appear here.</p>
       </div>
-      <div class="meeting-card" *ngFor="let meeting of todayMeetings">
+      <div class="meeting-card today-meeting-card" *ngFor="let meeting of todayMeetings">
         <div class="meeting-details">
           <div class="meeting-title-row">
             <h3>{{ meeting.title }}</h3>
+            <span class="today-badge">Today</span>
             <span class="status meeting-status"
               [class.confirmed]="meeting.status?.toLowerCase() === 'confirmed'"
               [class.cancelled]="meeting.status?.toLowerCase() === 'cancelled'"

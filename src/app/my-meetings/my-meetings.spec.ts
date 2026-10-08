@@ -35,6 +35,10 @@ describe('MyMeetings', () => {
     await fixture.whenStable();
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
@@ -145,6 +149,32 @@ describe('MyMeetings', () => {
     vi.spyOn(component as any, 'getLocalDateString').mockReturnValue(today);
     component.myMeetings = [{ id: 7, title: 'Standup', meetingDate: today, status: 'Scheduled', priority: 'Medium' }];
     expect(component.todayMeetings.map(meeting => meeting.title)).toEqual(['Standup']);
+  });
+
+  it('moves a scheduled meeting to Past at its end time and sorts history by date and time newest first', () => {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(`${today}T08:59:00`));
+    const meeting = { id: 10, title: 'Planning', meetingDate: today, meetingTime: '08:00', meetingEndTime: '09:00', status: 'Scheduled' };
+    expect(component.isPastMeeting(meeting)).toBe(false);
+    vi.setSystemTime(new Date(`${today}T09:00:00`));
+    expect(component.isPastMeeting(meeting)).toBe(true);
+    component.myMeetings = [
+      { id: 1, title: 'Older title z', meetingDate: '2026-10-06', meetingTime: '15:00', status: 'Completed' },
+      { id: 2, title: 'Newest title a', meetingDate: '2026-10-08', meetingTime: '09:30', status: 'Cancelled' },
+      { id: 3, title: 'Same day later', meetingDate: '2026-10-08', meetingTime: '11:00', status: 'Completed' }
+    ];
+    expect(component.pastMeetings.map(item => item.id)).toEqual([3, 2, 1]);
+  });
+
+  it('removes ended scheduled meetings from the participant Today section', () => {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(`${today}T09:00:00`));
+    component.myMeetings = [{ id: 1, title: 'Ended', meetingDate: today, meetingTime: '08:00', meetingEndTime: '09:00', status: 'Scheduled' }];
+    expect(component.todayMeetings).toHaveLength(0);
   });
 
   it('opens the meeting-specific Submit Availability route from the pending meeting CTA', () => {

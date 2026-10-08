@@ -432,7 +432,8 @@ export class MyMeetings implements OnInit {
     return this.myMeetings.filter((meeting: any) => {
       const status = meeting.status?.toLowerCase();
       return status !== 'cancelled' && status !== 'completed' &&
-        String(meeting.meetingDate).slice(0, 10) === today;
+        String(meeting.meetingDate).slice(0, 10) === today &&
+        !this.isPastMeeting(meeting);
     }).sort((a: any, b: any) =>
       this.getMeetingTimestamp(a) - this.getMeetingTimestamp(b)
     );
@@ -532,7 +533,8 @@ export class MyMeetings implements OnInit {
       return false;
     }
 
-    if (!meeting.meetingTime) {
+    const endTime = meeting.meetingEndTime || meeting.meetingTime;
+    if (!endTime) {
       return String(meeting.meetingDate).slice(0, 10) < this.getLocalDateString();
     }
 
@@ -540,10 +542,10 @@ export class MyMeetings implements OnInit {
       `${String(meeting.meetingDate).slice(0, 10)}T00:00:00`
     );
 
-    if (meeting.meetingTime) {
+    if (endTime) {
 
       const timeParts =
-        meeting.meetingTime
+        endTime
           .split(':');
 
       const hours =
@@ -561,7 +563,7 @@ export class MyMeetings implements OnInit {
 
     }
 
-    return meetingDateTime < new Date();
+    return meetingDateTime <= new Date();
 
   }
 

@@ -244,18 +244,28 @@ app-my-meetings .notification-panel {
   z-index: 1200;
   max-height: min(70vh, 560px);
 }
-app-dashboard .notification-wrapper .notification-dropdown { position: fixed; top: 84px; right: 45px; width: min(340px, calc(100vw - 30px)); }
+app-dashboard .notification-wrapper .notification-dropdown { position: fixed; top: 84px; right: 45px; width: min(360px, calc(100vw - 32px)); border: 1px solid #e8e6f5; border-radius: 16px; background: #fff; box-shadow: 0 20px 48px rgba(37, 38, 91, .16); }
+app-my-meetings .notification-panel { width: min(360px, calc(100vw - 32px)); border: 1px solid #e8e6f5; border-radius: 16px; background: #fff; box-shadow: 0 20px 48px rgba(37, 38, 91, .16); }
+app-dashboard .notification-dropdown .notification-header { padding: 17px 18px; border-bottom: 1px solid #eeedf6; }
+app-dashboard .notification-dropdown .notification-header h3 { color: #373078; font-size: 15px; }
 app-dashboard .notification-dropdown .notification-header small { display: block; margin-top: 4px; color: #777b90; font-size: 11px; }
-app-dashboard .admin-notification-content { flex: 1; min-width: 0; }
-app-dashboard .admin-notification-category { display: inline-block; margin-bottom: 5px; padding: 3px 7px; border-radius: 999px; background: #f0eeff; color: #5243c4; font-size: 10px; font-weight: 700; }
-app-dashboard .admin-notification-content h4 { margin: 0 0 3px; color: #373078; font-size: 13px; overflow-wrap: anywhere; }
-app-dashboard .admin-notification-content p { margin: 0; color: #626780; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+app-dashboard .notification-dropdown .mark-read { color: #5649bf; }
+app-dashboard .notification-dropdown .notification-item { gap: 10px; padding: 15px 18px; border-bottom: 1px solid #f0eff7; }
+app-dashboard .notification-dropdown .notification-item:hover,
+app-dashboard .notification-dropdown .notification-item.unread { background: #f8f7ff; }
+app-dashboard .notification-dropdown .notification-icon { width: 8px; height: 8px; margin-top: 6px; flex: 0 0 8px; border-radius: 50%; background: #5749c5; }
+app-dashboard .notification-dropdown .notification-icon svg { width: 14px; height: 14px; overflow: visible; stroke: #5749c5; fill: none; stroke-width: 1.8; }
+app-dashboard .notification-dropdown .notification-content { min-width: 0; }
+app-dashboard .notification-dropdown .notification-title { margin: 0 0 3px; color: #292e39; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+app-dashboard .notification-dropdown .notification-message { margin: 0; color: #525866; font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
 app-dashboard .notification-loading { padding: 24px 18px; color: #777b90; font-size: 13px; text-align: center; }
 app-dashboard .header-profile { display: flex; align-items: center; gap: 9px; color: #41425d; font-size: 13px; font-weight: 650; }
 app-dashboard .header-avatar { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; color: #5142bd; background: #eeecff; }
 @media (max-width: 600px) { app-dashboard .header-user-name { display: none; } }
-@media (max-width: 850px) { app-dashboard .notification-wrapper .notification-dropdown { top: 76px; right: 20px; width: min(340px, calc(100vw - 40px)); } }
-@media (max-width: 600px) { app-dashboard .notification-wrapper .notification-dropdown { top: 72px; right: 15px; width: min(340px, calc(100vw - 30px)); } }
+@media (max-width: 850px) { app-dashboard .notification-wrapper .notification-dropdown { top: 76px; right: 20px; width: min(360px, calc(100vw - 40px)); } }
+@media (max-width: 600px) { app-dashboard .notification-wrapper .notification-dropdown { top: 72px; right: 15px; width: min(360px, calc(100vw - 30px)); } }
+@media (max-width: 850px) { app-my-meetings .notification-panel { width: min(360px, calc(100vw - 40px)); } }
+@media (max-width: 600px) { app-my-meetings .notification-panel { width: min(360px, calc(100vw - 30px)); } }
 
 @media(max-width: 600px) {
   app-dashboard .stats > div,
@@ -698,7 +708,8 @@ app-my-meetings:not(:root) .participant-logout-actions button:focus-visible {
 app-dashboard .today-meetings-section { margin: 0 0 26px; padding: 18px; border: 1px solid #dcd7ff; border-radius: 16px; background: linear-gradient(135deg, #f7f5ff, #fff 72%); box-shadow: 0 8px 24px rgba(82, 67, 186, .07); }
 app-dashboard .today-section-title { margin: 0 0 14px; }
 app-dashboard .today-section-title h2 { font-weight: 750; }
-app-dashboard .today-meeting-list article { background: rgba(255,255,255,.9); }
+app-dashboard .today-meeting-list article.today-meeting-card { border: 1px solid #c9c1fb; background: linear-gradient(110deg, #f2efff, rgba(255,255,255,.96) 68%); box-shadow: 0 7px 20px rgba(82,67,186,.12); }
+app-dashboard .today-meeting-card h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
 app-dashboard .today-empty { margin: 0; }
 app-dashboard .today-meetings-section.is-empty { padding: 12px 16px; box-shadow: none; }
 app-dashboard .today-meetings-section.is-empty .today-section-title { margin-bottom: 6px; }
@@ -708,11 +719,14 @@ app-dashboard .today-empty-state p, app-my-meetings .today-empty-state p { margi
 app-my-meetings .today-meetings-section { padding: 16px; border: 1px solid #dcd7ff; border-radius: 15px; background: linear-gradient(135deg, #f7f5ff, #fff 72%); box-shadow: 0 8px 24px rgba(82, 67, 186, .07); }
 app-my-meetings .today-meetings-section .section-heading { margin-bottom: 12px; }
 app-my-meetings .today-meetings-section .section-heading h2 { color: #40358f; font-weight: 750; }
-app-my-meetings .today-meetings-section .meeting-card { border-color: #e1dcfa; background: rgba(255,255,255,.92); }
+app-my-meetings .today-meetings-section .meeting-card.today-meeting-card { border: 1px solid #c9c1fb; background: linear-gradient(110deg, #f2efff, rgba(255,255,255,.96) 68%); box-shadow: 0 7px 20px rgba(82,67,186,.12); }
+app-my-meetings .today-meeting-card .today-badge { flex: 0 0 auto; }
 app-my-meetings .today-meetings-section.is-empty { padding: 12px 16px; box-shadow: none; }
 app-my-meetings .today-meetings-section.is-empty .section-heading { margin-bottom: 6px; }
 app-my-meetings .today-empty-state { padding: 8px 10px; border: 1px solid #e7e4fa; border-radius: 10px; background: rgba(255,255,255,.78); }
 app-my-meetings .page-header.page-header h1 { color: #40358f; font-weight: 760; }
+app-dashboard .today-badge,
+app-my-meetings .today-badge { display: inline-flex; align-items: center; padding: 3px 8px; border: 1px solid #d4cdfc; border-radius: 999px; color: #4e40b6; background: #eae6ff; font-size: 10px; font-weight: 800; line-height: 1.3; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
 app-dashboard .cancel-meeting-overlay { position: fixed; inset: 0; z-index: 1050; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(28,27,55,.42); }
 app-dashboard .cancel-meeting-modal { width: min(100%,420px); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 24px; border: 1px solid #e7e5f5; border-radius: 16px; background: #fff; box-shadow: 0 22px 60px rgba(35,32,82,.2); overflow-wrap: anywhere; }
 app-dashboard .cancel-meeting-modal h2 { margin: 0 0 10px; color: #373078; font-size: 20px; }

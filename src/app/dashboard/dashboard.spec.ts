@@ -121,9 +121,9 @@ describe('Dashboard', () => {
 
     expect(component.notificationsLoading).toBe(false);
     expect(fixture.nativeElement.textContent).toContain('Workspace activity');
-    expect(fixture.nativeElement.textContent).toContain('Meeting created');
-    expect(fixture.nativeElement.textContent).toContain('Availability');
-    expect(fixture.nativeElement.textContent).toContain('Meeting rescheduled');
+    expect(fixture.nativeElement.textContent).toContain('Meeting Created');
+    expect(fixture.nativeElement.textContent).toContain('Availability Submitted');
+    expect(fixture.nativeElement.textContent).toContain('Meeting Rescheduled');
     expect(httpMock.match(request => request.url.endsWith('/api/notification/user/7'))).toHaveLength(0);
 
     (fixture.nativeElement.querySelector('.notification-header') as HTMLElement).click();
@@ -295,6 +295,32 @@ describe('Dashboard', () => {
     expect(component.hasAdminSubmittedAvailability(2)).toBe(true);
     expect(component.getAdminTodayMeetingCount()).toBe(1);
     expect(component.getAdminTodayMeetings().map(meeting => meeting.id)).toEqual([4]);
+  });
+
+  it('moves a scheduled meeting to Past at its end time and sorts history by date and time newest first', () => {
+    const date = component.getTodayDate();
+    const meeting = { id: 10, title: 'Planning', meetingDate: date, meetingTime: '08:00', meetingEndTime: '09:00', status: 'Scheduled', priority: 'Medium', createdBy: 7 };
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(`${date}T08:59:00`));
+    expect(component.isMeetingPast(meeting)).toBe(false);
+    vi.setSystemTime(new Date(`${date}T09:00:00`));
+    expect(component.isMeetingPast(meeting)).toBe(true);
+    component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
+    component.meetings = [
+      { id: 1, title: 'Older title z', meetingDate: '2026-10-06', meetingTime: '15:00', status: 'Completed', priority: 'Medium', createdBy: 7 },
+      { id: 2, title: 'Newest title a', meetingDate: '2026-10-08', meetingTime: '09:30', status: 'Cancelled', priority: 'Medium', createdBy: 7 },
+      { id: 3, title: 'Same day later', meetingDate: '2026-10-08', meetingTime: '11:00', status: 'Completed', priority: 'Medium', createdBy: 7 }
+    ];
+    expect(component.getPastMeetings().map(item => item.id)).toEqual([3, 2, 1]);
+  });
+
+  it('removes ended scheduled meetings from the Admin Today section', () => {
+    const date = component.getTodayDate();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(`${date}T09:00:00`));
+    component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
+    component.meetings = [{ id: 1, title: 'Ended', meetingDate: date, meetingTime: '08:00', meetingEndTime: '09:00', status: 'Scheduled', priority: 'Medium', createdBy: 7 }];
+    expect(component.getAdminTodayMeetings()).toHaveLength(0);
   });
 
   it('stops loading and prevents a blind retry when meeting creation times out', async () => {
