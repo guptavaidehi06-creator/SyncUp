@@ -605,6 +605,14 @@ export class Dashboard implements OnInit, OnDestroy {
       });
   }
 
+  getAvailabilityReviewMeetings(): Meeting[] {
+    return this.getUpcomingMeetings().filter(meeting => {
+      const status = meeting.status?.trim().toLowerCase();
+      return status !== 'scheduled' && status !== 'confirmed' &&
+        status !== 'cancelled' && status !== 'completed';
+    });
+  }
+
   getPendingAdminAvailabilityMeetings(): Meeting[] {
     return this.getAdminAvailabilityMeetings()
       .filter(meeting => !this.hasAdminSubmittedAvailability(Number(meeting.id)));
@@ -1459,6 +1467,10 @@ export class Dashboard implements OnInit, OnDestroy {
   // FIND BEST SLOT
   // =========================
 
+  clearSuggestedSlot(): void {
+    this.suggestResult = null;
+  }
+
   findBestSlot(): void {
 
     if (this.isFindingSlot) return;
@@ -1640,6 +1652,7 @@ export class Dashboard implements OnInit, OnDestroy {
         const message = typeof err?.error === 'string'
           ? err.error
           : err?.error?.message || 'Unable to confirm the best slot.';
+        this.suggestResult = { success: false, message };
         this.showMeetingToast(message, 'error');
         this.cdr.detectChanges();
       }

@@ -272,6 +272,7 @@ describe('Dashboard', () => {
   });
 
   it('shows availability only for the current admin participant and counts today meetings', () => {
+    fixture.detectChanges();
     component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
     const tomorrow = component.getTomorrowDate();
     const today = component.getTodayDate();
@@ -279,22 +280,32 @@ describe('Dashboard', () => {
       { id: 1, title: 'Pending', meetingDate: tomorrow, status: 'Upcoming', priority: 'Medium', createdBy: 7 },
       { id: 2, title: 'Submitted', meetingDate: tomorrow, status: 'Rescheduled', priority: 'Medium', createdBy: 2 },
       { id: 3, title: 'Scheduled', meetingDate: tomorrow, status: 'Scheduled', priority: 'Medium', createdBy: 7 },
-      { id: 4, title: 'Today', meetingDate: today, status: 'Upcoming', priority: 'Medium', createdBy: 7 }
+      { id: 4, title: 'Today', meetingDate: today, status: 'Upcoming', priority: 'Medium', createdBy: 7 },
+      { id: 5, title: 'Confirmed', meetingDate: tomorrow, status: 'Confirmed', priority: 'Medium', createdBy: 7 },
+      { id: 6, title: 'Cancelled', meetingDate: tomorrow, status: 'Cancelled', priority: 'Medium', createdBy: 7 },
+      { id: 7, title: 'Past', meetingDate: '2000-01-01', status: 'Upcoming', priority: 'Medium', createdBy: 7 },
+      { id: 8, title: 'Other participant review', meetingDate: tomorrow, status: 'Upcoming', priority: 'Medium', createdBy: 2 }
     ];
     component.participants = [
       { meetingId: 1, userId: 7, isMandatory: true },
       { meetingId: 2, userId: 7, isMandatory: false },
-      { meetingId: 3, userId: 7, isMandatory: true }
+      { meetingId: 3, userId: 7, isMandatory: true },
+      { meetingId: 5, userId: 7, isMandatory: true },
+      { meetingId: 6, userId: 7, isMandatory: true },
+      { meetingId: 7, userId: 7, isMandatory: true },
+      { meetingId: 8, userId: 8, isMandatory: true }
     ];
     component.availability = [
       { meetingId: 2, userId: 7, startTime: '09:00', endTime: '10:00' }
     ];
 
     expect(component.getAdminAvailabilityMeetings().map(meeting => meeting.id)).toEqual([1, 2]);
+    expect(component.getAvailabilityReviewMeetings().map(meeting => meeting.id)).toEqual([4, 1, 2, 8]);
     expect(component.getPendingAdminAvailabilityMeetings().map(meeting => meeting.id)).toEqual([1]);
     expect(component.hasAdminSubmittedAvailability(2)).toBe(true);
     expect(component.getAdminTodayMeetingCount()).toBe(1);
     expect(component.getAdminTodayMeetings().map(meeting => meeting.id)).toEqual([4]);
+
   });
 
   it('moves a scheduled meeting to Past at its end time and sorts history by date and time newest first', () => {
@@ -475,5 +486,9 @@ describe('Dashboard', () => {
     expect(component.isConfirmingSlot).toBe(false);
     expect(component.meetingToastMessage).toBe('The selected slot is no longer available.');
     expect(component.meetingToastType).toBe('error');
+    expect(component.suggestResult).toEqual({
+      success: false,
+      message: 'The selected slot is no longer available.'
+    });
   });
 });

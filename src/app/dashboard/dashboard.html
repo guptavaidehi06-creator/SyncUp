@@ -612,7 +612,7 @@
             </option>
 
             <option
-              *ngFor="let meeting of getActiveMeetings()"
+              *ngFor="let meeting of getAvailabilityReviewMeetings()"
               [ngValue]="meeting.id">
 
               {{ meeting.title }}
@@ -721,7 +721,7 @@
         <label>
           Select meeting
 
-          <select [(ngModel)]="suggestRequest.meetingId">
+          <select [(ngModel)]="suggestRequest.meetingId" (ngModelChange)="clearSuggestedSlot()">
 
             <option [ngValue]="null" disabled>
               Select a meeting
@@ -741,7 +741,7 @@
         <label>
           Meeting duration
 
-          <select [(ngModel)]="suggestRequest.durationMinutes">
+          <select [(ngModel)]="suggestRequest.durationMinutes" (ngModelChange)="clearSuggestedSlot()">
             <option [ngValue]="30">30 minutes</option>
             <option [ngValue]="45">45 minutes</option>
             <option [ngValue]="60">1 hour</option>
