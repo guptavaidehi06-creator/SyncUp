@@ -45,8 +45,6 @@ export class ForgotPassword {
 
     this.isRequesting = true;
 
-    console.log('Sending forgot password request...');
-
     this.authService
       .forgotPassword({
         email: this.email
@@ -62,23 +60,13 @@ export class ForgotPassword {
       )
       .subscribe({
 
-        next: (response) => {
-
-          console.log(
-            'Forgot password response:',
-            response
-          );
+        next: () => {
 
           // Change to reset password screen
           this.step = 'reset';
 
           this.successMessage =
             'Reset code sent! Check your email and spam folder.';
-
-          console.log(
-            'Current step:',
-            this.step
-          );
 
           // Force Angular to update UI
           this.cdr.detectChanges();
@@ -137,8 +125,6 @@ export class ForgotPassword {
 
     this.isResetting = true;
 
-    console.log('Resetting password...');
-
     this.authService
       .resetPassword({
 
@@ -158,12 +144,7 @@ export class ForgotPassword {
       )
       .subscribe({
 
-        next: (response) => {
-
-          console.log(
-            'Password reset response:',
-            response
-          );
+        next: () => {
 
           this.successMessage =
             'Password reset successfully! Redirecting to login...';

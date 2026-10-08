@@ -135,10 +135,6 @@ export class MyMeetings implements OnInit {
                   id !== undefined
               );
 
-          // IMPORTANT:
-          // Tere MeetingService me method ka naam
-          // getMeetings() hai, getAllMeetings() nahi
-
           this.meetingService
             .getMeetings()
             .subscribe({

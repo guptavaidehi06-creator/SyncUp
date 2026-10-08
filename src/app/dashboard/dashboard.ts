@@ -157,11 +157,6 @@ export class Dashboard implements OnInit, OnDestroy {
       return;
     }
 
-    console.log(
-      'Current logged in user:',
-      this.currentUser
-    );
-
     this.meetingService.meetings$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(meetings => this.meetings = meetings);
