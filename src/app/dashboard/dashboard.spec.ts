@@ -37,6 +37,7 @@ describe('Dashboard', () => {
   afterEach(() => {
     httpMock.verify();
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it('should create', () => {
@@ -251,24 +252,27 @@ describe('Dashboard', () => {
 
   it('cancels logout without clearing the session and uses the shared flow when confirmed', () => {
     fixture.detectChanges();
+    const nativeConfirmSpy = vi.spyOn(window, 'confirm');
     (fixture.nativeElement.querySelector('.logout') as HTMLButtonElement).click();
     fixture.detectChanges();
 
-    const dialog = fixture.nativeElement.querySelector('.logout-modal') as HTMLElement;
+    const dialog = fixture.nativeElement.querySelector('.admin-logout-dialog') as HTMLElement;
     expect(dialog.textContent).toContain('Are you sure you want to logout?');
-    expect(dialog.textContent).toContain('Cancel');
-    expect(dialog.textContent).toContain('Logout');
+    expect(dialog.textContent).toContain('No');
+    expect(dialog.textContent).toContain('Yes, Logout');
+    expect(nativeConfirmSpy).not.toHaveBeenCalled();
 
-    (dialog.querySelector('.quiet') as HTMLButtonElement).click();
+    (dialog.querySelector('.admin-logout-cancel') as HTMLButtonElement).click();
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('.logout-modal')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.admin-logout-dialog')).toBeNull();
     expect(logoutAndRedirectSpy).not.toHaveBeenCalled();
 
     (fixture.nativeElement.querySelector('.logout') as HTMLButtonElement).click();
     fixture.detectChanges();
-    (fixture.nativeElement.querySelector('.logout-confirm') as HTMLButtonElement).click();
+    (fixture.nativeElement.querySelector('.admin-logout-confirm') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(logoutAndRedirectSpy).toHaveBeenCalledOnce();
+    nativeConfirmSpy.mockRestore();
   });
 
   it('shows availability only for the current admin participant and counts today meetings', () => {

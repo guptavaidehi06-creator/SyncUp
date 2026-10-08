@@ -330,8 +330,8 @@ app-dashboard:not(:root) .shell .sidebar nav button.active {
   box-shadow: inset 3px 0 #c4bdff;
 }
 app-dashboard:not(:root) .shell .sidebar .best-slot { border-color: rgba(229, 229, 255, .2) !important; }
-app-dashboard:not(:root) .shell .sidebar .logout { color: #ffd7e0; }
-app-dashboard:not(:root) .shell .sidebar .logout:hover { color: #fff; background: rgba(255, 174, 193, .16); }
+app-dashboard:not(:root) .shell .sidebar .logout { color: #5142bd; background: #fff; border: 1px solid #e5e4ef; border-radius: 10px; font-size: 13px; font-weight: 650; }
+app-dashboard:not(:root) .shell .sidebar .logout:hover { color: #5142bd; background: #f5f3ff; }
 app-dashboard:not(:root) main .page-head { align-items: center; padding-bottom: 22px; border-bottom: 1px solid rgba(110, 111, 168, .14); }
 app-dashboard:not(:root) main .page-head h1 { color: #25264b; font-size: 28px; letter-spacing: -.035em; }
 app-dashboard:not(:root) main .page-subtitle,
@@ -582,6 +582,7 @@ app-my-meetings:not(:root) .participant-dashboard .primary-btn:focus-visible { o
   app-my-meetings:not(:root) .primary-btn { transition: none; }
 }
 
+app-dashboard:not(:root) .admin-logout-overlay,
 app-my-meetings:not(:root) .participant-logout-overlay {
   position: fixed;
   inset: 0;
@@ -593,6 +594,7 @@ app-my-meetings:not(:root) .participant-logout-overlay {
   background: rgba(29, 30, 76, .48);
   backdrop-filter: blur(4px);
 }
+app-dashboard:not(:root) .admin-logout-dialog,
 app-my-meetings:not(:root) .participant-logout-dialog {
   width: min(100%, 400px);
   padding: 26px;
@@ -601,17 +603,20 @@ app-my-meetings:not(:root) .participant-logout-dialog {
   background: #fff;
   box-shadow: 0 24px 64px rgba(28, 29, 78, .24);
 }
+app-dashboard:not(:root) .admin-logout-dialog h2,
 app-my-meetings:not(:root) .participant-logout-dialog h2 {
   margin: 0 0 10px;
   color: #29294f;
   font-size: 20px;
 }
+app-dashboard:not(:root) .admin-logout-dialog p,
 app-my-meetings:not(:root) .participant-logout-dialog p {
   margin: 0;
   color: #676b84;
   font-size: 14px;
   line-height: 1.55;
 }
+app-dashboard:not(:root) .admin-logout-actions,
 app-my-meetings:not(:root) .participant-logout-actions {
   display: flex;
   justify-content: flex-end;
@@ -619,6 +624,7 @@ app-my-meetings:not(:root) .participant-logout-actions {
   gap: 10px;
   margin-top: 24px;
 }
+app-dashboard:not(:root) .admin-logout-actions button,
 app-my-meetings:not(:root) .participant-logout-actions button {
   min-height: 40px;
   padding: 9px 15px;
@@ -629,18 +635,23 @@ app-my-meetings:not(:root) .participant-logout-actions button {
   font-weight: 650;
   cursor: pointer;
 }
+app-dashboard:not(:root) .admin-logout-cancel,
 app-my-meetings:not(:root) .participant-logout-cancel {
   color: #514d79;
   border-color: #e4e2ef !important;
   background: #fff;
 }
+app-dashboard:not(:root) .admin-logout-cancel:hover,
 app-my-meetings:not(:root) .participant-logout-cancel:hover { background: #f7f6ff; }
+app-dashboard:not(:root) .admin-logout-confirm,
 app-my-meetings:not(:root) .participant-logout-confirm {
   color: #fff;
   background: linear-gradient(105deg, #5547c6, #7567df);
   box-shadow: 0 6px 14px rgba(83, 69, 194, .2);
 }
+app-dashboard:not(:root) .admin-logout-confirm:hover,
 app-my-meetings:not(:root) .participant-logout-confirm:hover { background: linear-gradient(105deg, #4739b4, #6556ce); }
+app-dashboard:not(:root) .admin-logout-actions button:focus-visible,
 app-my-meetings:not(:root) .participant-logout-actions button:focus-visible {
   outline: 3px solid #b9b0ff;
   outline-offset: 3px;

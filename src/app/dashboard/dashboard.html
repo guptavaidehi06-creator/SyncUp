@@ -50,7 +50,7 @@
       </button>
     </nav>
 
-    <button class="logout" [attr.aria-label]="sidebarOpen ? null : 'Log out'" (click)="openLogoutConfirmation()">
+    <button class="logout" type="button" [attr.aria-label]="sidebarOpen ? null : 'Log out'" (click)="openLogoutConfirmation()">
       <b>↪</b>
       <span *ngIf="sidebarOpen">Log out</span>
     </button>
@@ -829,29 +829,31 @@
   </div>
 
   <!-- LOGOUT MODAL -->
-  <div class="logout-overlay" *ngIf="showLogoutConfirmation">
+  <div class="admin-logout-overlay" *ngIf="showLogoutConfirmation">
 
-    <div class="logout-modal" role="dialog" aria-modal="true" aria-labelledby="admin-logout-title">
+    <div class="admin-logout-dialog" role="dialog" aria-modal="true" aria-labelledby="admin-logout-title">
 
       <h2 id="admin-logout-title">Log out?</h2>
 
       <p>Are you sure you want to logout?</p>
 
-      <div class="logout-actions">
+      <div class="admin-logout-actions">
 
         <button
-          class="quiet"
+          type="button"
+          class="admin-logout-cancel"
           (click)="closeLogoutConfirmation()">
 
-          Cancel
+          No
 
         </button>
 
         <button
-          class="logout-confirm"
+          type="button"
+          class="admin-logout-confirm"
           (click)="confirmLogout()">
 
-          Logout
+          Yes, Logout
 
         </button>
 
