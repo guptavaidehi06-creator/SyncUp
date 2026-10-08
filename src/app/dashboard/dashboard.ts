@@ -71,6 +71,7 @@ export class Dashboard implements OnInit, OnDestroy {
   activeView: View = 'home';
 
   notificationsOpen = false;
+  notificationsLoading = false;
   showLogoutConfirmation = false;
   meetingToCancel: Meeting | null = null;
   isCancellingMeeting = false;
@@ -293,7 +294,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   loadNotifications(): void {
 
-    if (!this.currentUser) {
+    if (!this.currentUser || this.notificationsLoading) {
       return;
     }
 
@@ -304,14 +305,22 @@ export class Dashboard implements OnInit, OnDestroy {
       return;
     }
 
+    this.notificationsLoading = true;
+    this.cdr.detectChanges();
+
     this.notificationService
       .getNotificationsByUser(userId)
+      .pipe(finalize(() => {
+        this.notificationsLoading = false;
+        this.cdr.detectChanges();
+      }))
       .subscribe({
 
         next: (data: any) => {
 
           this.notifications =
             data || [];
+          this.cdr.detectChanges();
 
         },
 
@@ -1510,6 +1519,8 @@ export class Dashboard implements OnInit, OnDestroy {
     this.notificationsOpen =
       !this.notificationsOpen;
 
+    this.cdr.detectChanges();
+
     if (
       this.notificationsOpen
     ) {
@@ -1521,10 +1532,31 @@ export class Dashboard implements OnInit, OnDestroy {
   @HostListener('document:click', ['$event'])
   closeNotificationsOnOutsideClick(event: MouseEvent): void {
     if (!this.notificationsOpen) return;
+    const menu = this.notificationMenu?.nativeElement;
     const target = event.target;
-    if (target instanceof Node && !this.notificationMenu?.nativeElement.contains(target)) {
+    const clickedInside = menu
+      ? event.composedPath().includes(menu) || (target instanceof Node && menu.contains(target))
+      : target instanceof Element && target.closest('.notification-wrapper') !== null;
+    if (!clickedInside) {
       this.notificationsOpen = false;
+      this.cdr.detectChanges();
     }
+  }
+
+  getAdminNotificationCategory(notification: Notification): string {
+    const title = String(notification.title || '').toLowerCase();
+    const message = String(notification.message || '').toLowerCase();
+    const context = `${title} ${message}`;
+
+    if (context.includes('availability')) return 'Availability';
+    if (context.includes('participant') || context.includes('added to meeting')) return 'Participant update';
+    if (context.includes('created') || context.includes('new meeting')) return 'Meeting created';
+    if (context.includes('confirm')) return 'Meeting confirmed';
+    if (context.includes('reschedul')) return 'Meeting rescheduled';
+    if (context.includes('cancel')) return 'Meeting cancelled';
+    if (context.includes('action required') || context.includes('reminder')) return 'Action required';
+
+    return notification.type || 'Workspace update';
   }
 
   get unreadNotificationCount(): number {
@@ -1560,6 +1592,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
             }
           );
+          this.cdr.detectChanges();
         },
 
         error: (err) => {
@@ -1659,6 +1692,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
         next: () => {
           notification.isRead = true;
+          this.cdr.detectChanges();
         },
 
         error: (err) => {

@@ -244,9 +244,18 @@ app-my-meetings .notification-panel {
   z-index: 1200;
   max-height: min(70vh, 560px);
 }
+app-dashboard .notification-wrapper .notification-dropdown { position: fixed; top: 84px; right: 45px; width: min(340px, calc(100vw - 30px)); }
+app-dashboard .notification-dropdown .notification-header small { display: block; margin-top: 4px; color: #777b90; font-size: 11px; }
+app-dashboard .admin-notification-content { flex: 1; min-width: 0; }
+app-dashboard .admin-notification-category { display: inline-block; margin-bottom: 5px; padding: 3px 7px; border-radius: 999px; background: #f0eeff; color: #5243c4; font-size: 10px; font-weight: 700; }
+app-dashboard .admin-notification-content h4 { margin: 0 0 3px; color: #373078; font-size: 13px; overflow-wrap: anywhere; }
+app-dashboard .admin-notification-content p { margin: 0; color: #626780; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+app-dashboard .notification-loading { padding: 24px 18px; color: #777b90; font-size: 13px; text-align: center; }
 app-dashboard .header-profile { display: flex; align-items: center; gap: 9px; color: #41425d; font-size: 13px; font-weight: 650; }
 app-dashboard .header-avatar { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; color: #5142bd; background: #eeecff; }
 @media (max-width: 600px) { app-dashboard .header-user-name { display: none; } }
+@media (max-width: 850px) { app-dashboard .notification-wrapper .notification-dropdown { top: 76px; right: 20px; width: min(340px, calc(100vw - 40px)); } }
+@media (max-width: 600px) { app-dashboard .notification-wrapper .notification-dropdown { top: 72px; right: 15px; width: min(340px, calc(100vw - 30px)); } }
 
 @media(max-width: 600px) {
   app-dashboard .stats > div,

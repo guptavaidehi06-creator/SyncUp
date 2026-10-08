@@ -254,7 +254,7 @@ export class MyMeetings implements OnInit {
 
         next: (data: any[]) => {
 
-          this.notifications = data || [];
+          this.notifications = (data || []).filter(notification => !this.isAdminWorkspaceNotification(notification));
 
           this.cdr.detectChanges();
         },
@@ -281,15 +281,28 @@ export class MyMeetings implements OnInit {
     this.showNotifications =
       !this.showNotifications;
 
+    this.cdr.detectChanges();
+
   }
 
   @HostListener('document:click', ['$event'])
   closeNotificationsOnOutsideClick(event: MouseEvent): void {
     if (!this.showNotifications) return;
+    const menu = this.notificationMenu?.nativeElement;
     const target = event.target;
-    if (target instanceof Node && !this.notificationMenu?.nativeElement.contains(target)) {
+    const clickedInside = menu
+      ? event.composedPath().includes(menu) || (target instanceof Node && menu.contains(target))
+      : target instanceof Element && target.closest('.notification-wrapper') !== null;
+    if (!clickedInside) {
       this.showNotifications = false;
+      this.cdr.detectChanges();
     }
+  }
+
+  private isAdminWorkspaceNotification(notification: any): boolean {
+    const type = String(notification?.type || '').toLowerCase();
+    const title = String(notification?.title || '').trim().toLowerCase();
+    return type === 'availabilitysubmitted' || title === 'meeting created';
   }
 
   markNotificationsAsRead(): void {

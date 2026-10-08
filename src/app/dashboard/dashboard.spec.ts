@@ -91,6 +91,49 @@ describe('Dashboard', () => {
     expect(component.notificationsOpen).toBe(false);
   });
 
+  it('loads one real Admin notification request and renders its workspace context', () => {
+    component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
+    fixture.detectChanges();
+    const bell = fixture.nativeElement.querySelector('.notification-button') as HTMLButtonElement;
+
+    bell.click();
+    fixture.detectChanges();
+    expect(component.notificationsOpen).toBe(true);
+    expect(fixture.nativeElement.querySelector('#admin-notifications')).not.toBeNull();
+    expect(component.notificationsLoading).toBe(true);
+
+    bell.click();
+    fixture.detectChanges();
+    expect(component.notificationsOpen).toBe(false);
+    bell.click();
+    fixture.detectChanges();
+    expect(component.notificationsOpen).toBe(true);
+
+    const request = httpMock.expectOne(request =>
+      request.method === 'GET' && request.url.endsWith('/api/notification/user/7')
+    );
+    request.flush([
+      { id: 1, userId: 7, title: 'Meeting Created', message: 'Planning was created.', type: 'Meeting', isRead: false },
+      { id: 2, userId: 7, title: 'Availability Submitted', message: 'A participant submitted availability.', type: 'AvailabilitySubmitted', isRead: true },
+      { id: 3, userId: 7, title: 'Meeting Rescheduled', message: 'Planning was rescheduled.', type: 'Meeting', isRead: false }
+    ]);
+    fixture.detectChanges();
+
+    expect(component.notificationsLoading).toBe(false);
+    expect(fixture.nativeElement.textContent).toContain('Workspace activity');
+    expect(fixture.nativeElement.textContent).toContain('Meeting created');
+    expect(fixture.nativeElement.textContent).toContain('Availability');
+    expect(fixture.nativeElement.textContent).toContain('Meeting rescheduled');
+    expect(httpMock.match(request => request.url.endsWith('/api/notification/user/7'))).toHaveLength(0);
+
+    (fixture.nativeElement.querySelector('.notification-header') as HTMLElement).click();
+    fixture.detectChanges();
+    expect(component.notificationsOpen).toBe(true);
+    document.body.click();
+    fixture.detectChanges();
+    expect(component.notificationsOpen).toBe(false);
+  });
+
   it('routes every admin sidebar navigation button to its matching view', () => {
     fixture.detectChanges();
     const expectedViews: Array<[string, string]> = [

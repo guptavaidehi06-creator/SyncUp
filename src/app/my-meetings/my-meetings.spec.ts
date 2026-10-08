@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ActivatedRoute, Router, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { AuthService } from '../services/auth';
@@ -83,6 +83,27 @@ describe('MyMeetings', () => {
     document.body.click();
     fixture.detectChanges();
     expect(component.showNotifications).toBe(false);
+  });
+
+  it('keeps personal notifications and excludes Admin-only workspace events', () => {
+    fixture.detectChanges();
+    component.currentUser = { id: 9, name: 'Participant', role: 'Non-Admin' };
+    component.loadNotifications();
+    const request = TestBed.inject(HttpTestingController).expectOne(request =>
+      request.method === 'GET' && request.url.endsWith('/api/notification/user/9')
+    );
+    request.flush([
+      { id: 1, title: 'Meeting Created', message: 'Workspace meeting created.', type: 'Meeting', isRead: false },
+      { id: 2, title: 'Availability Submitted', message: 'A participant submitted availability.', type: 'AvailabilitySubmitted', isRead: false },
+      { id: 3, title: 'Added to Meeting', message: 'You were added to Planning.', type: 'Participant', isRead: false },
+      { id: 4, title: 'Meeting Confirmed', message: 'Planning was confirmed.', type: 'Meeting', isRead: true }
+    ]);
+    fixture.detectChanges();
+
+    expect(component.notifications.map(notification => notification.title)).toEqual([
+      'Added to Meeting',
+      'Meeting Confirmed'
+    ]);
   });
 
   it('keeps the participant logged in when logout confirmation is cancelled', () => {

@@ -76,15 +76,19 @@
             type="button"
             aria-label="Notifications"
             [attr.aria-expanded]="notificationsOpen"
+            aria-controls="admin-notifications"
             (click)="toggleNotifications()">
             <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
             <span class="notification-dot" *ngIf="unreadNotificationCount" aria-hidden="true"></span>
           </button>
 
-          <div class="notification-dropdown" *ngIf="notificationsOpen">
+          <div id="admin-notifications" class="notification-dropdown" *ngIf="notificationsOpen">
 
             <div class="notification-header">
-              <h3>Notifications</h3>
+              <div>
+                <h3>Workspace activity</h3>
+                <small>Meetings, participants, and availability</small>
+              </div>
 
               <button
                 class="mark-read"
@@ -102,18 +106,23 @@
               *ngFor="let notification of notifications"
               (click)="markNotificationRead(notification)">
 
-              <span
-                class="notification-dot"
-                *ngIf="!notification.isRead">
-              </span>
+              <span class="notification-dot" *ngIf="!notification.isRead" aria-hidden="true"></span>
 
-              <p>{{ notification.message }}</p>
+              <div class="admin-notification-content">
+                <span class="admin-notification-category">{{ getAdminNotificationCategory(notification) }}</span>
+                <h4>{{ notification.title || getAdminNotificationCategory(notification) }}</h4>
+                <p>{{ notification.message }}</p>
+              </div>
 
+            </div>
+
+            <div class="notification-loading" *ngIf="notificationsLoading && !notifications.length" role="status">
+              Loading workspace activity…
             </div>
 
             <div
               class="notification-empty"
-              *ngIf="!notifications.length">
+              *ngIf="!notificationsLoading && !notifications.length">
 
               <b>No new notifications</b>
               <p>You're all caught up.</p>
