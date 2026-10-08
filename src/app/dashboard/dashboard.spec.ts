@@ -305,6 +305,9 @@ describe('Dashboard', () => {
     expect(component.isMeetingPast(meeting)).toBe(false);
     vi.setSystemTime(new Date(`${date}T09:00:00`));
     expect(component.isMeetingPast(meeting)).toBe(true);
+    expect(component.isMeetingPast({ ...meeting, meetingEndTime: null, durationMinutes: 60 })).toBe(true);
+    vi.setSystemTime(new Date(`${date}T08:59:00`));
+    expect(component.isMeetingPast({ ...meeting, meetingEndTime: null, durationMinutes: 60 })).toBe(false);
     component.currentUser = { id: 7, name: 'Admin', email: 'admin@example.com' };
     component.meetings = [
       { id: 1, title: 'Older title z', meetingDate: '2026-10-06', meetingTime: '15:00', status: 'Completed', priority: 'Medium', createdBy: 7 },

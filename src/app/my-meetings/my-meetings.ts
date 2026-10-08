@@ -533,37 +533,19 @@ export class MyMeetings implements OnInit {
       return false;
     }
 
-    const endTime = meeting.meetingEndTime || meeting.meetingTime;
-    if (!endTime) {
+    if (meeting.meetingEndTime) {
+      return this.getMeetingDateTime(meeting, meeting.meetingEndTime) <= new Date();
+    }
+
+    if (meeting.meetingTime && meeting.durationMinutes) {
+      const endTimestamp = this.getMeetingDateTime(meeting).getTime() + meeting.durationMinutes * 60_000;
+      return endTimestamp <= Date.now();
+    }
+
+    if (!meeting.meetingTime) {
       return String(meeting.meetingDate).slice(0, 10) < this.getLocalDateString();
     }
-
-    const meetingDateTime = new Date(
-      `${String(meeting.meetingDate).slice(0, 10)}T00:00:00`
-    );
-
-    if (endTime) {
-
-      const timeParts =
-        endTime
-          .split(':');
-
-      const hours =
-        Number(timeParts[0]);
-
-      const minutes =
-        Number(timeParts[1]);
-
-      meetingDateTime.setHours(
-        hours,
-        minutes,
-        0,
-        0
-      );
-
-    }
-
-    return meetingDateTime <= new Date();
+    return String(meeting.meetingDate).slice(0, 10) < this.getLocalDateString();
 
   }
 
@@ -652,6 +634,15 @@ export class MyMeetings implements OnInit {
       date.setHours(hours, minutes, 0, 0);
     }
     return date.getTime();
+  }
+
+  private getMeetingDateTime(meeting: any, time = meeting.meetingTime): Date {
+    const date = new Date(`${String(meeting.meetingDate).slice(0, 10)}T00:00:00`);
+    if (time) {
+      const [hours, minutes] = time.split(':').map(Number);
+      date.setHours(hours, minutes, 0, 0);
+    }
+    return date;
   }
 
   // =========================

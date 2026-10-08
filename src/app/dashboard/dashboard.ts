@@ -629,12 +629,20 @@ export class Dashboard implements OnInit, OnDestroy {
       return false;
     }
 
-    const endTime = meeting.meetingEndTime || meeting.meetingTime;
-    if (!endTime) {
+    if (meeting.meetingEndTime) {
+      return this.getMeetingDateTime(meeting, meeting.meetingEndTime) <= new Date();
+    }
+
+    if (meeting.meetingTime && meeting.durationMinutes) {
+      const endTimestamp = this.getMeetingDateTime(meeting).getTime() + meeting.durationMinutes * 60_000;
+      return endTimestamp <= Date.now();
+    }
+
+    if (!meeting.meetingTime) {
       return String(meeting.meetingDate).slice(0, 10) < this.getTodayDate();
     }
 
-    return this.getMeetingDateTime(meeting, endTime) <= new Date();
+    return String(meeting.meetingDate).slice(0, 10) < this.getTodayDate();
   }
 
   getMeetingHistoryStatus(meeting: Meeting): string {

@@ -160,6 +160,9 @@ describe('MyMeetings', () => {
     expect(component.isPastMeeting(meeting)).toBe(false);
     vi.setSystemTime(new Date(`${today}T09:00:00`));
     expect(component.isPastMeeting(meeting)).toBe(true);
+    expect(component.isPastMeeting({ ...meeting, meetingEndTime: null, durationMinutes: 60 })).toBe(true);
+    vi.setSystemTime(new Date(`${today}T08:59:00`));
+    expect(component.isPastMeeting({ ...meeting, meetingEndTime: null, durationMinutes: 60 })).toBe(false);
     component.myMeetings = [
       { id: 1, title: 'Older title z', meetingDate: '2026-10-06', meetingTime: '15:00', status: 'Completed' },
       { id: 2, title: 'Newest title a', meetingDate: '2026-10-08', meetingTime: '09:30', status: 'Cancelled' },
